@@ -15,7 +15,7 @@ var Score = /** @class */ (function () {
         this.viewport.setAttribute("width", "600");
         this.viewport.setAttribute("height", "400");
         this.viewport.appendChild(this.sheet);
-        this.drawClef("gClef", 2);
+        this.drawClef("fClef");
         this.drawStaff();
     }
     Object.defineProperty(Score.prototype, "svg", {
@@ -46,8 +46,6 @@ var Score = /** @class */ (function () {
         clef.setAttribute("y", "" + yValue);
         return clef;
     };
-    Score.prototype.drawBarline = function () {
-    };
     Score.prototype.drawStaff = function () {
         var _this = this;
         this.useGlyph("staff", function (symbol) {
@@ -65,7 +63,7 @@ var Score = /** @class */ (function () {
                 var line = _this.createElement("line");
                 line.setAttribute("x1", "0");
                 line.setAttribute("y1", "" + i * 8);
-                line.setAttribute("x2", "500");
+                line.setAttribute("x2", "100");
                 line.setAttribute("y2", "" + i * 8);
                 line.classList.add("staffLine");
                 symbol.appendChild(line);

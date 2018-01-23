@@ -57,26 +57,40 @@ class Score {
 
         this.viewport.appendChild(this.sheet);
 
-        this.drawClef("gClef");
-        this.drawGlyph("noteheadWhole", 0xE0A2);
+        this.drawClef("gClef", 2);
         this.drawStaff();
     }
 
-    private drawGlyph(name: string, code: number): void {
-        this.useGlyph(name, (symbol) => {
-            const text = this.createElement("text");
+    private createGlyph(code: number): SVGTextElement {
+        const text = <SVGTextElement> this.createElement("text");
 
-            text.textContent = String.fromCharCode(code);
-            text.classList.add("glyph");
+        text.textContent = String.fromCharCode(code);
+        text.classList.add("glyph");
 
-            symbol.appendChild(text);
-        });
+        return text;
     }
 
-    private drawClef(name: string): void {
-        this.useGlyph(name, (symbol) => {
-            
+    private drawClef(name: string, staffPosition: number = 0): SVGUseElement {
+        const clefCodes = {
+            "gClef": 0xE050,
+            "fClef": 0xE062
+        };
+
+        const clef = this.useGlyph(name, (symbol) => {
+            const clef = this.createGlyph(clefCodes[name]);
+
+            symbol.appendChild(clef);
         });
+
+        const yValue = 32 - staffPosition * 4;
+
+        clef.setAttribute("y", `${yValue}`);
+
+        return clef;
+    }
+
+    private drawBarline() {
+        
     }
 
     private drawStaff(): void {
@@ -100,7 +114,7 @@ class Score {
 
                 line.setAttribute("x1", "0");
                 line.setAttribute("y1", `${i * 8}`);
-                line.setAttribute("x2", 100);
+                line.setAttribute("x2", "500");
                 line.setAttribute("y2", `${i * 8}`);
                 line.classList.add("staffLine");
 
