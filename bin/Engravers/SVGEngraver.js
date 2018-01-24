@@ -1,13 +1,15 @@
 import glyphTable from "../GlyphTable.js";
 export default class SVGEngraver {
-    constructor() {
-        this.currentPosition = { x: 0, y: 0 };
+    constructor(width, height) {
+        this.headPosition = { x: 0, y: 0 };
+        this.width = width;
+        this.height = height;
         this.viewport = SVG.make()
-            .size(600, 400);
-        this.score = this.viewport.addSVG()
+            .size(width, height);
+        this.score = this.viewport.appendSVG()
             .move(50, 50);
         this.score
-            .addStyle(`
+            .appendStyle(`
             @font-face {
                 font-family: "Bravura";
                 src: url(./fonts/bravura/woff/Bravura.woff) format("woff");
@@ -26,34 +28,85 @@ export default class SVGEngraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barlineSingle {
+            line.staffLine, line.barLineSingle {
                 stroke-width: 1px;
                 stroke: #000;
             }
             
-            line.barlineSingle {
+            line.barLineSingle {
                 stroke-linecap: square;
             }
         `);
     }
-    engraveGlyph(glyphName) {
+    engraveBarLineSingle() {
+        const barLine = this.score.appendLine([0, 0], [0, 32])
+            .addClass("barLineSingle");
+        this.moveHead(barLine.bbox().width);
+        return this;
+    }
+    engraveStaves() {
+        for (let i = 0; i < 5; ++i) {
+            this.score.appendLine([0, i * 8], [this.width, i * 8])
+                .addClass("staffLine");
+        }
+        return this;
+    }
+    engraveClef(clefType, staffPlace) {
+        const y = this.yFromStaffPlace(staffPlace);
+        this.moveHead(undefined, y);
+        this.engraveGlyph(clefType);
+        return this;
+    }
+    engraveNote(noteType, staffPlace) {
+        const y = this.yFromStaffPlace(staffPlace);
+        this.moveHead(undefined, y);
+        switch (noteType) {
+            case "whole":
+                this.engraveGlyph("noteheadWhole");
+                break;
+        }
+    }
+    engraveChord(notes, staffPlace) {
+        // engrave
+    }
+    engraveNoteHead(noteHeadType) {
+    }
+    engraveTimeSignature(bpm, beatUnit) {
+        this.moveHead(undefined, 4 * 2);
+        this.engraveGlyph(`timeSig${bpm}`, false);
+        this.moveHead(undefined, 4 * 6);
+        this.engraveGlyph(`timeSig${beatUnit}`);
+        return this;
+    }
+    engraveGlyph(glyphName, advanceHead = true) {
         const glyphChar = glyphTable[glyphName];
-        let glyphNameNotFound = glyphChar === undefined;
+        let glyphNameNotFound = (glyphChar === undefined);
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
-        const glyphText = this.score.addSVG()
-            .move(this.currentPosition.x, this.currentPosition.y)
-            .addText(glyphChar)
+        const glyphText = this.score.appendSVG()
+            .move(this.headPosition.x, this.headPosition.y)
+            .appendText(glyphChar)
             .addClass("glyph");
+        if (advanceHead) {
+            this.moveHead(glyphText.bbox().width);
+        }
         return this;
     }
-    move(x, y) {
-        this.currentPosition = { x: x, y: y };
+    moveHead(advancement, verticalPosition) {
+        if (advancement !== undefined) {
+            this.headPosition.x += advancement;
+        }
+        if (verticalPosition !== undefined) {
+            this.headPosition.y = verticalPosition;
+        }
         return this;
     }
     print() {
         return this.viewport.element;
+    }
+    yFromStaffPlace(staffPlace) {
+        return 32 - 4 * staffPlace;
     }
 }
 class SVG {
@@ -68,30 +121,42 @@ class SVG {
         return this._element;
     }
     // CHILDREN ELEMENT APPENDER
-    addSVG() {
-        return this.add("svg");
+    appendSVG() {
+        return this.appendChild("svg");
     }
-    addText(text) {
-        return this.add("text").textContent(text);
+    appendText(text) {
+        return this.appendChild("text").textContent(text);
     }
-    addStyle(style) {
-        return this.add("defs")
-            .add("style")
+    appendStyle(style) {
+        return this.appendChild("defs")
+            .appendChild("style")
             .textContent(style);
+    }
+    appendLine(startingPoint, endingPoint) {
+        return this.appendChild("line")
+            .attr("x1", startingPoint[0])
+            .attr("y1", startingPoint[1])
+            .attr("x2", endingPoint[0])
+            .attr("y2", endingPoint[1]);
     }
     // PROPERTY MANIPULATOR
     id(id) {
         return this.attr("id", id);
     }
     move(x, y) {
-        return this.attr("x", x)
-            .attr("y", y);
+        if (x) {
+            this.attr("x", x);
+        }
+        if (y) {
+            this.attr("y", y);
+        }
+        return this;
     }
     size(width, height) {
         return this.attr("width", width)
             .attr("height", height);
     }
-    add(elementName) {
+    appendChild(elementName) {
         const child = new SVG(elementName);
         this._element.appendChild(child.element);
         return child;
@@ -107,6 +172,15 @@ class SVG {
     textContent(text) {
         this._element.textContent = text;
         return this;
+    }
+    bbox() {
+        if (!document.body.contains(this._element)) {
+            throw Error("element must be rendered to have a bounding box.");
+        }
+        if (this._element instanceof SVGGraphicsElement) {
+            return this._element.getBBox();
+        }
+        throw Error("element does not have a bounding box.");
     }
 }
 //# sourceMappingURL=SVGEngraver.js.map

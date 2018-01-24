@@ -1,20 +1,26 @@
-import Engraver from "../Engraver.js";
 import glyphTable from "../GlyphTable.js";
+import Note from "../Schema/Note.js";
+import Engraver from "../Engraver.js";
 
 export default class SVGEngraver implements Engraver {
-    private currentPosition: {x: number; y: number} = {x: 0, y: 0};
+    private headPosition: {x: number, y: number } = {x: 0, y: 0};
     private viewport: SVG;
     private score: SVG;
+    private width: number;
+    private height: number;
 
-    constructor() {
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+
         this.viewport = SVG.make()
-                           .size(600, 400);
+                           .size(width, height);
 
-        this.score = this.viewport.addSVG()
+        this.score = this.viewport.appendSVG()
                          .move(50, 50);
 
         this.score
-            .addStyle(`
+            .appendStyle(`
             @font-face {
                 font-family: "Bravura";
                 src: url(./fonts/bravura/woff/Bravura.woff) format("woff");
@@ -33,41 +39,110 @@ export default class SVGEngraver implements Engraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barlineSingle {
+            line.staffLine, line.barLineSingle {
                 stroke-width: 1px;
                 stroke: #000;
             }
             
-            line.barlineSingle {
+            line.barLineSingle {
                 stroke-linecap: square;
             }
         `);
     }
 
-    public engraveGlyph(glyphName: string): SVGEngraver {
-        const glyphChar = glyphTable[glyphName];
+    public engraveBarLineSingle(): SVGEngraver {
+        const barLine = this.score.appendLine([0, 0], [0, 32])
+                                  .addClass("barLineSingle");
 
-        let glyphNameNotFound = glyphChar === undefined;
-        if (glyphNameNotFound) {
-            throw new Error(`glyph name "${glyphName}" does not exist.`);
-        }
-
-        const glyphText = this.score.addSVG()
-                                    .move(this.currentPosition.x, this.currentPosition.y)
-                                    .addText(glyphChar)
-                                    .addClass("glyph");
+        this.moveHead(barLine.bbox().width);
 
         return this;
     }
 
-    public move(x: number, y: number): SVGEngraver {
-        this.currentPosition = {x: x, y: y};
+    public engraveStaves(): SVGEngraver {
+        for (let i = 0; i < 5; ++i) {
+            this.score.appendLine([0, i*8], [this.width, i*8])
+                      .addClass("staffLine");
+        }
+
+        return this;
+    }
+
+    public engraveClef(clefType: string, staffPlace: number): SVGEngraver {
+        const y = this.yFromStaffPlace(staffPlace);
+
+        this.moveHead(undefined, y);
+        this.engraveGlyph(clefType);
+
+        return this;
+    }
+
+    public engraveNote(noteType: string, staffPlace): void {
+        const y = this.yFromStaffPlace(staffPlace);
+        this.moveHead(undefined, y);
+
+        switch (noteType) {
+            case "whole":
+                this.engraveGlyph("noteheadWhole");
+                break;
+        }
+    }
+
+    public engraveChord(notes: [Note], staffPlace: number): void {
+        // engrave
+    }
+
+    private engraveNoteHead(noteHeadType: string): void {
+
+    }
+
+    public engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
+        this.moveHead(undefined, 4 * 2);
+        this.engraveGlyph(`timeSig${bpm}`, false);
+        this.moveHead(undefined, 4 * 6);
+        this.engraveGlyph(`timeSig${beatUnit}`);
+
+        return this;
+    }
+
+    public engraveGlyph(glyphName: string, advanceHead: boolean = true): SVGEngraver {
+        const glyphChar = glyphTable[glyphName];
+
+        let glyphNameNotFound = (glyphChar === undefined);
+        if (glyphNameNotFound) {
+            throw new Error(`glyph name "${glyphName}" does not exist.`);
+        }
+
+        const glyphText = this.score.appendSVG()
+                                    .move(this.headPosition.x, this.headPosition.y)
+                                    .appendText(glyphChar)
+                                    .addClass("glyph");
+
+        if (advanceHead) {
+            this.moveHead(glyphText.bbox().width);
+        }
+
+        return this;
+    }
+
+    public moveHead(advancement?: number, verticalPosition?: number): SVGEngraver {
+        if (advancement !== undefined) {
+            this.headPosition.x += advancement;
+        }
+
+        if (verticalPosition !== undefined) {
+            this.headPosition.y = verticalPosition;
+        }
 
         return this;
     }
 
     public print(): SVGElement {
         return this.viewport.element;
+    }
+
+    private yFromStaffPlace(staffPlace: number) {
+        return 32 - 4 * staffPlace;
     }
 }
 
@@ -90,18 +165,26 @@ class SVG {
 
     // CHILDREN ELEMENT APPENDER
 
-    public addSVG(): SVG {
-        return this.add("svg");
+    public appendSVG(): SVG {
+        return this.appendChild("svg");
     }
 
-    public addText(text: string): SVG {
-        return this.add("text").textContent(text);
+    public appendText(text: string): SVG {
+        return this.appendChild("text").textContent(text);
     }
 
-    public addStyle(style: string): SVG {
-        return this.add("defs")
-            .add("style")
+    public appendStyle(style: string): SVG {
+        return this.appendChild("defs")
+            .appendChild("style")
             .textContent(style);
+    }
+
+    public appendLine(startingPoint: [number, number], endingPoint: [number, number]): SVG {
+        return this.appendChild("line")
+                   .attr("x1", startingPoint[0])
+                   .attr("y1", startingPoint[1])
+                   .attr("x2", endingPoint[0])
+                   .attr("y2", endingPoint[1]);
     }
 
     // PROPERTY MANIPULATOR
@@ -110,9 +193,16 @@ class SVG {
         return this.attr("id", id);
     }
 
-    public move(x: number, y: number): SVG {
-        return this.attr("x", x)
-            .attr("y", y);
+    public move(x?: number, y?: number): SVG {
+        if (x) {
+            this.attr("x", x);
+        }
+
+        if (y) {
+            this.attr("y", y);
+        }
+
+        return this;
     }
 
     public size(width: number, height: number): SVG {
@@ -120,7 +210,7 @@ class SVG {
             .attr("height", height);
     }
 
-    public add(elementName: string): SVG {
+    public appendChild(elementName: string): SVG {
         const child = new SVG(elementName);
 
         this._element.appendChild(child.element);
@@ -145,4 +235,23 @@ class SVG {
 
         return this;
     }
+
+    public bbox(): BoundingBox {
+        if (!document.body.contains(this._element)) {
+            throw Error("element must be rendered to have a bounding box.")
+        }
+
+        if (this._element instanceof SVGGraphicsElement) {
+            return this._element.getBBox();
+        }
+
+        throw Error("element does not have a bounding box.");
+    }
+}
+
+interface BoundingBox {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
