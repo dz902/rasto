@@ -28,7 +28,7 @@ export default class SVGEngraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle {
+            line.staffLine, line.barLineSingle, line.ledgerLine {
                 stroke-width: 1px;
                 stroke: #000;
             }
@@ -41,7 +41,7 @@ export default class SVGEngraver {
     engraveBarLineSingle() {
         const barLine = this.score.appendLine([0, 0], [0, 32])
             .addClass("barLineSingle");
-        this.moveHead(barLine.bbox().width);
+        this.moveHead(2);
         return this;
     }
     engraveStaves() {
@@ -60,10 +60,35 @@ export default class SVGEngraver {
     engraveNote(noteType, staffPlace) {
         const y = this.yFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
+        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
+        if (ledgerLineNeeded) {
+            this.engraveLedgerLine(staffPlace);
+        }
         switch (noteType) {
             case "whole":
                 this.engraveGlyph("noteheadWhole");
                 break;
+            case "half":
+                this.engraveGlyph("noteheadBlack");
+                break;
+        }
+    }
+    engraveLedgerLine(fromStaffPlace) {
+        const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
+        let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
+        if (ledgerLineIsBelowStaff) {
+            for (let i = nearestEvenStaffPlace; i < 0; i += 2) {
+                const y = this.yFromStaffPlace(i);
+                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x + 16, y])
+                    .addClass("ledgerLine");
+            }
+        }
+        else {
+            for (let i = nearestEvenStaffPlace; i > 0; i -= 2) {
+                const y = this.yFromStaffPlace(i);
+                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x + 16, y])
+                    .addClass("ledgerLine");
+            }
         }
     }
     engraveChord(notes, staffPlace) {
@@ -84,14 +109,15 @@ export default class SVGEngraver {
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
-        const glyphText = this.score.appendSVG()
-            .move(this.headPosition.x, this.headPosition.y)
-            .appendText(glyphChar)
+        const glyphSVG = this.score.appendSVG()
+            .move(this.headPosition.x, this.headPosition.y);
+        ;
+        const glyphText = glyphSVG.appendText(glyphChar)
             .addClass("glyph");
         if (advanceHead) {
             this.moveHead(glyphText.bbox().width);
         }
-        return this;
+        return glyphSVG;
     }
     moveHead(advancement, verticalPosition) {
         if (advancement !== undefined) {
@@ -100,7 +126,6 @@ export default class SVGEngraver {
         if (verticalPosition !== undefined) {
             this.headPosition.y = verticalPosition;
         }
-        return this;
     }
     print() {
         return this.viewport.element;

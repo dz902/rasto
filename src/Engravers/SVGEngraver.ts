@@ -39,7 +39,7 @@ export default class SVGEngraver implements Engraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle {
+            line.staffLine, line.barLineSingle, line.ledgerLine {
                 stroke-width: 1px;
                 stroke: #000;
             }
@@ -54,7 +54,7 @@ export default class SVGEngraver implements Engraver {
         const barLine = this.score.appendLine([0, 0], [0, 32])
                                   .addClass("barLineSingle");
 
-        this.moveHead(barLine.bbox().width);
+        this.moveHead(2);
 
         return this;
     }
@@ -77,14 +77,43 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveNote(noteType: string, staffPlace): void {
+    public engraveNote(noteType: string, staffPlace: number): void {
         const y = this.yFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
+
+        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
+        if (ledgerLineNeeded) {
+            this.engraveLedgerLine(staffPlace);
+        }
 
         switch (noteType) {
             case "whole":
                 this.engraveGlyph("noteheadWhole");
                 break;
+            case "half":
+                this.engraveGlyph("noteheadBlack");
+                break;
+        }
+    }
+
+    public engraveLedgerLine(fromStaffPlace: number): void {
+        const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
+
+        let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
+        if (ledgerLineIsBelowStaff) {
+            for (let i = nearestEvenStaffPlace; i < 0; i += 2) {
+                const y = this.yFromStaffPlace(i);
+
+                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x+16, y])
+                          .addClass("ledgerLine");
+            }
+        } else {
+            for (let i = nearestEvenStaffPlace; i > 0; i -= 2) {
+                const y = this.yFromStaffPlace(i);
+
+                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x+16, y])
+                          .addClass("ledgerLine");
+            }
         }
     }
 
@@ -105,7 +134,7 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveGlyph(glyphName: string, advanceHead: boolean = true): SVGEngraver {
+    public engraveGlyph(glyphName: string, advanceHead: boolean = true): SVG {
         const glyphChar = glyphTable[glyphName];
 
         let glyphNameNotFound = (glyphChar === undefined);
@@ -113,19 +142,19 @@ export default class SVGEngraver implements Engraver {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
 
-        const glyphText = this.score.appendSVG()
-                                    .move(this.headPosition.x, this.headPosition.y)
-                                    .appendText(glyphChar)
-                                    .addClass("glyph");
+        const glyphSVG = this.score.appendSVG()
+                                   .move(this.headPosition.x, this.headPosition.y);;
+        const glyphText = glyphSVG.appendText(glyphChar)
+                                  .addClass("glyph");
 
         if (advanceHead) {
             this.moveHead(glyphText.bbox().width);
         }
 
-        return this;
+        return glyphSVG;
     }
 
-    public moveHead(advancement?: number, verticalPosition?: number): SVGEngraver {
+    public moveHead(advancement?: number, verticalPosition?: number): void {
         if (advancement !== undefined) {
             this.headPosition.x += advancement;
         }
@@ -133,8 +162,6 @@ export default class SVGEngraver implements Engraver {
         if (verticalPosition !== undefined) {
             this.headPosition.y = verticalPosition;
         }
-
-        return this;
     }
 
     public print(): SVGElement {
