@@ -110,12 +110,12 @@ export default class SVGEngraver {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
         const glyphSVG = this.score.appendSVG()
+            .size(32, 128)
             .move(this.headPosition.x, this.headPosition.y);
-        ;
         const glyphText = glyphSVG.appendText(glyphChar)
             .addClass("glyph");
         if (advanceHead) {
-            this.moveHead(glyphText.bbox().width);
+            this.moveHead(glyphSVG.width);
         }
         return glyphSVG;
     }
@@ -144,6 +144,12 @@ class SVG {
     }
     get element() {
         return this._element;
+    }
+    get width() {
+        // this is extremely confusing as svg elements will ignore explicit width
+        // only to calculate bounding box from its content
+        // we need to have glyphs with fixed dimensions
+        return Number(this._element.getAttribute("width"));
     }
     // CHILDREN ELEMENT APPENDER
     appendSVG() {
