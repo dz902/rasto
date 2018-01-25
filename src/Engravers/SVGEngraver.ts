@@ -98,11 +98,14 @@ export default class SVGEngraver implements Engraver {
     public engraveLedgerLine(fromStaffPlace: number): void {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
 
-        const engraveLine = (staffPlace) => {
+        const engraveLine = (staffPlace: number) => {
             const y = this.yFromStaffPlace(staffPlace);
 
-            this.score.appendLine([this.headPosition.x, y], [this.headPosition.x+16, y])
-                .addClass("ledgerLine");
+            this.score.appendSVG()
+                      .size(32, 32)
+                          .appendLine([this.headPosition.x, y], [this.headPosition.x+16, y])
+                          .addClass("ledgerLine")
+                          .alignCenter();
         };
 
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
@@ -166,7 +169,7 @@ export default class SVGEngraver implements Engraver {
         }
     }
 
-    public print(): SVGElement {
+    public print(): SVGGraphicsElement {
         return this.score.viewport.element;
     }
 
@@ -176,7 +179,7 @@ export default class SVGEngraver implements Engraver {
 }
 
 class SVG {
-    private _element: SVGElement;
+    private _element: SVGGraphicsElement;
 
     static make(): SVG {
         const svg = new SVG("svg");
@@ -184,17 +187,17 @@ class SVG {
         return svg.addClass("viewport");
     }
 
-    private constructor(el: string | SVGElement) {
-        if (el instanceof SVGElement) {
+    private constructor(el: string | SVGGraphicsElement) {
+        if (el instanceof SVGGraphicsElement) {
             this._element = el;
         } else {
-            this._element = <SVGElement> document.createElementNS("http://www.w3.org/2000/svg", el);
+            this._element = <SVGGraphicsElement> document.createElementNS("http://www.w3.org/2000/svg", el);
         }
     }
 
     // ATTRIBUTE GETTERS
 
-    get element(): SVGElement {
+    get element(): SVGGraphicsElement {
         return this._element;
     }
 
@@ -259,12 +262,22 @@ class SVG {
     }
 
     public move(x?: number, y?: number): SVG {
-        if (x) {
-            this.attr("x", x);
-        }
+        // it turns out that transform is supported on nested svg elements
+        // only in SVG 2 and SVG 2 was not implemented in Chrome
 
-        if (y) {
-            this.attr("y", y);
+        if (this.element instanceof SVGSVGElement) {
+            if (x) {
+                this.attr("x", x);
+            }
+
+            if (y) {
+                this.attr("y", y);
+            }
+        } else {
+            const transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
+            transform.setTranslate(x ? x : 0, y ? y : 0);
+
+            this.element.transform.baseVal.appendItem(transform);
         }
 
         return this;
