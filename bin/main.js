@@ -15,6 +15,7 @@ function Main() {
     engraver.engraveNoteHead("half", 2);
     engraver.engraveStem("down", 2, -2);
     engraver.engraveLedgerLine(-(16 - noteHead.actualWidth) / 2, -2);
+    engraver.engraveLedgerLine(-(16 - noteHead.actualWidth) / 2, 11);
 }
 document.addEventListener("DOMContentLoaded", () => {
     Main();

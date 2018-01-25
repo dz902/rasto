@@ -74,7 +74,7 @@ export default class SVGEngraver {
             }
         }
         else {
-            for (let i = nearestEvenStaffPlace; i > 0; i -= 2) {
+            for (let i = nearestEvenStaffPlace; i > 9; i -= 2) {
                 engraveLine(i);
             }
         }
