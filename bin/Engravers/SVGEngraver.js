@@ -90,12 +90,12 @@ export default class SVGEngraver {
         const extraLength = Math.abs(staffPlaceEnd - staffPlaceStart) / 2 * 8;
         const translate = {
             x: direction === "up" ? 1.18 * 8 - 1 : 0,
-            y: direction === "up" ? -3.5 * 8 - extraLength : 0
+            y: direction === "up" ? -3 * 8 - extraLength : 0
         };
         return this.score.appendSVG()
             .size(32, 32)
             .move(this.headPosition.x, y)
-            .appendRect(1, 3.5 * 8 + extraLength)
+            .appendRect(1, 3 * 8 + extraLength)
             .addClass("stem")
             .translate(translate.x, translate.y);
     }
