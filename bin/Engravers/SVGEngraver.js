@@ -75,19 +75,20 @@ export default class SVGEngraver {
     }
     engraveLedgerLine(fromStaffPlace) {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
+        const engraveLine = (staffPlace) => {
+            const y = this.yFromStaffPlace(staffPlace);
+            this.score.appendLine([this.headPosition.x, y], [this.headPosition.x + 16, y])
+                .addClass("ledgerLine");
+        };
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
         if (ledgerLineIsBelowStaff) {
             for (let i = nearestEvenStaffPlace; i < 0; i += 2) {
-                const y = this.yFromStaffPlace(i);
-                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x + 16, y])
-                    .addClass("ledgerLine");
+                engraveLine(i);
             }
         }
         else {
             for (let i = nearestEvenStaffPlace; i > 0; i -= 2) {
-                const y = this.yFromStaffPlace(i);
-                this.score.appendLine([this.headPosition.x, y], [this.headPosition.x + 16, y])
-                    .addClass("ledgerLine");
+                engraveLine(i);
             }
         }
     }
