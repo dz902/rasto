@@ -89,17 +89,22 @@ export default class SVGEngraver {
                 this.engraveNoteHead("whole", staffPlace);
                 break;
             default:
-                this.engraveStem("up", staffPlace);
+                this.engraveStem("down", staffPlace);
                 this.engraveNoteHead("black", staffPlace);
         }
     }
     engraveStem(direction, staffPlace) {
         const y = this.yFromStaffPlace(staffPlace);
+        const translate = {
+            x: direction === "up" ? 1.18 * 8 - 1 : 0,
+            y: direction === "up" ? -3.5 * 8 : 0
+        };
         this.score.appendSVG()
             .size(32, 32)
+            .move(this.headPosition.x, y)
             .appendRect(1, 3.5 * 8)
             .addClass("stem")
-            .translate(1.18 * 8);
+            .translate(translate.x, translate.y);
     }
     engraveNoteHead(noteHeadType, staffPlace) {
         const y = this.yFromStaffPlace(staffPlace);
