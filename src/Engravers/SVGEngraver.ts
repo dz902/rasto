@@ -85,7 +85,7 @@ export default class SVGEngraver implements Engraver {
             this.score.appendSVG()
                       .size(32, 32)
                       .move(this.headPosition.x, y)
-                          .appendLine([0, 0], [16, 0])
+                          .appendRect(16, 1)
                           .addClass("ledgerLine")
                           .translate(offset);
         };
@@ -119,11 +119,10 @@ export default class SVGEngraver implements Engraver {
 
     private engraveStem(direction: string, staffPlace: number): void {
         const y = this.yFromStaffPlace(staffPlace);
-        const y2 = direction === "up" ? y-3.5*8 : y+3.5*8;
 
         this.score.appendSVG()
                   .size(32, 32)
-                      .appendLine([this.headPosition.x, y], [this.headPosition.x, y2])
+                      .appendRect(1, 3.5*8)
                       .addClass("stem")
                       .translate(1.18*8);
     }
@@ -272,6 +271,11 @@ class SVG {
                    .attr("y1", startingPoint[1])
                    .attr("x2", endingPoint[0])
                    .attr("y2", endingPoint[1]);
+    }
+
+    public appendRect(width: number, height: number): SVG {
+        return this.appendChild("rect")
+                   .size(width, height);
     }
 
     // PROPERTY MANIPULATORS
