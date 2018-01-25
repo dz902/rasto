@@ -4,7 +4,6 @@ import Engraver from "../Engraver.js";
 
 export default class SVGEngraver implements Engraver {
     private headPosition: {x: number, y: number } = {x: 0, y: 0};
-    private viewport: SVG;
     private score: SVG;
     private width: number;
     private height: number;
@@ -13,11 +12,11 @@ export default class SVGEngraver implements Engraver {
         this.width = width;
         this.height = height;
 
-        this.viewport = SVG.make()
-                           .size(width, height);
+        const viewport = SVG.make()
+                            .size(width, height);
 
-        this.score = this.viewport.appendSVG()
-                         .move(50, 50);
+        this.score = viewport.appendSVG()
+                             .move(50, 50);
 
         this.score
             .appendStyle(`
@@ -148,6 +147,9 @@ export default class SVGEngraver implements Engraver {
         const glyphText = glyphSVG.appendText(glyphChar)
                                   .addClass("glyph");
 
+        const leftPadding = (glyphSVG.width - glyphSVG.bbox.width) / 2;
+        glyphText.move(leftPadding);
+
         if (advanceHead) {
             this.moveHead(glyphSVG.width);
         }
@@ -166,7 +168,7 @@ export default class SVGEngraver implements Engraver {
     }
 
     public print(): SVGElement {
-        return this.viewport.element;
+        return this.score.viewport;
     }
 
     private yFromStaffPlace(staffPlace: number) {
@@ -197,6 +199,12 @@ class SVG {
         // we need to have glyphs with fixed dimensions
 
         return Number(this._element.getAttribute("width"));
+    }
+
+    get viewport(): SVGElement {
+        const viewport = this._element.viewportElement;
+
+        return viewport === null ? this._element : viewport;
     }
 
     // CHILDREN ELEMENT APPENDER
@@ -272,7 +280,7 @@ class SVG {
         return this;
     }
 
-    public bbox(): BoundingBox {
+    get bbox(): BoundingBox {
         if (!document.body.contains(this._element)) {
             throw Error("element must be rendered to have a bounding box.")
         }

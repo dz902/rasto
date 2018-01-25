@@ -4,9 +4,9 @@ export default class SVGEngraver {
         this.headPosition = { x: 0, y: 0 };
         this.width = width;
         this.height = height;
-        this.viewport = SVG.make()
+        const viewport = SVG.make()
             .size(width, height);
-        this.score = this.viewport.appendSVG()
+        this.score = viewport.appendSVG()
             .move(50, 50);
         this.score
             .appendStyle(`
@@ -114,6 +114,8 @@ export default class SVGEngraver {
             .move(this.headPosition.x, this.headPosition.y);
         const glyphText = glyphSVG.appendText(glyphChar)
             .addClass("glyph");
+        const leftPadding = (glyphSVG.width - glyphSVG.bbox.width) / 2;
+        glyphText.move(leftPadding);
         if (advanceHead) {
             this.moveHead(glyphSVG.width);
         }
@@ -128,7 +130,7 @@ export default class SVGEngraver {
         }
     }
     print() {
-        return this.viewport.element;
+        return this.score.viewport;
     }
     yFromStaffPlace(staffPlace) {
         return 32 - 4 * staffPlace;
@@ -150,6 +152,10 @@ class SVG {
         // only to calculate bounding box from its content
         // we need to have glyphs with fixed dimensions
         return Number(this._element.getAttribute("width"));
+    }
+    get viewport() {
+        const viewport = this._element.viewportElement;
+        return viewport === null ? this._element : viewport;
     }
     // CHILDREN ELEMENT APPENDER
     appendSVG() {
@@ -204,7 +210,7 @@ class SVG {
         this._element.textContent = text;
         return this;
     }
-    bbox() {
+    get bbox() {
         if (!document.body.contains(this._element)) {
             throw Error("element must be rendered to have a bounding box.");
         }
