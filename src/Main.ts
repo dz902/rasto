@@ -1,3 +1,4 @@
+import MusicXML from "./Schema/MusicXML.js";
 import Engraver from "./Engravers/SVGEngraver.js";
 
 function Main() {
