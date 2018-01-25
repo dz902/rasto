@@ -76,7 +76,7 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveLedgerLine(fromStaffPlace: number): void {
+    public engraveLedgerLine(offset: number, fromStaffPlace: number): void {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
 
         const engraveLine = (staffPlace: number) => {
@@ -84,9 +84,10 @@ export default class SVGEngraver implements Engraver {
 
             this.score.appendSVG()
                       .size(32, 32)
-                          .appendLine([this.headPosition.x, y], [this.headPosition.x+16, y])
+                      .move(this.headPosition.x, y)
+                          .appendLine([0, 0], [16, 0])
                           .addClass("ledgerLine")
-                          .alignCenter();
+                          .translate(offset);
         };
 
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
@@ -131,20 +132,20 @@ export default class SVGEngraver implements Engraver {
         const y = this.yFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
 
-        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
-        if (ledgerLineNeeded) {
-            this.engraveLedgerLine(staffPlace);
-        }
-
+        let glyphNote;
         switch (noteHeadType) {
             case "whole":
-                this.engraveGlyph("noteheadWhole");
+                glyphNote = this.engraveGlyph("noteheadWhole", false);
                 break;
-            case "black":
-                this.engraveGlyph("noteheadBlack");
+            default:
+                glyphNote = this.engraveGlyph("noteheadBlack", false);
                 break;
         }
 
+        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
+        if (ledgerLineNeeded) {
+            this.engraveLedgerLine(-1 * (16-glyphNote.actualWidth) / 2, staffPlace);
+        }
     }
 
     public engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
@@ -168,8 +169,7 @@ export default class SVGEngraver implements Engraver {
                                     .size(32, 128)
                                     .move(this.headPosition.x, this.headPosition.y)
                                         .appendText(glyphChar)
-                                        .addClass("glyph")
-                                        .alignCenter();
+                                        .addClass("glyph");
 
         if (advanceHead) {
             this.moveHead(glyphText.viewport.width);
