@@ -53,8 +53,6 @@ export default class SVGEngraver implements Engraver {
         const barLine = this.score.appendLine([0, 0], [0, 32])
                                   .addClass("barLineSingle");
 
-        this.moveHead(2);
-
         return this;
     }
 
@@ -102,8 +100,10 @@ export default class SVGEngraver implements Engraver {
         }
     }
 
-    public engraveChord(notes: [Note], staffPlace: number): void {
-        // engrave
+    public engraveChord(noteType: string, notes: [Note]): void {
+        for (let note of notes) {
+            this.engraveNote(noteType, note.staffPlace);
+        }
     }
 
     public engraveNote(noteType: string, staffPlace: number): void {
@@ -162,7 +162,7 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveGlyph(glyphName: string, advanceHead: boolean = true): SVG {
+    public engraveGlyph(glyphName: string): SVG {
         const glyphChar = glyphTable[glyphName];
 
         let glyphNameNotFound = (glyphChar === undefined);
@@ -175,10 +175,6 @@ export default class SVGEngraver implements Engraver {
                                     .move(this.headPosition.x, this.headPosition.y)
                                         .appendText(glyphChar)
                                         .addClass("glyph");
-
-        if (advanceHead) {
-            this.moveHead(glyphText.viewport.width);
-        }
 
         return glyphText.viewport;
     }

@@ -41,7 +41,6 @@ export default class SVGEngraver {
     engraveBarLineSingle() {
         const barLine = this.score.appendLine([0, 0], [0, 32])
             .addClass("barLineSingle");
-        this.moveHead(2);
         return this;
     }
     engraveStaves() {
@@ -80,8 +79,10 @@ export default class SVGEngraver {
             }
         }
     }
-    engraveChord(notes, staffPlace) {
-        // engrave
+    engraveChord(noteType, notes) {
+        for (let note of notes) {
+            this.engraveNote(noteType, note.staffPlace);
+        }
     }
     engraveNote(noteType, staffPlace) {
         switch (noteType) {
@@ -130,7 +131,7 @@ export default class SVGEngraver {
         this.engraveGlyph(`timeSig${beatUnit}`);
         return this;
     }
-    engraveGlyph(glyphName, advanceHead = true) {
+    engraveGlyph(glyphName) {
         const glyphChar = glyphTable[glyphName];
         let glyphNameNotFound = (glyphChar === undefined);
         if (glyphNameNotFound) {
@@ -141,9 +142,6 @@ export default class SVGEngraver {
             .move(this.headPosition.x, this.headPosition.y)
             .appendText(glyphChar)
             .addClass("glyph");
-        if (advanceHead) {
-            this.moveHead(glyphText.viewport.width);
-        }
         return glyphText.viewport;
     }
     moveHead(advancement, verticalPosition) {

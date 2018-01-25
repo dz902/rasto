@@ -6,11 +6,15 @@ function Main() {
     document.getElementsByTagName("body")[0]
             .appendChild(engraver.print());
 
-    engraver.engraveBarLineSingle();
     engraver.engraveStaves();
+    engraver.engraveBarLineSingle();
+    engraver.moveHead(2);
     engraver.engraveClef("gClef", 2);
+    engraver.moveHead(32);
     engraver.engraveTimeSignature(4, 4);
+    engraver.moveHead(32);
     engraver.engraveNote("half", -2);
+    engraver.engraveNote("half", 0);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
