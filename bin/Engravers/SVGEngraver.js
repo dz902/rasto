@@ -130,7 +130,7 @@ export default class SVGEngraver {
         }
     }
     print() {
-        return this.score.viewport;
+        return this.score.viewport.element;
     }
     yFromStaffPlace(staffPlace) {
         return 32 - 4 * staffPlace;
@@ -141,8 +141,13 @@ class SVG {
         const svg = new SVG("svg");
         return svg.addClass("viewport");
     }
-    constructor(elementName) {
-        this._element = document.createElementNS("http://www.w3.org/2000/svg", elementName);
+    constructor(el) {
+        if (el instanceof SVGElement) {
+            this._element = el;
+        }
+        else {
+            this._element = document.createElementNS("http://www.w3.org/2000/svg", el);
+        }
     }
     get element() {
         return this._element;
@@ -155,7 +160,7 @@ class SVG {
     }
     get viewport() {
         const viewport = this._element.viewportElement;
-        return viewport === null ? this._element : viewport;
+        return viewport === null ? this : (new SVG(viewport));
     }
     // CHILDREN ELEMENT APPENDER
     appendSVG() {

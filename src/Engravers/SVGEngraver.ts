@@ -168,7 +168,7 @@ export default class SVGEngraver implements Engraver {
     }
 
     public print(): SVGElement {
-        return this.score.viewport;
+        return this.score.viewport.element;
     }
 
     private yFromStaffPlace(staffPlace: number) {
@@ -185,8 +185,12 @@ class SVG {
         return svg.addClass("viewport");
     }
 
-    private constructor(elementName: string) {
-        this._element = <SVGElement> document.createElementNS("http://www.w3.org/2000/svg", elementName);
+    private constructor(el: string | SVGElement) {
+        if (el instanceof SVGElement) {
+            this._element = el;
+        } else {
+            this._element = <SVGElement> document.createElementNS("http://www.w3.org/2000/svg", el);
+        }
     }
 
     get element(): SVGElement {
@@ -201,10 +205,10 @@ class SVG {
         return Number(this._element.getAttribute("width"));
     }
 
-    get viewport(): SVGElement {
+    get viewport(): SVG {
         const viewport = this._element.viewportElement;
 
-        return viewport === null ? this._element : viewport;
+        return viewport === null ? this : (new SVG(viewport));
     }
 
     // CHILDREN ELEMENT APPENDER
