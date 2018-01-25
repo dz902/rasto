@@ -13,8 +13,10 @@ function Main() {
     engraver.moveHead(32);
     engraver.engraveTimeSignature(4, 4);
     engraver.moveHead(32);
-    engraver.engraveNote("half", -2);
-    engraver.engraveNote("half", 0);
+
+    const noteHead = engraver.engraveNoteHead("half", -2);
+    engraver.engraveLedgerLine(-(16-noteHead.actualWidth) / 2, -2);
+    engraver.engraveNoteHead("half", 0);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

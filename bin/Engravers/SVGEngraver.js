@@ -81,17 +81,7 @@ export default class SVGEngraver {
     }
     engraveChord(noteType, notes) {
         for (let note of notes) {
-            this.engraveNote(noteType, note.staffPlace);
-        }
-    }
-    engraveNote(noteType, staffPlace) {
-        switch (noteType) {
-            case "whole":
-                this.engraveNoteHead("whole", staffPlace);
-                break;
-            default:
-                this.engraveStem("down", staffPlace);
-                this.engraveNoteHead("black", staffPlace);
+            this.engraveNoteHead(noteType, note.staffPlace);
         }
     }
     engraveStem(direction, staffPlace) {
@@ -113,20 +103,17 @@ export default class SVGEngraver {
         let glyphNote;
         switch (noteHeadType) {
             case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole", false);
+                glyphNote = this.engraveGlyph("noteheadWhole");
                 break;
             default:
-                glyphNote = this.engraveGlyph("noteheadBlack", false);
+                glyphNote = this.engraveGlyph("noteheadBlack");
                 break;
         }
-        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
-        if (ledgerLineNeeded) {
-            this.engraveLedgerLine(-1 * (16 - glyphNote.actualWidth) / 2, staffPlace);
-        }
+        return glyphNote;
     }
     engraveTimeSignature(bpm, beatUnit) {
         this.moveHead(undefined, 4 * 2);
-        this.engraveGlyph(`timeSig${bpm}`, false);
+        this.engraveGlyph(`timeSig${bpm}`);
         this.moveHead(undefined, 4 * 6);
         this.engraveGlyph(`timeSig${beatUnit}`);
         return this;

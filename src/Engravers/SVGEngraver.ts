@@ -102,18 +102,7 @@ export default class SVGEngraver implements Engraver {
 
     public engraveChord(noteType: string, notes: [Note]): void {
         for (let note of notes) {
-            this.engraveNote(noteType, note.staffPlace);
-        }
-    }
-
-    public engraveNote(noteType: string, staffPlace: number): void {
-        switch (noteType) {
-            case "whole":
-                this.engraveNoteHead("whole", staffPlace);
-                break;
-            default:
-                this.engraveStem("down", staffPlace);
-                this.engraveNoteHead("black", staffPlace);
+            this.engraveNoteHead(noteType, note.staffPlace);
         }
     }
 
@@ -133,29 +122,26 @@ export default class SVGEngraver implements Engraver {
                       .translate(translate.x, translate.y);
     }
 
-    private engraveNoteHead(noteHeadType: string, staffPlace: number): void {
+    public engraveNoteHead(noteHeadType: string, staffPlace: number): SVG {
         const y = this.yFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
 
-        let glyphNote;
+        let glyphNote: SVG;
         switch (noteHeadType) {
             case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole", false);
+                glyphNote = this.engraveGlyph("noteheadWhole");
                 break;
             default:
-                glyphNote = this.engraveGlyph("noteheadBlack", false);
+                glyphNote = this.engraveGlyph("noteheadBlack");
                 break;
         }
 
-        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
-        if (ledgerLineNeeded) {
-            this.engraveLedgerLine(-1 * (16-glyphNote.actualWidth) / 2, staffPlace);
-        }
+        return glyphNote;
     }
 
     public engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
         this.moveHead(undefined, 4 * 2);
-        this.engraveGlyph(`timeSig${bpm}`, false);
+        this.engraveGlyph(`timeSig${bpm}`);
         this.moveHead(undefined, 4 * 6);
         this.engraveGlyph(`timeSig${beatUnit}`);
 
