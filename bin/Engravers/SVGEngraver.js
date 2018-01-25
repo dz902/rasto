@@ -28,7 +28,7 @@ export default class SVGEngraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle, line.ledgerLine {
+            line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
                 stroke-width: 1px;
                 stroke: #000;
             }
@@ -88,8 +88,18 @@ export default class SVGEngraver {
                 this.engraveNoteHead("whole", staffPlace);
                 break;
             default:
+                this.engraveStem("up", staffPlace);
                 this.engraveNoteHead("black", staffPlace);
         }
+    }
+    engraveStem(direction, staffPlace) {
+        const y = this.yFromStaffPlace(staffPlace);
+        const y2 = direction === "up" ? y - 3.5 * 8 : y + 3.5 * 8;
+        this.score.appendSVG()
+            .size(32, 32)
+            .appendLine([this.headPosition.x, y], [this.headPosition.x, y2])
+            .addClass("stem")
+            .translate(1.18 * 8);
     }
     engraveNoteHead(noteHeadType, staffPlace) {
         const y = this.yFromStaffPlace(staffPlace);
@@ -209,21 +219,23 @@ class SVG {
         return this.attr("id", id);
     }
     move(x, y) {
+        if (x) {
+            this.attr("x", x);
+        }
+        if (y) {
+            this.attr("y", y);
+        }
+        return this;
+    }
+    translate(x, y) {
         // it turns out that transform is supported on nested svg elements
         // only in SVG 2 and SVG 2 was not implemented in Chrome
         if (this.element instanceof SVGSVGElement) {
-            if (x) {
-                this.attr("x", x);
-            }
-            if (y) {
-                this.attr("y", y);
-            }
+            throw new Error("transform does not work on SVGSVGElement");
         }
-        else {
-            const transform = this.viewport.element.createSVGTransform();
-            transform.setTranslate(x ? x : 0, y ? y : 0);
-            this.element.transform.baseVal.appendItem(transform);
-        }
+        const transform = this.viewport.element.createSVGTransform();
+        transform.setTranslate(x ? x : 0, y ? y : 0);
+        this.element.transform.baseVal.appendItem(transform);
         return this;
     }
     size(width, height) {
@@ -250,7 +262,7 @@ class SVG {
     // LAYOUT HELPERS
     alignCenter() {
         const leftPadding = (this.viewport.width - this.actualWidth) / 2;
-        return this.move(leftPadding);
+        return this.translate(leftPadding);
     }
 }
 //# sourceMappingURL=SVGEngraver.js.map

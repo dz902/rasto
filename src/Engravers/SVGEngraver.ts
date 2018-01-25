@@ -38,7 +38,7 @@ export default class SVGEngraver implements Engraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle, line.ledgerLine {
+            line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
                 stroke-width: 1px;
                 stroke: #000;
             }
@@ -111,8 +111,20 @@ export default class SVGEngraver implements Engraver {
                 this.engraveNoteHead("whole", staffPlace);
                 break;
             default:
+                this.engraveStem("up", staffPlace);
                 this.engraveNoteHead("black", staffPlace);
         }
+    }
+
+    private engraveStem(direction: string, staffPlace: number): void {
+        const y = this.yFromStaffPlace(staffPlace);
+        const y2 = direction === "up" ? y-3.5*8 : y+3.5*8;
+
+        this.score.appendSVG()
+                  .size(32, 32)
+                      .appendLine([this.headPosition.x, y], [this.headPosition.x, y2])
+                      .addClass("stem")
+                      .translate(1.18*8);
     }
 
     private engraveNoteHead(noteHeadType: string, staffPlace: number): void {
@@ -269,23 +281,29 @@ class SVG {
     }
 
     public move(x?: number, y?: number): SVG {
+        if (x) {
+            this.attr("x", x);
+        }
+
+        if (y) {
+            this.attr("y", y);
+        }
+
+        return this;
+    }
+
+    public translate(x?: number, y?: number): SVG {
         // it turns out that transform is supported on nested svg elements
         // only in SVG 2 and SVG 2 was not implemented in Chrome
 
         if (this.element instanceof SVGSVGElement) {
-            if (x) {
-                this.attr("x", x);
-            }
-
-            if (y) {
-                this.attr("y", y);
-            }
-        } else {
-            const transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
-            transform.setTranslate(x ? x : 0, y ? y : 0);
-
-            this.element.transform.baseVal.appendItem(transform);
+            throw new Error("transform does not work on SVGSVGElement");
         }
+
+        const transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
+        transform.setTranslate(x ? x : 0, y ? y : 0);
+
+        this.element.transform.baseVal.appendItem(transform);
 
         return this;
     }
@@ -326,7 +344,7 @@ class SVG {
     public alignCenter(): SVG {
         const leftPadding = (this.viewport.width - this.actualWidth) / 2;
 
-        return this.move(leftPadding);
+        return this.translate(leftPadding);
     }
 }
 
