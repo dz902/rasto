@@ -16,7 +16,7 @@ function Main() {
 
     const noteHead = engraver.engraveNoteHead("half", -2);
     engraver.engraveNoteHead("half", 0);
-    engraver.engraveStem("up", -2, 2);
+    engraver.engraveStem("up", -2, 8);
     engraver.engraveLedgerLine(-(16-noteHead.actualWidth) / 2, -2);
     engraver.moveHead(noteHead.actualWidth);
     engraver.engraveNoteHead("half", 1);
