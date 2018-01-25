@@ -110,7 +110,7 @@ export default class SVGEngraver implements Engraver {
         staffPlaceEnd = staffPlaceEnd ? staffPlaceEnd : staffPlaceStart;
 
         const y = this.yFromStaffPlace(staffPlaceStart);
-        const extraLength = (staffPlaceEnd-staffPlaceStart)/2*8;
+        const extraLength = Math.abs(staffPlaceEnd-staffPlaceStart)/2*8;
         const translate = {
             x: direction === "up" ? 1.18*8-1 : 0,
             y: direction === "up" ? -3.5*8-extraLength : 0
