@@ -141,20 +141,20 @@ export default class SVGEngraver implements Engraver {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
 
-        const glyphSVG = this.score.appendSVG()
-                                   .size(32, 128)
-                                   .move(this.headPosition.x, this.headPosition.y);
-        const glyphText = glyphSVG.appendText(glyphChar)
-                                  .addClass("glyph");
+        const glyphText = this.score.appendSVG()
+                                    .size(32, 128)
+                                    .move(this.headPosition.x, this.headPosition.y)
+                                        .appendText(glyphChar)
+                                        .addClass("glyph");
 
-        const leftPadding = (glyphSVG.width - glyphSVG.bbox.width) / 2;
+        const leftPadding = (glyphText.viewport.width - glyphText.actualWidth) / 2;
         glyphText.move(leftPadding);
 
         if (advanceHead) {
-            this.moveHead(glyphSVG.width);
+            this.moveHead(glyphText.viewport.width);
         }
 
-        return glyphSVG;
+        return glyphText.viewport;
     }
 
     public moveHead(advancement?: number, verticalPosition?: number): void {
@@ -203,6 +203,10 @@ class SVG {
         // we need to have glyphs with fixed dimensions
 
         return Number(this._element.getAttribute("width"));
+    }
+
+    get actualWidth(): number {
+        return this.bbox.width;
     }
 
     get viewport(): SVG {

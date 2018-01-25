@@ -109,17 +109,17 @@ export default class SVGEngraver {
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
-        const glyphSVG = this.score.appendSVG()
+        const glyphText = this.score.appendSVG()
             .size(32, 128)
-            .move(this.headPosition.x, this.headPosition.y);
-        const glyphText = glyphSVG.appendText(glyphChar)
+            .move(this.headPosition.x, this.headPosition.y)
+            .appendText(glyphChar)
             .addClass("glyph");
-        const leftPadding = (glyphSVG.width - glyphSVG.bbox.width) / 2;
+        const leftPadding = (glyphText.viewport.width - glyphText.actualWidth) / 2;
         glyphText.move(leftPadding);
         if (advanceHead) {
-            this.moveHead(glyphSVG.width);
+            this.moveHead(glyphText.viewport.width);
         }
-        return glyphSVG;
+        return glyphText.viewport;
     }
     moveHead(advancement, verticalPosition) {
         if (advancement !== undefined) {
@@ -157,6 +157,9 @@ class SVG {
         // only to calculate bounding box from its content
         // we need to have glyphs with fixed dimensions
         return Number(this._element.getAttribute("width"));
+    }
+    get actualWidth() {
+        return this.bbox.width;
     }
     get viewport() {
         const viewport = this._element.viewportElement;
