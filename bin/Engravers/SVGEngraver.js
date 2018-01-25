@@ -113,9 +113,8 @@ export default class SVGEngraver {
             .size(32, 128)
             .move(this.headPosition.x, this.headPosition.y)
             .appendText(glyphChar)
-            .addClass("glyph");
-        const leftPadding = (glyphText.viewport.width - glyphText.actualWidth) / 2;
-        glyphText.move(leftPadding);
+            .addClass("glyph")
+            .alignCenter();
         if (advanceHead) {
             this.moveHead(glyphText.viewport.width);
         }
@@ -149,6 +148,7 @@ class SVG {
             this._element = document.createElementNS("http://www.w3.org/2000/svg", el);
         }
     }
+    // ATTRIBUTE GETTERS
     get element() {
         return this._element;
     }
@@ -165,7 +165,16 @@ class SVG {
         const viewport = this._element.viewportElement;
         return viewport === null ? this : (new SVG(viewport));
     }
-    // CHILDREN ELEMENT APPENDER
+    get bbox() {
+        if (!document.body.contains(this._element)) {
+            throw Error("element must be rendered to have a bounding box.");
+        }
+        if (this._element instanceof SVGGraphicsElement) {
+            return this._element.getBBox();
+        }
+        throw Error("element does not have a bounding box.");
+    }
+    // CHILDREN ELEMENT APPENDERS
     appendSVG() {
         return this.appendChild("svg");
     }
@@ -184,7 +193,7 @@ class SVG {
             .attr("x2", endingPoint[0])
             .attr("y2", endingPoint[1]);
     }
-    // PROPERTY MANIPULATOR
+    // PROPERTY MANIPULATORS
     id(id) {
         return this.attr("id", id);
     }
@@ -218,14 +227,10 @@ class SVG {
         this._element.textContent = text;
         return this;
     }
-    get bbox() {
-        if (!document.body.contains(this._element)) {
-            throw Error("element must be rendered to have a bounding box.");
-        }
-        if (this._element instanceof SVGGraphicsElement) {
-            return this._element.getBBox();
-        }
-        throw Error("element does not have a bounding box.");
+    // LAYOUT HELPERS
+    alignCenter() {
+        const leftPadding = (this.viewport.width - this.actualWidth) / 2;
+        return this.move(leftPadding);
     }
 }
 //# sourceMappingURL=SVGEngraver.js.map

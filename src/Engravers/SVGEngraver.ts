@@ -145,10 +145,8 @@ export default class SVGEngraver implements Engraver {
                                     .size(32, 128)
                                     .move(this.headPosition.x, this.headPosition.y)
                                         .appendText(glyphChar)
-                                        .addClass("glyph");
-
-        const leftPadding = (glyphText.viewport.width - glyphText.actualWidth) / 2;
-        glyphText.move(leftPadding);
+                                        .addClass("glyph")
+                                        .alignCenter();
 
         if (advanceHead) {
             this.moveHead(glyphText.viewport.width);
@@ -193,6 +191,8 @@ class SVG {
         }
     }
 
+    // ATTRIBUTE GETTERS
+
     get element(): SVGElement {
         return this._element;
     }
@@ -215,7 +215,19 @@ class SVG {
         return viewport === null ? this : (new SVG(viewport));
     }
 
-    // CHILDREN ELEMENT APPENDER
+    get bbox(): BoundingBox {
+        if (!document.body.contains(this._element)) {
+            throw Error("element must be rendered to have a bounding box.")
+        }
+
+        if (this._element instanceof SVGGraphicsElement) {
+            return this._element.getBBox();
+        }
+
+        throw Error("element does not have a bounding box.");
+    }
+
+    // CHILDREN ELEMENT APPENDERS
 
     public appendSVG(): SVG {
         return this.appendChild("svg");
@@ -239,7 +251,7 @@ class SVG {
                    .attr("y2", endingPoint[1]);
     }
 
-    // PROPERTY MANIPULATOR
+    // PROPERTY MANIPULATORS
 
     public id(id: string): SVG {
         return this.attr("id", id);
@@ -288,16 +300,12 @@ class SVG {
         return this;
     }
 
-    get bbox(): BoundingBox {
-        if (!document.body.contains(this._element)) {
-            throw Error("element must be rendered to have a bounding box.")
-        }
+    // LAYOUT HELPERS
 
-        if (this._element instanceof SVGGraphicsElement) {
-            return this._element.getBBox();
-        }
+    public alignCenter(): SVG {
+        const leftPadding = (this.viewport.width - this.actualWidth) / 2;
 
-        throw Error("element does not have a bounding box.");
+        return this.move(leftPadding);
     }
 }
 
