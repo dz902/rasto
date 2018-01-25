@@ -7,7 +7,7 @@ function Main() {
     engraver.engraveStaves();
     engraver.engraveClef("gClef", 2);
     engraver.engraveTimeSignature(4, 4);
-    engraver.engraveNote("half", -2);
+    engraver.engraveNote("whole", -2);
 }
 document.addEventListener("DOMContentLoaded", () => {
     Main();

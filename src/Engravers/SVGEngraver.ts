@@ -76,25 +76,6 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveNote(noteType: string, staffPlace: number): void {
-        const y = this.yFromStaffPlace(staffPlace);
-        this.moveHead(undefined, y);
-
-        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
-        if (ledgerLineNeeded) {
-            this.engraveLedgerLine(staffPlace);
-        }
-
-        switch (noteType) {
-            case "whole":
-                this.engraveGlyph("noteheadWhole");
-                break;
-            case "half":
-                this.engraveGlyph("noteheadBlack");
-                break;
-        }
-    }
-
     public engraveLedgerLine(fromStaffPlace: number): void {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
 
@@ -124,7 +105,33 @@ export default class SVGEngraver implements Engraver {
         // engrave
     }
 
-    private engraveNoteHead(noteHeadType: string): void {
+    public engraveNote(noteType: string, staffPlace: number): void {
+        switch (noteType) {
+            case "whole":
+                this.engraveNoteHead("whole", staffPlace);
+                break;
+            default:
+                this.engraveNoteHead("black", staffPlace);
+        }
+    }
+
+    private engraveNoteHead(noteHeadType: string, staffPlace: number): void {
+        const y = this.yFromStaffPlace(staffPlace);
+        this.moveHead(undefined, y);
+
+        let ledgerLineNeeded = (staffPlace < 0 || staffPlace > 9);
+        if (ledgerLineNeeded) {
+            this.engraveLedgerLine(staffPlace);
+        }
+
+        switch (noteHeadType) {
+            case "whole":
+                this.engraveGlyph("noteheadWhole");
+                break;
+            case "black":
+                this.engraveGlyph("noteheadBlack");
+                break;
+        }
 
     }
 

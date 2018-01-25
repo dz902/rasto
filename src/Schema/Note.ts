@@ -1,4 +1,4 @@
 export default interface Note {
-    pitch: number,
+    staffPlace: number,
     alter: number
 }
