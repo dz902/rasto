@@ -5,6 +5,7 @@ export default class MusicXML {
     }
     constructor(dataString) {
         this.engraver = new SVGEngraver(600, 400);
+        console.log(dataString);
         const $music = DOM.parse(dataString);
         const $scoreParts = $music.qq("score-partwise part-list score-part");
         let scoreParts = {};
@@ -26,33 +27,43 @@ export default class MusicXML {
         });
     }
     typesetMeasure($measure) {
-        let measureAttributes = {};
+        let measureAttr = {};
         $measure.q("attributes")
             .eachChild(($attr) => {
             switch ($attr.name) {
                 case "divisions":
-                    measureAttributes["divisions"] = $attr.numericValue;
+                    measureAttr.divisions = $attr.numericValue;
                     break;
                 case "time":
-                    measureAttributes["time/beats"] = $attr.q("beats").numericValue;
-                    measureAttributes["time/beatType"] = $attr.q("beat-type").numericValue;
+                    measureAttr.timeBeats = $attr.q("beats").numericValue;
+                    measureAttr.timeBeatType = $attr.q("beat-type").numericValue;
                     break;
                 case "clef":
-                    measureAttributes["clef/sign"] = $attr.q("sign").value;
-                    measureAttributes["clef/line"] = $attr.q("line").numericValue;
+                    measureAttr.clefSign = $attr.q("sign").value;
+                    measureAttr.clefLine = $attr.q("line").numericValue;
                     break;
             }
         });
-        this.engraver.engraveClef(measureAttributes["clef/sign"], (measureAttributes["clef/line"] - 1) * 2);
+        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.moveHead(32);
-        this.engraver.engraveTimeSignature(measureAttributes["time/beats"], measureAttributes["time/beatType"]);
+        this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         this.engraver.moveHead(32);
-        let chord;
+        let staffBottomPitch = 34;
+        if (measureAttr.clefSign === "f") {
+            staffBottomPitch = 31;
+        }
+        const stepNames = ["c", null, "d", null, "e", "f", null, "g", null, "a", null, "b"];
         $measure.qq("note")
             .group(node => node.has("chord"))
             .forEach(($chord) => {
             $chord.each(($note) => {
-                console.log($note);
+                let noteAttr = {
+                    pitchStep: $note.q("pitch step").value.toLowerCase(),
+                    pitchOctave: $note.q("pitch octave").numericValue,
+                    duration: $note.q("duration").numericValue,
+                    type: $note.q("type").value
+                };
+                this.engraver.engraveNoteHead(noteAttr.type, noteAttr.pitchOctave * 8 + stepNames.indexOf(noteAttr.pitchStep) - staffBottomPitch);
             });
         });
     }
@@ -81,7 +92,6 @@ class DOM {
         if (this.currentNode instanceof Element) {
             let id = this.currentNode.id;
             if (id === "") {
-                console.log(this.currentNode);
                 throw new Error("empty id");
             }
             return id;
@@ -119,7 +129,7 @@ class DOM {
         if (result.length === 0) {
             throw new Error(`selector "${selector}" has no matches`);
         }
-        return new DOMCollection(result);
+        return DOMCollection.wrap(result);
     }
     has(childNodeName) {
         try {
@@ -131,18 +141,26 @@ class DOM {
         return true;
     }
     eachChild(callback) {
-        this.currentNode.childNodes.forEach((value) => {
-            callback(DOM.wrap(value));
-        });
+        DOMCollection.wrap(this.currentNode.childNodes)
+            .each(callback);
     }
 }
 class DOMCollection {
     constructor(nodes) {
-        this.currentNodes = nodes;
+        this.currentNodes = [];
+        if (nodes instanceof NodeList) {
+            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(node)));
+        }
+        else {
+            this.currentNodes = nodes;
+        }
+    }
+    static wrap(nodes) {
+        return new DOMCollection(nodes);
     }
     each(callback) {
         for (let value of this.currentNodes) {
-            callback(DOM.wrap(value));
+            callback(value);
         }
     }
     group(callback) {

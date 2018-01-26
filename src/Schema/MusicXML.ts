@@ -11,6 +11,7 @@ export default class MusicXML {
     constructor(dataString: string) {
         this.engraver = new SVGEngraver(600, 400);
 
+        console.log(dataString);
         const $music = DOM.parse(dataString);
 
         const $scoreParts = $music.qq("score-partwise part-list score-part");
@@ -36,38 +37,52 @@ export default class MusicXML {
     }
 
     private typesetMeasure($measure: DOM): void {
-        let measureAttributes: {[key: string]: any} = {};
+        let measureAttr: {[key: string]: any} = {};
 
         $measure.q("attributes")
                 .eachChild(($attr) => {
                     switch ($attr.name) {
                         case "divisions":
-                            measureAttributes["divisions"] = $attr.numericValue;
+                            measureAttr.divisions = $attr.numericValue;
                             break;
                         case "time":
-                            measureAttributes["time/beats"] = $attr.q("beats").numericValue;
-                            measureAttributes["time/beatType"] = $attr.q("beat-type").numericValue;
+                            measureAttr.timeBeats = $attr.q("beats").numericValue;
+                            measureAttr.timeBeatType = $attr.q("beat-type").numericValue;
                             break;
                         case "clef":
-                            measureAttributes["clef/sign"] = $attr.q("sign").value;
-                            measureAttributes["clef/line"] = $attr.q("line").numericValue;
+                            measureAttr.clefSign = $attr.q("sign").value;
+                            measureAttr.clefLine = $attr.q("line").numericValue;
                             break;
                     }
                 });
 
-        this.engraver.engraveClef(measureAttributes["clef/sign"],
-            (measureAttributes["clef/line"]-1) * 2);
+        this.engraver.engraveClef(measureAttr.clefSign,
+                        (measureAttr.clefLine-1) * 2);
         this.engraver.moveHead(32);
-        this.engraver.engraveTimeSignature(measureAttributes["time/beats"], measureAttributes["time/beatType"]);
+        this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         this.engraver.moveHead(32);
 
-        let chord: [DOM];
+        let staffBottomPitch = 34;
+
+        if (measureAttr.clefSign === "f") {
+            staffBottomPitch = 31;
+        }
+
+        const stepNames = ["c", null, "d", null, "e", "f", null, "g", null, "a", null, "b"];
 
         $measure.qq("note")
                 .group(node => node.has("chord"))
                 .forEach(($chord) => {
                     $chord.each(($note) => {
-                        console.log($note);
+                        let noteAttr: {[k: string]: any} = {
+                            pitchStep: $note.q("pitch step").value.toLowerCase(),
+                            pitchOctave: $note.q("pitch octave").numericValue,
+                            duration: $note.q("duration").numericValue,
+                            type: $note.q("type").value
+                        };
+
+                        this.engraver.engraveNoteHead(noteAttr.type,
+                                                      noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch);
                     })
                 });
     }
@@ -105,7 +120,6 @@ class DOM {
             let id = this.currentNode.id;
 
             if (id === "") {
-                console.log(this.currentNode);
                 throw new Error("empty id");
             }
 
@@ -156,7 +170,7 @@ class DOM {
             throw new Error(`selector "${selector}" has no matches`);
         }
 
-        return new DOMCollection(result);
+        return DOMCollection.wrap(result);
     }
 
     has(childNodeName: string): boolean {
@@ -169,23 +183,30 @@ class DOM {
         return true;
     }
 
-    eachChild(callback: (node: DOM) => void) {
-        this.currentNode.childNodes.forEach((value) => {
-            callback(DOM.wrap(<Element> value));
-        })
+    eachChild(callback: (node: DOM) => void): void {
+        DOMCollection.wrap(this.currentNode.childNodes)
+                     .each(callback);
     }
 }
 
 class DOMCollection {
-    private currentNodes: NodeList | DOM[];
+    private currentNodes: DOM[] = [];
 
-    constructor(nodes: NodeList | DOM[]) {
-        this.currentNodes = nodes;
+    static wrap(nodes: NodeList): DOMCollection {
+        return new DOMCollection(nodes);
+    }
+
+    private constructor(nodes: NodeList | DOM[]) {
+        if (nodes instanceof NodeList) {
+            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
+        } else {
+            this.currentNodes = nodes;
+        }
     }
 
     each(callback: (node: DOM) => void) {
         for (let value of this.currentNodes) {
-            callback(DOM.wrap(<Element> value));
+            callback(value);
         }
     }
 
