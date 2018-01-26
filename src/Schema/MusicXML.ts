@@ -44,7 +44,6 @@ export default class MusicXML {
 
     private typesetMeasure($measure: DOM): void {
         this.engraver.engraveStaves(50);
-        this.engraver.moveHead(2);
 
         let measureAttr: {[key: string]: any} = {};
 
@@ -67,9 +66,9 @@ export default class MusicXML {
 
         this.engraver.engraveClef(measureAttr.clefSign,
                         (measureAttr.clefLine-1) * 2);
-        this.engraver.moveHead(32);
+        this.engraver.moveHead(8);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
-        this.engraver.moveHead(32);
+        this.engraver.moveHead(8);
 
         let staffBottomPitch = 34;
 
@@ -98,10 +97,11 @@ export default class MusicXML {
                         }
                     });
 
-                    this.engraver.moveHead(32);
+                    this.engraver.moveHead(8);
                 });
 
-        this.engraver.moveHead(undefined, 0);
+        this.engraver.resetHead();
+        this.engraver.moveHead(50);
         this.engraver.engraveBarLineSingle();
     }
 

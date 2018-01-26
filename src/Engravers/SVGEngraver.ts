@@ -58,15 +58,22 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    public engraveStaves(width: number): SVGEngraver {
-        for (let i = 0; i < 5; ++i) {
-            this.score.appendSVG()
-                      .move(this.headPosition.x, this.headPosition.y)
-                          .appendLine([0, i*8], [width*4, i*8])
-                          .addClass("staffLine");
+    engraveStaves(width: number): SVGEngraver {
+        for (let i = 0; i < 10; i += 2) {
+            this.moveHead(undefined, i);
+            this.engraveStaffLine(width, 0, i)
+                .addClass("staffLine");
         }
 
         return this;
+    }
+
+    engraveStaffLine(width: number, offset: number, staffPlace: number): SVG {
+        return this.score.appendSVG()
+                   .size(32, 32)
+                   .move(this.headPosition.x, this.headPosition.y)
+                   .appendLine([0, 0], [width*4, 0])
+                   .translate(offset);
     }
 
     public engraveClef(clefType: string, staffPlace: number): SVGEngraver {
@@ -80,7 +87,7 @@ export default class SVGEngraver implements Engraver {
                 throw new Error("unknown clef type");
         }
 
-        let y = this.yFromStaffPlace(staffPlace);
+        let y = this.staffSpaceFromStaffPlace(staffPlace);
 
         this.moveHead(undefined, y);
         this.engraveGlyph(clefGlyphName);
@@ -91,25 +98,16 @@ export default class SVGEngraver implements Engraver {
     public engraveLedgerLine(offset: number, fromStaffPlace: number): void {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
 
-        const engraveLine = (staffPlace: number) => {
-            const y = this.yFromStaffPlace(staffPlace)-0.5;
-
-            this.score.appendSVG()
-                      .size(32, 32)
-                      .move(this.headPosition.x, y)
-                          .appendRect(16, 1)
-                          .addClass("ledgerLine")
-                          .translate(offset);
-        };
-
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
         if (ledgerLineIsBelowStaff) {
             for (let i = nearestEvenStaffPlace; i < 0; i += 2) {
-                engraveLine(i);
+                this.engraveStaffLine(4, offset, i)
+                    .addClass("ledgerLine");
             }
         } else {
             for (let i = nearestEvenStaffPlace; i > 9; i -= 2) {
-                engraveLine(i);
+                this.engraveStaffLine(4, offset, i)
+                    .addClass("ledgerLine");
             }
         }
     }
@@ -123,7 +121,7 @@ export default class SVGEngraver implements Engraver {
     public engraveStem(direction: string, staffPlaceStart: number, staffPlaceEnd?: number): SVG {
         staffPlaceEnd = staffPlaceEnd ? staffPlaceEnd : staffPlaceStart;
 
-        const y = this.yFromStaffPlace(staffPlaceStart);
+        const y = this.staffSpaceFromStaffPlace(staffPlaceStart);
         const length = Math.abs(staffPlaceEnd-staffPlaceStart)/2*8;
         const translate = {
             x: direction === "up" ? 1.18*8-1 : 0,
@@ -139,7 +137,7 @@ export default class SVGEngraver implements Engraver {
     }
 
     public engraveNoteHead(noteHeadType: string, staffPlace: number): SVG {
-        const y = this.yFromStaffPlace(staffPlace);
+        const y = this.staffSpaceFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
 
         let glyphNote: SVG;
@@ -156,9 +154,9 @@ export default class SVGEngraver implements Engraver {
     }
 
     public engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
-        this.moveHead(undefined, 4 * 2);
+        this.moveHead(undefined, 2);
         this.engraveGlyph(`timeSig${bpm}`);
-        this.moveHead(undefined, 4 * 6);
+        this.moveHead(undefined, 6);
         this.engraveGlyph(`timeSig${beatUnit}`);
 
         return this;
@@ -181,22 +179,26 @@ export default class SVGEngraver implements Engraver {
         return glyphText.viewport;
     }
 
-    public moveHead(advancement?: number, verticalPosition?: number): void {
-        if (advancement !== undefined) {
-            this.headPosition.x += advancement;
+    public moveHead(steps?: number, verticalStep?: number): void {
+        if (steps !== undefined) {
+            this.headPosition.x += steps*4;
         }
 
-        if (verticalPosition !== undefined) {
-            this.headPosition.y = verticalPosition;
+        if (verticalStep !== undefined) {
+            this.headPosition.y = verticalStep*4;
         }
+    }
+
+    public resetHead(): void {
+        this.headPosition = {x: 0, y: 0};
     }
 
     public print(): SVGGraphicsElement {
         return this.score.viewport.element;
     }
 
-    private yFromStaffPlace(staffPlace: number) {
-        return 32 - 4 * staffPlace;
+    private staffSpaceFromStaffPlace(staffPlace: number) {
+        return 8-staffPlace;
     }
 }
 

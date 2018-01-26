@@ -31,7 +31,6 @@ export default class MusicXML {
     }
     typesetMeasure($measure) {
         this.engraver.engraveStaves(50);
-        this.engraver.moveHead(2);
         let measureAttr = {};
         $measure.q("attributes")
             .eachChild(($attr) => {
@@ -50,9 +49,9 @@ export default class MusicXML {
             }
         });
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
-        this.engraver.moveHead(32);
+        this.engraver.moveHead(8);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
-        this.engraver.moveHead(32);
+        this.engraver.moveHead(8);
         let staffBottomPitch = 34;
         if (measureAttr.clefSign === "f") {
             staffBottomPitch = 31;
@@ -74,9 +73,10 @@ export default class MusicXML {
                     this.engraver.engraveLedgerLine(-(16 - noteHead.actualWidth) / 2, staffPlace);
                 }
             });
-            this.engraver.moveHead(32);
+            this.engraver.moveHead(8);
         });
-        this.engraver.moveHead(undefined, 0);
+        this.engraver.resetHead();
+        this.engraver.moveHead(50);
         this.engraver.engraveBarLineSingle();
     }
     typesetChord($chord) {
