@@ -2,9 +2,22 @@ export default class MusicXML {
     private music: DOM;
 
     public constructor(dataString: string) {
-        const music = DOM.parse(dataString);
+        const $music = DOM.parse(dataString);
 
-        music.q("score-partwise")
+        const $scoreParts = $music.q("score-partwise")
+                                  .q("part-list")
+                                  .qq("score-part");
+
+        let scoreParts: {[i: string]: string} = {};
+        $scoreParts.each(($scorePart) => {
+            const partName = $scorePart.q('part-name').value;
+
+            if ($scorePart.id === "") {
+                throw new Error("score-part does not have an ID");
+            } else {
+                scoreParts[$scorePart.id] = partName;
+            }
+        });
     }
 }
 
@@ -32,6 +45,7 @@ class DOM {
             let id = this.currentNode.id;
 
             if (id === "") {
+                console.log(this.currentNode);
                 throw new Error("empty id");
             }
 
@@ -58,7 +72,7 @@ class DOM {
             throw new Error(`selector "${selector}" has no matches`);
         } else {
             this.currentNode = result;
-            return this;
+            return DOM.wrap(result);
         }
     }
 
