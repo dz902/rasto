@@ -1,5 +1,4 @@
 import MusicXML from "./Schema/MusicXML.js";
-import Engraver from "./Engravers/SVGEngraver.js";
 
 function Main() {
     const musicXML = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -42,46 +41,11 @@ function Main() {
     `;
 
     const music = new MusicXML(musicXML);
+    const musicElement = music.element;
 
-    const parser = new DOMParser();
-    const $music = parser.parseFromString(musicXML, 'application/xml');
-
-    function qs(element: Element | Document, selector: string): Element {
-        const result = element.querySelector(selector);
-
-        if (result instanceof Element) {
-            return result;
-        } else {
-            throw new Error(`select "${selector}" has no matches`);
-        }
-    }
-
-    function qsa(element: Element | Document, selector: string): NodeList {
-        const result = element.querySelector(selector);
-
-        if (result instanceof NodeList) {
-            return result;
-        } else {
-            throw new Error(`select "${selector}" has no matches`);
-        }
-    }
-
-    const $scorePartwise = qs($music,'score-partwise');
-    const $partList = qs($scorePartwise,'part-list');
-    const $scoreParts = qsa($partList, 'score-part');
-
-    let scoreParts: {[i: string]: string} = {};
-    $scoreParts.forEach(($s) => {
-        const $scorePart = <Element> $s;
-        const partName = String(qs($scorePart, 'part-name').textContent);
-
-        if ($scorePart.id === "") {
-            throw new Error("score-part does not have an ID");
-        } else {
-            scoreParts[$scorePart.id] = partName;
-        }
-    });
-
+    document.getElementsByTagName("body")[0]
+            .appendChild(musicElement);
+/*
     const engraver = new Engraver(600, 400);
 
     document.getElementsByTagName("body")[0]
@@ -104,6 +68,7 @@ function Main() {
 
     engraver.moveHead(32);
     engraver.engraveNoteHead("whole", -2);
+*/
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -51,9 +51,17 @@ export default class SVGEngraver {
         return this;
     }
     engraveClef(clefType, staffPlace) {
-        const y = this.yFromStaffPlace(staffPlace);
+        let clefGlyphName = "";
+        switch (clefType.toLowerCase()) {
+            case "g":
+                clefGlyphName = "gClef";
+                break;
+            default:
+                throw new Error("unknown clef type");
+        }
+        let y = this.yFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
-        this.engraveGlyph(clefType);
+        this.engraveGlyph(clefGlyphName);
         return this;
     }
     engraveLedgerLine(offset, fromStaffPlace) {

@@ -66,10 +66,20 @@ export default class SVGEngraver implements Engraver {
     }
 
     public engraveClef(clefType: string, staffPlace: number): SVGEngraver {
-        const y = this.yFromStaffPlace(staffPlace);
+        let clefGlyphName: string = "";
+
+        switch (clefType.toLowerCase()) {
+            case "g":
+                clefGlyphName = "gClef";
+                break;
+            default:
+                throw new Error("unknown clef type");
+        }
+
+        let y = this.yFromStaffPlace(staffPlace);
 
         this.moveHead(undefined, y);
-        this.engraveGlyph(clefType);
+        this.engraveGlyph(clefGlyphName);
 
         return this;
     }
