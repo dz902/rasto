@@ -5,7 +5,9 @@ export default class MusicXML {
     }
     constructor(dataString) {
         this.engraver = new SVGEngraver(600, 400);
-        console.log(dataString);
+        // element must be rendered to get item bounding box
+        let element = this.engraver.print();
+        document.body.appendChild(element);
         const $music = DOM.parse(dataString);
         const $scoreParts = $music.qq("score-partwise part-list score-part");
         let scoreParts = {};
@@ -25,8 +27,11 @@ export default class MusicXML {
                 this.typesetMeasure($measure);
             });
         });
+        document.body.removeChild(element);
     }
     typesetMeasure($measure) {
+        this.engraver.engraveStaves(50);
+        this.engraver.moveHead(2);
         let measureAttr = {};
         $measure.q("attributes")
             .eachChild(($attr) => {
@@ -63,9 +68,16 @@ export default class MusicXML {
                     duration: $note.q("duration").numericValue,
                     type: $note.q("type").value
                 };
-                this.engraver.engraveNoteHead(noteAttr.type, noteAttr.pitchOctave * 8 + stepNames.indexOf(noteAttr.pitchStep) - staffBottomPitch);
+                let staffPlace = noteAttr.pitchOctave * 8 + stepNames.indexOf(noteAttr.pitchStep) - staffBottomPitch;
+                let noteHead = this.engraver.engraveNoteHead(noteAttr.type, staffPlace);
+                if (staffPlace < 0 || staffPlace > 9) {
+                    this.engraver.engraveLedgerLine(-(16 - noteHead.actualWidth) / 2, staffPlace);
+                }
             });
+            this.engraver.moveHead(32);
         });
+        this.engraver.moveHead(undefined, 0);
+        this.engraver.engraveBarLineSingle();
     }
     typesetChord($chord) {
     }

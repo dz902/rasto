@@ -50,16 +50,20 @@ export default class SVGEngraver implements Engraver {
     }
 
     public engraveBarLineSingle(): SVGEngraver {
-        const barLine = this.score.appendLine([0, 0], [0, 32])
-                                  .addClass("barLineSingle");
+        const barLine = this.score.appendSVG()
+                                  .move(this.headPosition.x, this.headPosition.y)
+                                      .appendLine([0, 0], [0, 32])
+                                      .addClass("barLineSingle");
 
         return this;
     }
 
-    public engraveStaves(): SVGEngraver {
+    public engraveStaves(width: number): SVGEngraver {
         for (let i = 0; i < 5; ++i) {
-            this.score.appendLine([0, i*8], [this.width, i*8])
-                      .addClass("staffLine");
+            this.score.appendSVG()
+                      .move(this.headPosition.x, this.headPosition.y)
+                          .appendLine([0, i*8], [width*4, i*8])
+                          .addClass("staffLine");
         }
 
         return this;
@@ -88,7 +92,7 @@ export default class SVGEngraver implements Engraver {
         const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
 
         const engraveLine = (staffPlace: number) => {
-            const y = this.yFromStaffPlace(staffPlace);
+            const y = this.yFromStaffPlace(staffPlace)-0.5;
 
             this.score.appendSVG()
                       .size(32, 32)
