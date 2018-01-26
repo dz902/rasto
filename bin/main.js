@@ -1,3 +1,4 @@
+import MusicXML from "./Schema/MusicXML.js";
 import Engraver from "./Engravers/SVGEngraver.js";
 function Main() {
     const musicXML = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -38,6 +39,7 @@ function Main() {
   </part>
 </score-partwise>
     `;
+    const music = new MusicXML(musicXML);
     const parser = new DOMParser();
     const $music = parser.parseFromString(musicXML, 'application/xml');
     function qs(element, selector) {

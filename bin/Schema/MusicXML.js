@@ -1,6 +1,7 @@
 export default class MusicXML {
     constructor(dataString) {
-        this.$ = DOM.parse(dataString);
+        const music = DOM.parse(dataString);
+        music.q("score-partwise");
     }
 }
 class DOM {
@@ -36,14 +37,21 @@ class DOM {
         return value;
     }
     q(selector) {
-        let result = this.currentNode.querySelectorAll(selector);
-        if (result.length === 1) {
-            this.currentNode = result.item(0);
-            return this;
+        let result = this.currentNode.querySelector(selector);
+        if (result === null) {
+            throw new Error(`selector "${selector}" has no matches`);
         }
         else {
-            return new DOMCollection(result);
+            this.currentNode = result;
+            return this;
         }
+    }
+    qq(selector) {
+        let result = this.currentNode.querySelectorAll(selector);
+        if (result.length === 0) {
+            throw new Error(`selector "${selector}" has no matches`);
+        }
+        return new DOMCollection(result);
     }
 }
 class DOMCollection {

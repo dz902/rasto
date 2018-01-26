@@ -1,8 +1,10 @@
 export default class MusicXML {
-    private $: DOM;
+    private music: DOM;
 
     public constructor(dataString: string) {
-        this.$ = DOM.parse(dataString);
+        const music = DOM.parse(dataString);
+
+        music.q("score-partwise")
     }
 }
 
@@ -49,15 +51,25 @@ class DOM {
         return value;
     }
 
-    q(selector: string): DOM | DOMCollection {
+    q(selector: string): DOM {
+        let result = this.currentNode.querySelector(selector);
+
+        if (result === null) {
+            throw new Error(`selector "${selector}" has no matches`);
+        } else {
+            this.currentNode = result;
+            return this;
+        }
+    }
+
+    qq(selector: string): DOMCollection {
         let result = this.currentNode.querySelectorAll(selector);
 
-        if (result.length === 1) {
-            this.currentNode = result.item(0);
-            return this;
-        } else {
-            return new DOMCollection(result);
+        if (result.length === 0) {
+            throw new Error(`selector "${selector}" has no matches`);
         }
+
+        return new DOMCollection(result);
     }
 }
 

@@ -41,6 +41,8 @@ function Main() {
 </score-partwise>
     `;
 
+    const music = new MusicXML(musicXML);
+
     const parser = new DOMParser();
     const $music = parser.parseFromString(musicXML, 'application/xml');
 
