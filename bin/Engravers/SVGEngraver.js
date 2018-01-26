@@ -71,7 +71,7 @@ export default class SVGEngraver {
         }
         let y = this.staffSpaceFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
-        this.engraveGlyph(clefGlyphName);
+        this.engraveGlyph(clefGlyphName, 0);
         return this;
     }
     engraveLedgerLine(offset, fromStaffPlace) {
@@ -92,7 +92,7 @@ export default class SVGEngraver {
     }
     engraveChord(noteType, notes) {
         for (let note of notes) {
-            this.engraveNoteHead(noteType, note.staffPlace);
+            this.engraveNoteHead(noteType, 0, note.staffPlace);
         }
     }
     engraveStem(direction, staffPlaceStart, staffPlaceEnd) {
@@ -110,28 +110,28 @@ export default class SVGEngraver {
             .addClass("stem")
             .translate(translate.x, translate.y);
     }
-    engraveNoteHead(noteHeadType, staffPlace) {
+    engraveNoteHead(noteHeadType, offset, staffPlace) {
         const y = this.staffSpaceFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
         let glyphNote;
         switch (noteHeadType) {
             case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole");
+                glyphNote = this.engraveGlyph("noteheadWhole", offset);
                 break;
             default:
-                glyphNote = this.engraveGlyph("noteheadBlack");
+                glyphNote = this.engraveGlyph("noteheadBlack", offset);
                 break;
         }
         return glyphNote;
     }
     engraveTimeSignature(bpm, beatUnit) {
         this.moveHead(undefined, 2);
-        this.engraveGlyph(`timeSig${bpm}`);
+        this.engraveGlyph(`timeSig${bpm}`, 0);
         this.moveHead(undefined, 6);
-        this.engraveGlyph(`timeSig${beatUnit}`);
+        this.engraveGlyph(`timeSig${beatUnit}`, 0);
         return this;
     }
-    engraveGlyph(glyphName) {
+    engraveGlyph(glyphName, offset) {
         const glyphChar = glyphTable[glyphName];
         let glyphNameNotFound = (glyphChar === undefined);
         if (glyphNameNotFound) {
@@ -141,6 +141,7 @@ export default class SVGEngraver {
             .size(32, 128)
             .move(this.headPosition.x, this.headPosition.y)
             .appendText(glyphChar)
+            .translate(offset)
             .addClass("glyph");
         return glyphText.viewport;
     }

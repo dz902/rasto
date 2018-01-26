@@ -90,7 +90,7 @@ export default class SVGEngraver implements Engraver {
         let y = this.staffSpaceFromStaffPlace(staffPlace);
 
         this.moveHead(undefined, y);
-        this.engraveGlyph(clefGlyphName);
+        this.engraveGlyph(clefGlyphName, 0);
 
         return this;
     }
@@ -114,7 +114,7 @@ export default class SVGEngraver implements Engraver {
 
     engraveChord(noteType: string, notes: [Note]): void {
         for (let note of notes) {
-            this.engraveNoteHead(noteType, note.staffPlace);
+            this.engraveNoteHead(noteType, 0, note.staffPlace);
         }
     }
 
@@ -136,17 +136,17 @@ export default class SVGEngraver implements Engraver {
                              .translate(translate.x, translate.y);
     }
 
-    engraveNoteHead(noteHeadType: string, staffPlace: number): SVG {
+    engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): SVG {
         const y = this.staffSpaceFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
 
         let glyphNote: SVG;
         switch (noteHeadType) {
             case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole");
+                glyphNote = this.engraveGlyph("noteheadWhole", offset);
                 break;
             default:
-                glyphNote = this.engraveGlyph("noteheadBlack");
+                glyphNote = this.engraveGlyph("noteheadBlack", offset);
                 break;
         }
 
@@ -155,17 +155,18 @@ export default class SVGEngraver implements Engraver {
 
     engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
         this.moveHead(undefined, 2);
-        this.engraveGlyph(`timeSig${bpm}`);
+        this.engraveGlyph(`timeSig${bpm}`, 0);
         this.moveHead(undefined, 6);
-        this.engraveGlyph(`timeSig${beatUnit}`);
+        this.engraveGlyph(`timeSig${beatUnit}`, 0);
 
         return this;
     }
 
-    engraveGlyph(glyphName: string): SVG {
+    engraveGlyph(glyphName: string, offset: number): SVG {
         const glyphChar = glyphTable[glyphName];
 
         let glyphNameNotFound = (glyphChar === undefined);
+
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
@@ -174,6 +175,7 @@ export default class SVGEngraver implements Engraver {
                                     .size(32, 128)
                                     .move(this.headPosition.x, this.headPosition.y)
                                         .appendText(glyphChar)
+                                        .translate(offset)
                                         .addClass("glyph");
 
         return glyphText.viewport;

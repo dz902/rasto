@@ -56,10 +56,13 @@ export default class MusicXML {
         if (measureAttr.clefSign === "f") {
             staffBottomPitch = 31;
         }
-        const stepNames = ["c", null, "d", null, "e", "f", null, "g", null, "a", null, "b"];
+        const stepNames = "cdefgab";
         $measure.qq("note")
             .group(node => node.has("chord"))
             .forEach(($chord) => {
+            let firstStaffPlace;
+            let lastStaffPlace;
+            let noteWidth;
             $chord.each(($note) => {
                 let noteAttr = {
                     pitchStep: $note.q("pitch step").value.toLowerCase(),
@@ -68,10 +71,20 @@ export default class MusicXML {
                     type: $note.q("type").value
                 };
                 let staffPlace = noteAttr.pitchOctave * 8 + stepNames.indexOf(noteAttr.pitchStep) - staffBottomPitch;
-                let noteHead = this.engraver.engraveNoteHead(noteAttr.type, staffPlace);
-                if (staffPlace < 0 || staffPlace > 9) {
-                    this.engraver.engraveLedgerLine(-(16 - noteHead.actualWidth) / 2, staffPlace);
+                let isAdjacentNote = Math.abs(staffPlace - firstStaffPlace) % 2 !== 0 && // thirds stays in line
+                    Math.abs(staffPlace - lastStaffPlace) === 1;
+                if (isAdjacentNote) {
+                    this.engraver.engraveNoteHead(noteAttr.type, noteWidth, staffPlace);
                 }
+                else {
+                    let noteHead = this.engraver.engraveNoteHead(noteAttr.type, 0, staffPlace);
+                    noteWidth = noteHead.actualWidth;
+                }
+                if (staffPlace < 0 || staffPlace > 9) {
+                    this.engraver.engraveLedgerLine(-(16 - noteWidth) / 2, staffPlace);
+                }
+                firstStaffPlace = firstStaffPlace === undefined ? staffPlace : firstStaffPlace;
+                lastStaffPlace = staffPlace;
             });
             this.engraver.moveHead(8);
         });
@@ -170,6 +183,9 @@ class DOMCollection {
     static wrap(nodes) {
         return new DOMCollection(nodes);
     }
+    static use(nodes) {
+        return new DOMCollection(nodes);
+    }
     each(callback) {
         for (let value of this.currentNodes) {
             callback(value);
@@ -178,19 +194,21 @@ class DOMCollection {
     group(callback) {
         let groups = [];
         let currentGroup = [];
+        let splitGroup = () => {
+            let itemsInGroup = currentGroup.length > 0;
+            if (itemsInGroup) {
+                groups.push(DOMCollection.use(currentGroup));
+                currentGroup = [];
+            }
+        };
         this.each((node) => {
-            if (callback(node)) {
-                currentGroup.push(node);
+            let nodeIsUngroupable = !callback(node);
+            if (nodeIsUngroupable) {
+                splitGroup();
             }
-            else {
-                let currentGroupNeedsFlush = currentGroup.length > 0;
-                if (currentGroupNeedsFlush) {
-                    groups.push(new DOMCollection(currentGroup));
-                    currentGroup = [];
-                }
-                groups.push(new DOMCollection([node]));
-            }
+            currentGroup.push(node);
         });
+        splitGroup();
         return groups;
     }
 }

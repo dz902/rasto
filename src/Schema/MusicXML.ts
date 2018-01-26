@@ -76,11 +76,15 @@ export default class MusicXML {
             staffBottomPitch = 31;
         }
 
-        const stepNames = ["c", null, "d", null, "e", "f", null, "g", null, "a", null, "b"];
+        const stepNames = "cdefgab";
 
         $measure.qq("note")
                 .group(node => node.has("chord"))
                 .forEach(($chord) => {
+                    let firstStaffPlace: number;
+                    let lastStaffPlace: number;
+                    let noteWidth: number;
+
                     $chord.each(($note) => {
                         let noteAttr: {[k: string]: any} = {
                             pitchStep: $note.q("pitch step").value.toLowerCase(),
@@ -90,11 +94,23 @@ export default class MusicXML {
                         };
 
                         let staffPlace = noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch;
-                        let noteHead = this.engraver.engraveNoteHead(noteAttr.type, staffPlace);
+
+                        let isAdjacentNote = Math.abs(staffPlace - firstStaffPlace) % 2 !== 0 &&  // thirds stays in line
+                                             Math.abs(staffPlace - lastStaffPlace) === 1;
+
+                        if (isAdjacentNote) {
+                            this.engraver.engraveNoteHead(noteAttr.type, noteWidth, staffPlace);
+                        } else {
+                            let noteHead = this.engraver.engraveNoteHead(noteAttr.type, 0, staffPlace);
+                            noteWidth = noteHead.actualWidth;
+                        }
 
                         if (staffPlace < 0 || staffPlace > 9) {
-                            this.engraver.engraveLedgerLine(-(16-noteHead.actualWidth) / 2, staffPlace);
+                            this.engraver.engraveLedgerLine(-(16-noteWidth) / 2, staffPlace);
                         }
+
+                        firstStaffPlace = firstStaffPlace === undefined ? staffPlace : firstStaffPlace;
+                        lastStaffPlace = staffPlace;
                     });
 
                     this.engraver.moveHead(8);
@@ -214,6 +230,10 @@ class DOMCollection {
         return new DOMCollection(nodes);
     }
 
+    static use(nodes: DOM[]): DOMCollection {
+        return new DOMCollection(nodes);
+    }
+
     private constructor(nodes: NodeList | DOM[]) {
         if (nodes instanceof NodeList) {
             nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
@@ -232,20 +252,26 @@ class DOMCollection {
         let groups: DOMCollection[] = [];
         let currentGroup: DOM[] = [];
 
-        this.each((node) => {
-            if (callback(node)) {
-                currentGroup.push(node);
-            } else {
-                let currentGroupNeedsFlush = currentGroup.length > 0;
+        let splitGroup = () => {
+            let itemsInGroup = currentGroup.length > 0;
 
-                if (currentGroupNeedsFlush) {
-                    groups.push(new DOMCollection(currentGroup));
-                    currentGroup = [];
-                }
-
-                groups.push(new DOMCollection([node]));
+            if (itemsInGroup) {
+                groups.push(DOMCollection.use(currentGroup));
+                currentGroup = [];
             }
-        })
+        };
+
+        this.each((node) => {
+            let nodeIsUngroupable = !callback(node);
+
+            if (nodeIsUngroupable) {
+                splitGroup();
+            }
+
+            currentGroup.push(node);
+        });
+
+        splitGroup();
 
         return groups;
     }
