@@ -65,8 +65,8 @@ export default class SVGEngraver {
         return this;
     }
     engraveStaves(width) {
-        for (let i = 0; i < 10; i += 2) {
-            this.moveHead(undefined, i / 2);
+        for (let i = 0; i < 5; ++i) {
+            this.moveHead(undefined, i);
             this.engraveStaffLine(width)
                 .addClass("staffLine");
         }
@@ -200,16 +200,16 @@ export default class SVGEngraver {
     }
     engraveNoteHead(noteHeadType, offset, staffPlace) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
-        let glyphNote;
-        switch (noteHeadType) {
-            case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole", offset);
-                break;
-            default:
-                glyphNote = this.engraveGlyph("noteheadBlack", offset);
-                break;
+        let glyphName = {
+            "whole": "noteWhole",
+            "half": "noteheadHalf",
+            "quarter": "noteheadBlack"
+        };
+        let glyphNameNotFound = (!glyphName[noteHeadType]);
+        if (glyphNameNotFound) {
+            throw new Error("unknown note type");
         }
-        return glyphNote;
+        this.engraveGlyph(glyphName[noteHeadType], offset);
     }
     engraveTimeSignature(bpm, beatUnit) {
         this.moveHead(undefined, 1);

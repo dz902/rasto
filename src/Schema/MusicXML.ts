@@ -76,7 +76,7 @@ export default class MusicXML {
                     }
                 });
 
-        this.engraver.engraveClef(measureAttr.clefSign,(measureAttr.clefLine-1)*2);
+        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine-1)*2);
         this.engraver.moveHead(4);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         this.engraver.moveHead(4);

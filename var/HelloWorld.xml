@@ -65,7 +65,16 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>half</type>
+                <type>whole</type>
+            </note>
+            <note>
+                <chord />
+                <pitch>
+                    <step>G</step>
+                    <octave>4</octave>
+                </pitch>
+                <duration>2</duration>
+                <type>whole</type>
             </note>
             <note>
                 <pitch>

@@ -82,8 +82,8 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveStaves(width: number): SVGEngraver {
-        for (let i = 0; i < 10; i += 2) {
-            this.moveHead(undefined, i/2);
+        for (let i = 0; i < 5; ++i) {
+            this.moveHead(undefined, i);
             this.engraveStaffLine(width)
                 .addClass("staffLine");
         }
@@ -252,20 +252,22 @@ export default class SVGEngraver implements Engraver {
                              .translate(offsets.x-nn(this.meta["engravingDefaults"]["stemThickness"]), offsets.y);
     }
 
-    engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): SVG {
+    engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): void {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
-        let glyphNote: SVG;
-        switch (noteHeadType) {
-            case "whole":
-                glyphNote = this.engraveGlyph("noteheadWhole", offset);
-                break;
-            default:
-                glyphNote = this.engraveGlyph("noteheadBlack", offset);
-                break;
+        let glyphName: {[k: string]: string } = {
+            "whole": "noteWhole",
+            "half": "noteheadHalf",
+            "quarter": "noteheadBlack"
+        };
+
+        let glyphNameNotFound = (!glyphName[noteHeadType]);
+
+        if (glyphNameNotFound) {
+            throw new Error("unknown note type");
         }
 
-        return glyphNote;
+        this.engraveGlyph(glyphName[noteHeadType], offset);
     }
 
     engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
