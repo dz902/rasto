@@ -35,16 +35,16 @@ export default class SVGEngraver {
             }
             
             line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
-                stroke-width: ${engravingDefaults.staffLineThickness * STAFF_SPACE}px;
+                stroke-width: ${nn(engravingDefaults.staffLineThickness * STAFF_SPACE)}px;
                 stroke: #000;
             }
             
             line.ledgerLine {
-                stroke-width: ${engravingDefaults.ledgerLineThickness * STAFF_SPACE}px;
+                stroke-width: ${nn(engravingDefaults.ledgerLineThickness * STAFF_SPACE)}px;
             }
             
             line.stem {
-                stroke-width: ${engravingDefaults.stemThickness * STAFF_SPACE}px;
+                stroke-width: ${nn(engravingDefaults.stemThickness * STAFF_SPACE)}px;
             }
             
             line.barLineSingle {
@@ -67,17 +67,16 @@ export default class SVGEngraver {
     engraveStaves(width) {
         for (let i = 0; i < 10; i += 2) {
             this.moveHead(undefined, i);
-            this.engraveStaffLine(width, 0, i)
+            this.engraveStaffLine(width, i)
                 .addClass("staffLine");
         }
         return this;
     }
-    engraveStaffLine(width, offset, staffPlace) {
+    engraveStaffLine(width, staffPlace) {
         return this.score.appendSVG()
             .size(32, 32)
             .move(this.headPosition.x, this.headPosition.y)
-            .appendLine([0, 0], [width * 4, 0])
-            .translate(offset);
+            .appendLine([0, 0], [width * 4, 0]);
     }
     engraveClef(clefSign, staffPlace) {
         let clefGlyphName = "";
@@ -94,19 +93,22 @@ export default class SVGEngraver {
         this.currentState.clefSign = clefSign;
         return this;
     }
-    engraveLedgerLine(offset, fromStaffPlace) {
-        const nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
+    engraveLedgerLine(width, fromStaffPlace) {
+        let engraveOffsetLine = (staffPlace) => {
+            this.engraveStaffLine(width, staffPlace)
+                .addClass("ledgerLine")
+                .translate(-width / 2);
+        };
+        let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
         if (ledgerLineIsBelowStaff) {
             for (let i = nearestEvenStaffPlace; i < 0; i += 2) {
-                this.engraveStaffLine(4, offset, i)
-                    .addClass("ledgerLine");
+                engraveOffsetLine(i);
             }
         }
         else {
             for (let i = nearestEvenStaffPlace; i > 9; i -= 2) {
-                this.engraveStaffLine(4, offset, i)
-                    .addClass("ledgerLine");
+                engraveOffsetLine(i);
             }
         }
     }
@@ -114,29 +116,51 @@ export default class SVGEngraver {
         if (notes.length < 1) {
             throw new Error("empty chord");
         }
-        let staffPlaceFromOctaveAndStep = (octave, step) => {
-            return octave * 8 + STEP_NAMES.indexOf(step);
-        };
         let staffBottomPitch = 34;
         if (this.currentState.clefSign === "f") {
             staffBottomPitch = 31;
         }
+        let staffPlaceFromOctaveAndStep = (octave, step) => {
+            return octave * 8 + STEP_NAMES.indexOf(step) - staffBottomPitch;
+        };
         let lowestNote = notes[0];
         let lowestStaffPlace = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
         let lastStaffPlace = lowestStaffPlace;
-        let displacement = 0;
+        let noteWidthFromBBox = (bbox) => {
+            return nn(bbox["bBoxNE"][0]) - nn(bbox["bBoxSW"][0]);
+        };
+        let bboxes = this.meta["glyphBBoxes"];
+        let noteWidth;
+        switch (lowestNote.type) {
+            case "whole":
+                noteWidth = noteWidthFromBBox(bboxes["noteWhole"]);
+                break;
+            case "half":
+                noteWidth = noteWidthFromBBox(bboxes["noteheadHalf"]);
+                break;
+            case "quarter":
+                noteWidth = noteWidthFromBBox(bboxes["noteheadBlack"]);
+                break;
+            default:
+                throw new Error("unknown note type");
+        }
+        let displacement = noteWidth;
         for (let i = 0; i < notes.length; ++i) {
             let note = notes[i];
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
             let isNotThird = Math.abs(staffPlace - lowestStaffPlace) % 2 !== 0;
             let isSecond = Math.abs(staffPlace - lastStaffPlace) === 1;
             let isAdjacentNote = isSecond && isNotThird; // thirds stays in line
+            let noteHead;
             if (isAdjacentNote) {
-                this.engraveNoteHead(note.type, displacement, staffPlace - staffBottomPitch);
+                noteHead = this.engraveNoteHead(note.type, displacement, staffPlace);
             }
             else {
-                let noteHead = this.engraveNoteHead(note.type, 0, staffPlace - staffBottomPitch);
-                displacement = noteHead.actualWidth;
+                noteHead = this.engraveNoteHead(note.type, 0, staffPlace);
+            }
+            let ledgerNeeded = (staffPlace < 0 || staffPlace > 9);
+            if (ledgerNeeded) {
+                this.engraveLedgerLine(noteWidth + nn(this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
             }
         }
     }
@@ -181,7 +205,7 @@ export default class SVGEngraver {
             .size(32, 128)
             .move(this.headPosition.x, this.headPosition.y)
             .appendText(glyphChar)
-            .translate(offset)
+            .translate(offset * STAFF_SPACE)
             .addClass("glyph");
         return glyphText.viewport;
     }
@@ -315,5 +339,12 @@ class SVG {
         const leftPadding = (this.viewport.width - this.actualWidth) / 2;
         return this.translate(leftPadding);
     }
+}
+function nn(value) {
+    let n = Number(value);
+    if (Number.isNaN(n)) {
+        throw new Error("value is not a number");
+    }
+    return n;
 }
 //# sourceMappingURL=SVGEngraver.js.map
