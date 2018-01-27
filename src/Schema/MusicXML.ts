@@ -81,17 +81,21 @@ export default class MusicXML {
         $measure.qq("note")
                 .group(node => node.has("chord"))
                 .forEach(($chord) => {
-                    let firstStaffPlace: number;
-                    let lastStaffPlace: number;
-                    let noteWidth: number;
+                    let firstStaffPlace: number = 0;
+                    let lastStaffPlace: number = 0;
+                    let noteWidth: number = 0;
+                    let needsStem: boolean = false;
+                    let stemTopStaffPlace: number;
+                    let stemBottomStaffPlace: number;
 
-                    $chord.each(($note) => {
+                    $chord.each(($note, i) => {
                         let noteAttr: {[k: string]: any} = {
                             pitchStep: $note.q("pitch step").value.toLowerCase(),
                             pitchOctave: $note.q("pitch octave").numericValue,
                             duration: $note.q("duration").numericValue,
                             type: $note.q("type").value
                         };
+
 
                         let staffPlace = noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch;
 
@@ -109,9 +113,19 @@ export default class MusicXML {
                             this.engraver.engraveLedgerLine(-(16-noteWidth) / 2, staffPlace);
                         }
 
-                        firstStaffPlace = firstStaffPlace === undefined ? staffPlace : firstStaffPlace;
+                        let isFirstNote = (i === 0);
+
+                        if (isFirstNote) {
+                            needsStem = (noteAttr.type != "whole");
+                            firstStaffPlace = staffPlace;
+                        }
+
                         lastStaffPlace = staffPlace;
                     });
+
+                    if (needsStem) {
+                        this.engraver.engraveStem(0, lastStaffPlace, firstStaffPlace);
+                    }
 
                     this.engraver.moveHead(8);
                 });
@@ -226,25 +240,13 @@ class DOM {
 class DOMCollection {
     private currentNodes: DOM[] = [];
 
-    static wrap(nodes: NodeList): DOMCollection {
-        return new DOMCollection(nodes);
+    item(id: number): DOM {
+        return this.currentNodes[id];
     }
 
-    static use(nodes: DOM[]): DOMCollection {
-        return new DOMCollection(nodes);
-    }
-
-    private constructor(nodes: NodeList | DOM[]) {
-        if (nodes instanceof NodeList) {
-            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
-        } else {
-            this.currentNodes = nodes;
-        }
-    }
-
-    each(callback: (node: DOM) => void) {
-        for (let value of this.currentNodes) {
-            callback(value);
+    each(callback: (node: DOM, index?: number) => void) {
+        for (let i = 0; i < this.currentNodes.length; ++i) {
+            callback(this.currentNodes[i], i);
         }
     }
 
@@ -274,5 +276,21 @@ class DOMCollection {
         splitGroup();
 
         return groups;
+    }
+
+    static wrap(nodes: NodeList): DOMCollection {
+        return new DOMCollection(nodes);
+    }
+
+    static use(nodes: DOM[]): DOMCollection {
+        return new DOMCollection(nodes);
+    }
+
+    private constructor(nodes: NodeList | DOM[]) {
+        if (nodes instanceof NodeList) {
+            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
+        } else {
+            this.currentNodes = nodes;
+        }
     }
 }

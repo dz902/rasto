@@ -95,20 +95,15 @@ export default class SVGEngraver {
             this.engraveNoteHead(noteType, 0, note.staffPlace);
         }
     }
-    engraveStem(direction, staffPlaceStart, staffPlaceEnd) {
-        staffPlaceEnd = staffPlaceEnd ? staffPlaceEnd : staffPlaceStart;
-        const y = this.staffSpaceFromStaffPlace(staffPlaceStart);
-        const length = Math.abs(staffPlaceEnd - staffPlaceStart) / 2 * 8;
-        const translate = {
-            x: direction === "up" ? 1.18 * 8 - 1 : 0,
-            y: direction === "up" ? -length : 0
-        };
+    engraveStem(offset, staffPlaceTop, staffPlaceBottom) {
+        const staffSpace = this.staffSpaceFromStaffPlace(staffPlaceTop);
+        this.moveHead(undefined, staffSpace);
         return this.score.appendSVG()
+            .move(this.headPosition.x, this.headPosition.y)
             .size(32, 32)
-            .move(this.headPosition.x, y)
-            .appendRect(1, length)
+            .appendLine([0, 0], [0, (staffPlaceTop - staffPlaceBottom) * 4])
             .addClass("stem")
-            .translate(translate.x, translate.y);
+            .translate(offset);
     }
     engraveNoteHead(noteHeadType, offset, staffPlace) {
         const y = this.staffSpaceFromStaffPlace(staffPlace);

@@ -60,10 +60,13 @@ export default class MusicXML {
         $measure.qq("note")
             .group(node => node.has("chord"))
             .forEach(($chord) => {
-            let firstStaffPlace;
-            let lastStaffPlace;
-            let noteWidth;
-            $chord.each(($note) => {
+            let firstStaffPlace = 0;
+            let lastStaffPlace = 0;
+            let noteWidth = 0;
+            let needsStem = false;
+            let stemTopStaffPlace;
+            let stemBottomStaffPlace;
+            $chord.each(($note, i) => {
                 let noteAttr = {
                     pitchStep: $note.q("pitch step").value.toLowerCase(),
                     pitchOctave: $note.q("pitch octave").numericValue,
@@ -83,9 +86,16 @@ export default class MusicXML {
                 if (staffPlace < 0 || staffPlace > 9) {
                     this.engraver.engraveLedgerLine(-(16 - noteWidth) / 2, staffPlace);
                 }
-                firstStaffPlace = firstStaffPlace === undefined ? staffPlace : firstStaffPlace;
+                let isFirstNote = (i === 0);
+                if (isFirstNote) {
+                    needsStem = (noteAttr.type != "whole");
+                    firstStaffPlace = staffPlace;
+                }
                 lastStaffPlace = staffPlace;
             });
+            if (needsStem) {
+                this.engraver.engraveStem(0, lastStaffPlace, firstStaffPlace);
+            }
             this.engraver.moveHead(8);
         });
         this.engraver.resetHead();
@@ -180,15 +190,12 @@ class DOMCollection {
             this.currentNodes = nodes;
         }
     }
-    static wrap(nodes) {
-        return new DOMCollection(nodes);
-    }
-    static use(nodes) {
-        return new DOMCollection(nodes);
+    item(id) {
+        return this.currentNodes[id];
     }
     each(callback) {
-        for (let value of this.currentNodes) {
-            callback(value);
+        for (let i = 0; i < this.currentNodes.length; ++i) {
+            callback(this.currentNodes[i], i);
         }
     }
     group(callback) {
@@ -210,6 +217,12 @@ class DOMCollection {
         });
         splitGroup();
         return groups;
+    }
+    static wrap(nodes) {
+        return new DOMCollection(nodes);
+    }
+    static use(nodes) {
+        return new DOMCollection(nodes);
     }
 }
 //# sourceMappingURL=MusicXML.js.map
