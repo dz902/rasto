@@ -84,18 +84,11 @@ export default class SVGEngraver implements Engraver {
     engraveStaves(width: number): SVGEngraver {
         for (let i = 0; i < 10; i += 2) {
             this.moveHead(undefined, i);
-            this.engraveStaffLine(width, i)
+            this.engraveStaffLine(width)
                 .addClass("staffLine");
         }
 
         return this;
-    }
-
-    engraveStaffLine(width: number, staffPlace: number): SVG {
-        return this.score.appendSVG()
-                   .size(32, 32)
-                   .move(this.headPosition.x, this.headPosition.y)
-                   .appendLine([0, 0], [width*4, 0]);
     }
 
     engraveClef(clefSign: string, staffPlace: number): SVGEngraver {
@@ -119,11 +112,19 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
+    engraveStaffLine(width: number): SVG {
+        return this.score.appendSVG()
+                         .move(this.headPosition.x, this.headPosition.y)
+                         .appendLine([0, 0], [width*STAFF_SPACE, 0]);
+    }
+
     engraveLedgerLine(width: number, fromStaffPlace: number): void {
         let engraveOffsetLine = (staffPlace: number) => {
-            this.engraveStaffLine(width, staffPlace)
+            this.moveHead(undefined, this.staffSpaceFromStaffPlace(staffPlace));
+
+            this.engraveStaffLine(width)
                 .addClass("ledgerLine")
-                .translate(-width/2);
+                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"]/2*STAFF_SPACE);
         }
 
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
@@ -160,7 +161,7 @@ export default class SVGEngraver implements Engraver {
         let lastStaffPlace: number = lowestStaffPlace;
 
         let noteWidthFromBBox = (bbox: {[type: string]: [number, number]}) => {
-            return nn(bbox["bBoxNE"][0]) - nn(bbox["bBoxSW"][0]);
+            return nn(bbox["bBoxNE"][0] - bbox["bBoxSW"][0]);
         }
 
         let bboxes = this.meta["glyphBBoxes"];
@@ -201,7 +202,7 @@ export default class SVGEngraver implements Engraver {
             let ledgerNeeded = (staffPlace < 0 || staffPlace > 9);
 
             if (ledgerNeeded) {
-                this.engraveLedgerLine(noteWidth + nn(this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
+                this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
             }
         }
     }
