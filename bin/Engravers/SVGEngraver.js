@@ -40,11 +40,11 @@ export default class SVGEngraver {
             }
             
             line.ledgerLine {
-                stroke-width: ${nn(engravingDefaults.ledgerLineThickness * STAFF_SPACE)}px;
+                stroke-width: ${nn(engravingDefaults["legerLineThickness"] * STAFF_SPACE)}px;
             }
             
             line.stem {
-                stroke-width: ${nn(engravingDefaults.stemThickness * STAFF_SPACE)}px;
+                stroke-width: ${nn(engravingDefaults["stemThickness"] * STAFF_SPACE)}px;
             }
             
             line.barLineSingle {
@@ -96,7 +96,7 @@ export default class SVGEngraver {
             this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
             this.engraveStaffLine(width)
                 .addClass("ledgerLine")
-                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"] / 2));
+                .translate(nn(-this.meta["engravingDefaults"]["legerLineExtension"] / 2));
         };
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
@@ -159,7 +159,7 @@ export default class SVGEngraver {
             }
             let ledgerNeeded = (staffPlace < 0 || staffPlace > 9);
             if (ledgerNeeded) {
-                this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
+                this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["legerLineExtension"]), staffPlace);
             }
             lastStaffPlace = staffPlace;
         }
@@ -177,7 +177,16 @@ export default class SVGEngraver {
                 default:
                     throw new Error("unknown note type");
             }
-            this.engraveStem({ x: nn(noteAnchors["stemUpSE"][0]), y: nn(-noteAnchors["stemUpSE"][1]) }, staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep) + 7, staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep));
+            let highestStaffPlace = staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep);
+            let onlyLedgerNotes = highestStaffPlace < 0 || highestStaffPlace > 9;
+            let staffPlaceTop;
+            if (onlyLedgerNotes) {
+                staffPlaceTop = 4;
+            }
+            else {
+                staffPlaceTop = highestStaffPlace + 7;
+            }
+            this.engraveStem({ x: nn(noteAnchors["stemUpSE"][0]), y: nn(-noteAnchors["stemUpSE"][1]) }, staffPlaceTop, staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep));
         }
     }
     engraveStem(offsets, staffPlaceTop, staffPlaceBottom) {
