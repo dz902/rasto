@@ -122,7 +122,7 @@ export default class SVGEngraver implements Engraver {
 
             this.engraveStaffLine(width)
                 .addClass("ledgerLine")
-                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"]/2*STAFF_SPACE));
+                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"]/2));
         }
 
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
@@ -205,17 +205,41 @@ export default class SVGEngraver implements Engraver {
 
             lastStaffPlace = staffPlace;
         }
+
+        let stemNeeded = (lowestNote.type !== "whole");
+        let highestNote = notes[notes.length-1];
+
+        if (stemNeeded) {
+            let noteAnchors = this.meta["glyphsWithAnchors"];
+
+            switch (lowestNote.type) {
+                case "whole":
+                    noteAnchors = noteAnchors["noteWhole"];
+                    break;
+                case "half":
+                    noteAnchors = noteAnchors["noteheadHalf"];
+                    break;
+                default:
+                    throw new Error("unknown note type");
+            }
+
+            this.engraveStem({x: nn(noteAnchors["stemUpSE"][0]), y: nn(-noteAnchors["stemUpSE"][1])},
+                             staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep)+7,
+                             staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep));
+        }
     }
 
-    engraveStem(offset: number, staffPlaceTop: number, staffPlaceBottom: number): SVG {
+    engraveStem(offsets: {x: number, y: number}, staffPlaceTop: number, staffPlaceBottom: number): SVG {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
 
+        // y offset is compensated to make sure stem touches the right line as desired
+
         return this.score.appendSVG()
-                         .move(this.headPosition.x, this.headPosition.y)
-                         .size(32, 32)
-                             .appendLine([0, 0], [0, (staffPlaceTop-staffPlaceBottom)*4])
+                         .move(this.headPosition.x, this.headPosition.y-(offsets.y)*STAFF_SPACE)
+                             .appendRect(nn(this.meta["engravingDefaults"]["stemThickness"])*STAFF_SPACE,
+                                        (Math.abs(staffPlaceTop-staffPlaceBottom)/2+offsets.y)*STAFF_SPACE)
                              .addClass("stem")
-                             .translate(offset);
+                             .translate(offsets.x-nn(this.meta["engravingDefaults"]["stemThickness"]), offsets.y);
     }
 
     engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): SVG {
@@ -256,7 +280,7 @@ export default class SVGEngraver implements Engraver {
                                     .size(32, 128)
                                     .move(this.headPosition.x, this.headPosition.y)
                                         .appendText(glyphChar)
-                                        .translate(offset*STAFF_SPACE)
+                                        .translate(offset)
                                         .addClass("glyph");
 
         return glyphText.viewport;
@@ -393,8 +417,8 @@ class SVG {
             throw new Error("transform does not work on SVGSVGElement");
         }
 
-        const transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
-        transform.setTranslate(x ? x : 0, y ? y : 0);
+        let transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
+        transform.setTranslate(x ? x*STAFF_SPACE : 0, y ? y*STAFF_SPACE : 0);
 
         this.element.transform.baseVal.appendItem(transform);
 
