@@ -83,7 +83,7 @@ export default class SVGEngraver implements Engraver {
 
     engraveStaves(width: number): SVGEngraver {
         for (let i = 0; i < 10; i += 2) {
-            this.moveHead(undefined, i);
+            this.moveHead(undefined, i/2);
             this.engraveStaffLine(width)
                 .addClass("staffLine");
         }
@@ -102,9 +102,7 @@ export default class SVGEngraver implements Engraver {
                 throw new Error("unknown clef type");
         }
 
-        let y = this.staffSpaceFromStaffPlace(staffPlace);
-
-        this.moveHead(undefined, y);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         this.engraveGlyph(clefGlyphName, 0);
 
         this.currentState.clefSign = clefSign;
@@ -120,7 +118,7 @@ export default class SVGEngraver implements Engraver {
 
     engraveLedgerLine(width: number, fromStaffPlace: number): void {
         let engraveOffsetLine = (staffPlace: number) => {
-            this.moveHead(undefined, this.staffSpaceFromStaffPlace(staffPlace));
+            this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
             this.engraveStaffLine(width)
                 .addClass("ledgerLine")
@@ -146,14 +144,14 @@ export default class SVGEngraver implements Engraver {
             throw new Error("empty chord");
         }
 
-        let staffBottomPitch = 34;
+        let staffBottomPlace = 34;
 
         if (this.currentState.clefSign === "f") {
-            staffBottomPitch = 31;
+            staffBottomPlace = 31;
         }
 
         let staffPlaceFromOctaveAndStep = (octave: number, step: string): number => {
-            return octave*8 + STEP_NAMES.indexOf(step) - staffBottomPitch;
+            return octave*8 + STEP_NAMES.indexOf(step) - staffBottomPlace;
         };
 
         let lowestNote: Note = notes[0];
@@ -185,7 +183,7 @@ export default class SVGEngraver implements Engraver {
 
         for (let i = 0; i < notes.length; ++i) {
             let note = notes[i];
-            let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep) ;
+            let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
 
             let isNotThird = Math.abs(staffPlace - lowestStaffPlace + 1) % 3 !== 0;
             let isSecond = Math.abs(staffPlace - lastStaffPlace) === 1;
@@ -210,9 +208,7 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveStem(offset: number, staffPlaceTop: number, staffPlaceBottom: number): SVG {
-        const staffSpace = this.staffSpaceFromStaffPlace(staffPlaceTop);
-
-        this.moveHead(undefined, staffSpace);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
 
         return this.score.appendSVG()
                          .move(this.headPosition.x, this.headPosition.y)
@@ -223,8 +219,7 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): SVG {
-        const y = this.staffSpaceFromStaffPlace(staffPlace);
-        this.moveHead(undefined, y);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
         let glyphNote: SVG;
         switch (noteHeadType) {
@@ -240,9 +235,9 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
-        this.moveHead(undefined, 2);
+        this.moveHead(undefined, 1);
         this.engraveGlyph(`timeSig${bpm}`, 0);
-        this.moveHead(undefined, 6);
+        this.moveHead(undefined, 3);
         this.engraveGlyph(`timeSig${beatUnit}`, 0);
 
         return this;
@@ -267,13 +262,13 @@ export default class SVGEngraver implements Engraver {
         return glyphText.viewport;
     }
 
-    moveHead(steps?: number, verticalStep?: number): void {
-        if (steps !== undefined) {
-            this.headPosition.x += steps*4;
+    moveHead(xx?: number, y?: number): void {
+        if (xx !== undefined) {
+            this.headPosition.x += xx*STAFF_SPACE;
         }
 
-        if (verticalStep !== undefined) {
-            this.headPosition.y = verticalStep*4;
+        if (y !== undefined) {
+            this.headPosition.y = y*STAFF_SPACE;
         }
     }
 
@@ -285,8 +280,8 @@ export default class SVGEngraver implements Engraver {
         return this.score.viewport.element;
     }
 
-    private staffSpaceFromStaffPlace(staffPlace: number) {
-        return 8-staffPlace;
+    private topMarginFromStaffPlace(staffPlace: number) {
+        return 4 - staffPlace/2;
     }
 }
 

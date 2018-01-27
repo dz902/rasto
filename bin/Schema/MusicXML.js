@@ -57,23 +57,12 @@ export default class MusicXML {
             }
         });
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
-        this.engraver.moveHead(8);
+        this.engraver.moveHead(4);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
-        this.engraver.moveHead(8);
-        let staffBottomPitch = 34;
-        if (measureAttr.clefSign === "f") {
-            staffBottomPitch = 31;
-        }
-        const stepNames = "cdefgab";
+        this.engraver.moveHead(4);
         $measure.qq("note")
             .group(node => node.has("chord"))
             .forEach(($chord) => {
-            let firstStaffPlace = 0;
-            let lastStaffPlace = 0;
-            let noteWidth = 0;
-            let needsStem = false;
-            let stemTopStaffPlace;
-            let stemBottomStaffPlace;
             let notes = [];
             $chord.each(($note, i) => {
                 let note = {
@@ -83,35 +72,8 @@ export default class MusicXML {
                     type: $note.q("type").value
                 };
                 notes.push(note);
-                // let staffPlace = noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch;
-                //
-                // let isAdjacentNote = Math.abs(staffPlace - firstStaffPlace) % 2 !== 0 &&  // thirds stays in line
-                //                      Math.abs(staffPlace - lastStaffPlace) === 1;
-                //
-                // if (isAdjacentNote) {
-                //     this.engraver.engraveNoteHead(noteAttr.type, noteWidth, staffPlace);
-                // } else {
-                //     let noteHead = this.engraver.engraveNoteHead(noteAttr.type, 0, staffPlace);
-                //     noteWidth = noteHead.actualWidth;
-                // }
-                //
-                // if (staffPlace < 0 || staffPlace > 9) {
-                //     this.engraver.engraveLedgerLine(-(16-noteWidth) / 2, staffPlace);
-                // }
-                //
-                // let isFirstNote = (i === 0);
-                //
-                // if (isFirstNote) {
-                //     needsStem = (noteAttr.type != "whole");
-                //     firstStaffPlace = staffPlace;
-                // }
-                //
-                // lastStaffPlace = staffPlace;
             });
             this.engraver.engraveChord(notes);
-            if (needsStem) {
-                this.engraver.engraveStem(0, lastStaffPlace, firstStaffPlace);
-            }
             this.engraver.moveHead(8);
         });
         this.engraver.resetHead();

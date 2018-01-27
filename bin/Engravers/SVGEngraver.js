@@ -66,7 +66,7 @@ export default class SVGEngraver {
     }
     engraveStaves(width) {
         for (let i = 0; i < 10; i += 2) {
-            this.moveHead(undefined, i);
+            this.moveHead(undefined, i / 2);
             this.engraveStaffLine(width)
                 .addClass("staffLine");
         }
@@ -81,8 +81,7 @@ export default class SVGEngraver {
             default:
                 throw new Error("unknown clef type");
         }
-        let y = this.staffSpaceFromStaffPlace(staffPlace);
-        this.moveHead(undefined, y);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         this.engraveGlyph(clefGlyphName, 0);
         this.currentState.clefSign = clefSign;
         return this;
@@ -94,7 +93,7 @@ export default class SVGEngraver {
     }
     engraveLedgerLine(width, fromStaffPlace) {
         let engraveOffsetLine = (staffPlace) => {
-            this.moveHead(undefined, this.staffSpaceFromStaffPlace(staffPlace));
+            this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
             this.engraveStaffLine(width)
                 .addClass("ledgerLine")
                 .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"] / 2 * STAFF_SPACE));
@@ -116,12 +115,12 @@ export default class SVGEngraver {
         if (notes.length < 1) {
             throw new Error("empty chord");
         }
-        let staffBottomPitch = 34;
+        let staffBottomPlace = 34;
         if (this.currentState.clefSign === "f") {
-            staffBottomPitch = 31;
+            staffBottomPlace = 31;
         }
         let staffPlaceFromOctaveAndStep = (octave, step) => {
-            return octave * 8 + STEP_NAMES.indexOf(step) - staffBottomPitch;
+            return octave * 8 + STEP_NAMES.indexOf(step) - staffBottomPlace;
         };
         let lowestNote = notes[0];
         let lowestStaffPlace = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
@@ -166,8 +165,7 @@ export default class SVGEngraver {
         }
     }
     engraveStem(offset, staffPlaceTop, staffPlaceBottom) {
-        const staffSpace = this.staffSpaceFromStaffPlace(staffPlaceTop);
-        this.moveHead(undefined, staffSpace);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
         return this.score.appendSVG()
             .move(this.headPosition.x, this.headPosition.y)
             .size(32, 32)
@@ -176,8 +174,7 @@ export default class SVGEngraver {
             .translate(offset);
     }
     engraveNoteHead(noteHeadType, offset, staffPlace) {
-        const y = this.staffSpaceFromStaffPlace(staffPlace);
-        this.moveHead(undefined, y);
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         let glyphNote;
         switch (noteHeadType) {
             case "whole":
@@ -190,9 +187,9 @@ export default class SVGEngraver {
         return glyphNote;
     }
     engraveTimeSignature(bpm, beatUnit) {
-        this.moveHead(undefined, 2);
+        this.moveHead(undefined, 1);
         this.engraveGlyph(`timeSig${bpm}`, 0);
-        this.moveHead(undefined, 6);
+        this.moveHead(undefined, 3);
         this.engraveGlyph(`timeSig${beatUnit}`, 0);
         return this;
     }
@@ -210,12 +207,12 @@ export default class SVGEngraver {
             .addClass("glyph");
         return glyphText.viewport;
     }
-    moveHead(steps, verticalStep) {
-        if (steps !== undefined) {
-            this.headPosition.x += steps * 4;
+    moveHead(xx, y) {
+        if (xx !== undefined) {
+            this.headPosition.x += xx * STAFF_SPACE;
         }
-        if (verticalStep !== undefined) {
-            this.headPosition.y = verticalStep * 4;
+        if (y !== undefined) {
+            this.headPosition.y = y * STAFF_SPACE;
         }
     }
     resetHead() {
@@ -224,8 +221,8 @@ export default class SVGEngraver {
     print() {
         return this.score.viewport.element;
     }
-    staffSpaceFromStaffPlace(staffPlace) {
-        return 8 - staffPlace;
+    topMarginFromStaffPlace(staffPlace) {
+        return 4 - staffPlace / 2;
     }
 }
 class SVG {
