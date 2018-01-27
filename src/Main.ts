@@ -4,11 +4,13 @@ function Main() {
     fetch("./var/HelloWorld.xml")
         .then(response => response.text())
         .then((xmlString) => {
-            let music = new MusicXML(xmlString);
-            let musicElement = music.element;
+            MusicXML.render(xmlString)
+                    .then((music) => {
+                        let musicElement = music.element;
 
-            document.getElementsByTagName("body")[0]
-                .appendChild(musicElement);
+                        document.getElementsByTagName("body")[0]
+                                .appendChild(musicElement);
+                    });
         });
 }
 

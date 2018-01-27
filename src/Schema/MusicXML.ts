@@ -1,23 +1,36 @@
 import SVGEngraver from "../Engravers/SVGEngraver.js";
+import Note from "../Schema/Note.js";
 
 export default class MusicXML {
     private music: DOM;
     private engraver: SVGEngraver;
 
+    static render(xmlString: string): Promise<MusicXML> {
+        return SVGEngraver
+                   .create(600, 400)
+                   .then((engraver) => {
+                       // element must be rendered to get item bounding box
+
+                       let element = engraver.print();
+
+                       document.body.appendChild(element);
+
+                       let musicXML = new MusicXML(xmlString, engraver);
+
+                       document.body.removeChild(element);
+
+                       return musicXML;
+                   });
+    }
+
     get element(): Element {
         return this.engraver.print();
     }
 
-    constructor(dataString: string) {
-        this.engraver = new SVGEngraver(600, 400);
-
-        // element must be rendered to get item bounding box
-
-        let element = this.engraver.print();
-        document.body.appendChild(element);
+    private constructor(dataString: string, engraver: SVGEngraver) {
+        this.engraver = engraver;
 
         const $music = DOM.parse(dataString);
-
         const $scoreParts = $music.qq("score-partwise part-list score-part");
 
         let scoreParts: {[i: string]: string} = {};
@@ -33,13 +46,12 @@ export default class MusicXML {
 
         const $parts = $music.qq("score-partwise part");
         $parts.each(($part) => {
-           $part.qq("measure")
+            $part.qq("measure")
                 .each(($measure) => {
                     this.typesetMeasure($measure);
                 });
         });
 
-        document.body.removeChild(element);
     }
 
     private typesetMeasure($measure: DOM): void {
@@ -87,41 +99,45 @@ export default class MusicXML {
                     let needsStem: boolean = false;
                     let stemTopStaffPlace: number;
                     let stemBottomStaffPlace: number;
+                    let notes: Note[] = [];
 
                     $chord.each(($note, i) => {
-                        let noteAttr: {[k: string]: any} = {
+                        let note: Note = {
                             pitchStep: $note.q("pitch step").value.toLowerCase(),
                             pitchOctave: $note.q("pitch octave").numericValue,
                             duration: $note.q("duration").numericValue,
                             type: $note.q("type").value
                         };
 
+                        notes.push(note);
 
-                        let staffPlace = noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch;
-
-                        let isAdjacentNote = Math.abs(staffPlace - firstStaffPlace) % 2 !== 0 &&  // thirds stays in line
-                                             Math.abs(staffPlace - lastStaffPlace) === 1;
-
-                        if (isAdjacentNote) {
-                            this.engraver.engraveNoteHead(noteAttr.type, noteWidth, staffPlace);
-                        } else {
-                            let noteHead = this.engraver.engraveNoteHead(noteAttr.type, 0, staffPlace);
-                            noteWidth = noteHead.actualWidth;
-                        }
-
-                        if (staffPlace < 0 || staffPlace > 9) {
-                            this.engraver.engraveLedgerLine(-(16-noteWidth) / 2, staffPlace);
-                        }
-
-                        let isFirstNote = (i === 0);
-
-                        if (isFirstNote) {
-                            needsStem = (noteAttr.type != "whole");
-                            firstStaffPlace = staffPlace;
-                        }
-
-                        lastStaffPlace = staffPlace;
+                        // let staffPlace = noteAttr.pitchOctave*8+stepNames.indexOf(noteAttr.pitchStep)-staffBottomPitch;
+                        //
+                        // let isAdjacentNote = Math.abs(staffPlace - firstStaffPlace) % 2 !== 0 &&  // thirds stays in line
+                        //                      Math.abs(staffPlace - lastStaffPlace) === 1;
+                        //
+                        // if (isAdjacentNote) {
+                        //     this.engraver.engraveNoteHead(noteAttr.type, noteWidth, staffPlace);
+                        // } else {
+                        //     let noteHead = this.engraver.engraveNoteHead(noteAttr.type, 0, staffPlace);
+                        //     noteWidth = noteHead.actualWidth;
+                        // }
+                        //
+                        // if (staffPlace < 0 || staffPlace > 9) {
+                        //     this.engraver.engraveLedgerLine(-(16-noteWidth) / 2, staffPlace);
+                        // }
+                        //
+                        // let isFirstNote = (i === 0);
+                        //
+                        // if (isFirstNote) {
+                        //     needsStem = (noteAttr.type != "whole");
+                        //     firstStaffPlace = staffPlace;
+                        // }
+                        //
+                        // lastStaffPlace = staffPlace;
                     });
+
+                    this.engraver.engraveChord(notes);
 
                     if (needsStem) {
                         this.engraver.engraveStem(0, lastStaffPlace, firstStaffPlace);

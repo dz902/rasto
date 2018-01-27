@@ -1,4 +1,6 @@
 export default interface Note {
-    staffPlace: number,
-    alter: number
+    pitchOctave: number,
+    pitchStep: string,
+    duration: number,
+    type: string
 }

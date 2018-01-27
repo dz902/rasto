@@ -1,13 +1,19 @@
 import glyphTable from "../GlyphTable.js";
+const EM = 32;
+const STAFF_SPACE = 0.25 * EM;
+const STEP_NAMES = "cdefgab";
 export default class SVGEngraver {
-    constructor(width, height) {
+    constructor(width, height, meta) {
         this.headPosition = { x: 0, y: 0 };
+        this.currentState = {};
         this.width = width;
         this.height = height;
+        this.meta = meta;
         const viewport = SVG.make()
             .size(width, height);
         this.score = viewport.appendSVG()
             .move(50, 50);
+        let engravingDefaults = meta.engravingDefaults;
         this.score
             .appendStyle(`
             @font-face {
@@ -29,14 +35,27 @@ export default class SVGEngraver {
             }
             
             line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
-                stroke-width: 1px;
+                stroke-width: ${engravingDefaults.staffLineThickness * STAFF_SPACE}px;
                 stroke: #000;
+            }
+            
+            line.ledgerLine {
+                stroke-width: ${engravingDefaults.ledgerLineThickness * STAFF_SPACE}px;
+            }
+            
+            line.stem {
+                stroke-width: ${engravingDefaults.stemThickness * STAFF_SPACE}px;
             }
             
             line.barLineSingle {
                 stroke-linecap: square;
             }
-        `);
+            `);
+    }
+    static create(width, height) {
+        return fetch("./fonts/bravura/bravura_metadata.json")
+            .then(response => response.json())
+            .then((meta) => new SVGEngraver(width, height, meta));
     }
     engraveBarLineSingle() {
         const barLine = this.score.appendSVG()
@@ -60,9 +79,9 @@ export default class SVGEngraver {
             .appendLine([0, 0], [width * 4, 0])
             .translate(offset);
     }
-    engraveClef(clefType, staffPlace) {
+    engraveClef(clefSign, staffPlace) {
         let clefGlyphName = "";
-        switch (clefType.toLowerCase()) {
+        switch (clefSign.toLowerCase()) {
             case "g":
                 clefGlyphName = "gClef";
                 break;
@@ -72,6 +91,7 @@ export default class SVGEngraver {
         let y = this.staffSpaceFromStaffPlace(staffPlace);
         this.moveHead(undefined, y);
         this.engraveGlyph(clefGlyphName, 0);
+        this.currentState.clefSign = clefSign;
         return this;
     }
     engraveLedgerLine(offset, fromStaffPlace) {
@@ -90,9 +110,34 @@ export default class SVGEngraver {
             }
         }
     }
-    engraveChord(noteType, notes) {
-        for (let note of notes) {
-            this.engraveNoteHead(noteType, 0, note.staffPlace);
+    engraveChord(notes) {
+        if (notes.length < 1) {
+            throw new Error("empty chord");
+        }
+        let staffPlaceFromOctaveAndStep = (octave, step) => {
+            return octave * 8 + STEP_NAMES.indexOf(step);
+        };
+        let staffBottomPitch = 34;
+        if (this.currentState.clefSign === "f") {
+            staffBottomPitch = 31;
+        }
+        let lowestNote = notes[0];
+        let lowestStaffPlace = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
+        let lastStaffPlace = lowestStaffPlace;
+        let displacement = 0;
+        for (let i = 0; i < notes.length; ++i) {
+            let note = notes[i];
+            let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
+            let isNotThird = Math.abs(staffPlace - lowestStaffPlace) % 2 !== 0;
+            let isSecond = Math.abs(staffPlace - lastStaffPlace) === 1;
+            let isAdjacentNote = isSecond && isNotThird; // thirds stays in line
+            if (isAdjacentNote) {
+                this.engraveNoteHead(note.type, displacement, staffPlace - staffBottomPitch);
+            }
+            else {
+                let noteHead = this.engraveNoteHead(note.type, 0, staffPlace - staffBottomPitch);
+                displacement = noteHead.actualWidth;
+            }
         }
     }
     engraveStem(offset, staffPlaceTop, staffPlaceBottom) {

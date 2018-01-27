@@ -2,21 +2,36 @@ import glyphTable from "../GlyphTable.js";
 import Note from "../Schema/Note.js";
 import Engraver from "../Engraver.js";
 
+const EM = 32;
+const STAFF_SPACE = 0.25 * EM;
+const STEP_NAMES = "cdefgab";
+
 export default class SVGEngraver implements Engraver {
     private headPosition: {x: number, y: number } = {x: 0, y: 0};
     private score: SVG;
     private width: number;
     private height: number;
+    private meta: any;
+    private currentState: any = {};
 
-    constructor(width: number, height: number) {
+    static create(width: number, height: number): Promise<SVGEngraver> {
+        return fetch("./fonts/bravura/bravura_metadata.json")
+                   .then(response => response.json())
+                   .then((meta) => new SVGEngraver(width, height, meta));
+    }
+
+    private constructor(width: number, height: number, meta: any) {
         this.width = width;
         this.height = height;
+        this.meta = meta;
 
         const viewport = SVG.make()
-                            .size(width, height);
+            .size(width, height);
 
         this.score = viewport.appendSVG()
-                             .move(50, 50);
+            .move(50, 50);
+
+        let engravingDefaults = meta.engravingDefaults;
 
         this.score
             .appendStyle(`
@@ -39,14 +54,22 @@ export default class SVGEngraver implements Engraver {
             }
             
             line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
-                stroke-width: 1px;
+                stroke-width: ${engravingDefaults.staffLineThickness*STAFF_SPACE}px;
                 stroke: #000;
+            }
+            
+            line.ledgerLine {
+                stroke-width: ${engravingDefaults.ledgerLineThickness*STAFF_SPACE}px;
+            }
+            
+            line.stem {
+                stroke-width: ${engravingDefaults.stemThickness*STAFF_SPACE}px;
             }
             
             line.barLineSingle {
                 stroke-linecap: square;
             }
-        `);
+            `);
     }
 
     engraveBarLineSingle(): SVGEngraver {
@@ -76,10 +99,10 @@ export default class SVGEngraver implements Engraver {
                    .translate(offset);
     }
 
-    engraveClef(clefType: string, staffPlace: number): SVGEngraver {
+    engraveClef(clefSign: string, staffPlace: number): SVGEngraver {
         let clefGlyphName: string = "";
 
-        switch (clefType.toLowerCase()) {
+        switch (clefSign.toLowerCase()) {
             case "g":
                 clefGlyphName = "gClef";
                 break;
@@ -91,6 +114,8 @@ export default class SVGEngraver implements Engraver {
 
         this.moveHead(undefined, y);
         this.engraveGlyph(clefGlyphName, 0);
+
+        this.currentState.clefSign = clefSign;
 
         return this;
     }
@@ -112,9 +137,41 @@ export default class SVGEngraver implements Engraver {
         }
     }
 
-    engraveChord(noteType: string, notes: [Note]): void {
-        for (let note of notes) {
-            this.engraveNoteHead(noteType, 0, note.staffPlace);
+    engraveChord(notes: Note[]): void {
+        if (notes.length < 1) {
+            throw new Error("empty chord");
+        }
+
+        let staffPlaceFromOctaveAndStep = (octave: number, step: string): number => {
+            return octave*8 + STEP_NAMES.indexOf(step);
+        };
+
+        let staffBottomPitch = 34;
+
+        if (this.currentState.clefSign === "f") {
+            staffBottomPitch = 31;
+        }
+
+        let lowestNote: Note = notes[0];
+        let lowestStaffPlace: number = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
+        let lastStaffPlace: number = lowestStaffPlace;
+
+        let displacement = 0;
+
+        for (let i = 0; i < notes.length; ++i) {
+            let note = notes[i];
+            let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
+
+            let isNotThird = Math.abs(staffPlace - lowestStaffPlace) % 2 !== 0;
+            let isSecond =Math.abs(staffPlace - lastStaffPlace) === 1;
+            let isAdjacentNote = isSecond && isNotThird; // thirds stays in line
+
+            if (isAdjacentNote) {
+                this.engraveNoteHead(note.type, displacement, staffPlace - staffBottomPitch);
+            } else {
+                let noteHead = this.engraveNoteHead(note.type, 0, staffPlace - staffBottomPitch);
+                displacement = noteHead.actualWidth;
+            }
         }
     }
 
