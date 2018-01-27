@@ -148,7 +148,7 @@ export default class SVGEngraver {
         for (let i = 0; i < notes.length; ++i) {
             let note = notes[i];
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
-            let isNotThird = Math.abs(staffPlace - lowestStaffPlace) % 2 !== 0;
+            let isNotThird = Math.abs(staffPlace - lowestStaffPlace + 1) % 3 !== 0;
             let isSecond = Math.abs(staffPlace - lastStaffPlace) === 1;
             let isAdjacentNote = isSecond && isNotThird; // thirds stays in line
             let noteHead;
@@ -162,6 +162,7 @@ export default class SVGEngraver {
             if (ledgerNeeded) {
                 this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
             }
+            lastStaffPlace = staffPlace;
         }
     }
     engraveStem(offset, staffPlaceTop, staffPlaceBottom) {

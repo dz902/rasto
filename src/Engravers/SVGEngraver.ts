@@ -124,7 +124,7 @@ export default class SVGEngraver implements Engraver {
 
             this.engraveStaffLine(width)
                 .addClass("ledgerLine")
-                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"]/2*STAFF_SPACE);
+                .translate(nn(-this.meta["engravingDefaults"]["ledgerLineExtension"]/2*STAFF_SPACE));
         }
 
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace+1) & ~1;
@@ -187,7 +187,7 @@ export default class SVGEngraver implements Engraver {
             let note = notes[i];
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep) ;
 
-            let isNotThird = Math.abs(staffPlace - lowestStaffPlace) % 2 !== 0;
+            let isNotThird = Math.abs(staffPlace - lowestStaffPlace + 1) % 3 !== 0;
             let isSecond = Math.abs(staffPlace - lastStaffPlace) === 1;
             let isAdjacentNote = isSecond && isNotThird; // thirds stays in line
 
@@ -204,6 +204,8 @@ export default class SVGEngraver implements Engraver {
             if (ledgerNeeded) {
                 this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["ledgerLineExtension"]), staffPlace);
             }
+
+            lastStaffPlace = staffPlace;
         }
     }
 
