@@ -53,7 +53,7 @@
             <note>
                 <chord />
                 <pitch>
-                    <step>F</step>
+                    <step>C</step>
                     <octave>5</octave>
                 </pitch>
                 <duration>2</duration>
@@ -78,17 +78,8 @@
             </note>
             <note>
                 <pitch>
-                    <step>F</step>
-                    <octave>2</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
-                <chord />
-                <pitch>
-                    <step>F</step>
-                    <octave>3</octave>
+                    <step>C</step>
+                    <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
                 <type>half</type>
@@ -98,6 +89,15 @@
                 <pitch>
                     <step>F</step>
                     <octave>4</octave>
+                </pitch>
+                <duration>2</duration>
+                <type>half</type>
+            </note>
+            <note>
+                <chord />
+                <pitch>
+                    <step>A</step>
+                    <octave>5</octave>
                 </pitch>
                 <duration>2</duration>
                 <type>half</type>

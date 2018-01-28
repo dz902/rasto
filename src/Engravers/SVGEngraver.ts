@@ -4,6 +4,10 @@ import Engraver from "../Engraver.js";
 
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
+const STAFF_PLACE_MIDDLE_LINE = 4;
+const STAFF_PLACE_TOP_LINE = 9;
+const STAFF_PLACE_BOTTOM_LINE = 0;
+const STAFF_PLACE_SPAN_OCTAVE = 7;
 const STEP_NAMES = "cdefgab";
 
 export default class SVGEngraver implements Engraver {
@@ -62,10 +66,6 @@ export default class SVGEngraver implements Engraver {
                 stroke-width: ${nn(engravingDefaults["legerLineThickness"]*STAFF_SPACE)}px;
             }
             
-            line.stem {
-                stroke-width: ${nn(engravingDefaults["stemThickness"]*STAFF_SPACE)}px;
-            }
-            
             line.barLineSingle {
                 stroke-linecap: square;
             }
@@ -82,8 +82,7 @@ export default class SVGEngraver implements Engraver {
     engraveStaves(width: number): SVGEngraver {
         for (let i = 0; i < 5; ++i) {
             this.moveHead(undefined, i);
-            this.engraveStaffLine(width)
-                .addClass("staffLine");
+            this.engraveStaffLine(width);
         }
 
         return this;
@@ -109,7 +108,8 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveStaffLine(width: number): SVG {
-        let line = SVG.createLine([width, 0]);
+        let line = SVG.createLine([width, 0])
+                      .addClass("staffLine");
 
         return this.engraveElement(line);
     }
@@ -142,14 +142,14 @@ export default class SVGEngraver implements Engraver {
             throw new Error("empty chord");
         }
 
-        let staffBottomPlace = 34;
+        let staffBottomPlace = 30;
 
         if (this.currentState.clefSign === "f") {
-            staffBottomPlace = 31;
+            staffBottomPlace = 18;
         }
 
         let staffPlaceFromOctaveAndStep = (octave: number, step: string): number => {
-            return octave*8 + STEP_NAMES.indexOf(step) - staffBottomPlace;
+            return octave*7 + STEP_NAMES.indexOf(step) - staffBottomPlace;
         };
 
         let lowestNote: Note = notes[0];
@@ -195,7 +195,7 @@ export default class SVGEngraver implements Engraver {
                 noteHead = this.engraveNoteHead(note.type, 0, staffPlace);
             }
 
-            let ledgerNeeded = (staffPlace < 0 || staffPlace > 9);
+            let ledgerNeeded = (staffPlace < STAFF_PLACE_BOTTOM_LINE || staffPlace > STAFF_PLACE_TOP_LINE);
 
             if (ledgerNeeded) {
                 this.engraveLedgerLine(nn(noteWidth + this.meta["engravingDefaults"]["legerLineExtension"]), staffPlace);
@@ -221,20 +221,44 @@ export default class SVGEngraver implements Engraver {
                     throw new Error("unknown note type");
             }
 
+            let staffPlaceTop: number, staffPlaceBottom: number, offsets: {x: number, y: number};
             let highestStaffPlace = staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep);
-            let onlyLedgerNotes = highestStaffPlace < 0 || highestStaffPlace > 9;
-            let staffPlaceTop;
+            let onlyLedgerNotes = (highestStaffPlace < STAFF_PLACE_BOTTOM_LINE && lowestStaffPlace < STAFF_PLACE_BOTTOM_LINE) ||
+                                  (highestStaffPlace > STAFF_PLACE_TOP_LINE && lowestStaffPlace > STAFF_PLACE_TOP_LINE);
 
-            if (onlyLedgerNotes) {
-                staffPlaceTop = 4;
+
+            let stemPointsUp = (highestStaffPlace < STAFF_PLACE_MIDDLE_LINE) ||
+                               (highestStaffPlace-STAFF_PLACE_MIDDLE_LINE < STAFF_PLACE_MIDDLE_LINE-lowestStaffPlace);
+
+            if (stemPointsUp) {
+                if (onlyLedgerNotes) {
+                    staffPlaceTop = STAFF_PLACE_MIDDLE_LINE; // ledger note stem extends to middle line
+                } else {
+                    staffPlaceTop = highestStaffPlace + STAFF_PLACE_SPAN_OCTAVE;
+                }
+
+                staffPlaceBottom = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
+
+                offsets = {
+                    x: nn(noteAnchors["stemUpSE"][0]),
+                    y: nn(-noteAnchors["stemUpSE"][1])
+                };
             } else {
-                staffPlaceTop = highestStaffPlace+7;
+                if (onlyLedgerNotes) {
+                    staffPlaceBottom = STAFF_PLACE_MIDDLE_LINE; // ledger note stem extends to middle line
+                } else {
+                    staffPlaceBottom = lowestStaffPlace - STAFF_PLACE_SPAN_OCTAVE;
+                }
+
+                staffPlaceTop = staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep);
+
+                offsets = {
+                    x: nn(noteAnchors["stemDownNW"][0])+nn(this.meta["engravingDefaults"]["stemThickness"]),
+                    y: nn(noteAnchors["stemDownNW"][1])
+                }
             }
 
-            this.engraveStem(staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep), staffPlaceTop, {
-                x: nn(noteAnchors["stemUpSE"][0]),
-                y: nn(-noteAnchors["stemUpSE"][1])
-            });
+            this.engraveStem(staffPlaceBottom, staffPlaceTop, offsets);
         }
     }
 
@@ -380,10 +404,10 @@ class SVG {
 
         return Number(this._element.getAttribute("width"));
     }
-
-    get actualWidth(): number {
-        return this.bbox.width;
-    }
+    //
+    // get actualWidth(): number {
+    //     return this.bbox.width;
+    // }
 
     get viewport(): SVG {
         const viewport = this._element.viewportElement;
@@ -391,17 +415,17 @@ class SVG {
         return viewport === null ? this : (new SVG(viewport));
     }
 
-    get bbox(): BoundingBox {
-        if (!document.body.contains(this._element)) {
-            throw Error("element must be rendered to have a bounding box.")
-        }
-
-        if (this._element instanceof SVGGraphicsElement) {
-            return this._element.getBBox();
-        }
-
-        throw Error("element does not have a bounding box.");
-    }
+    // get bbox(): BoundingBox {
+    //     if (!document.body.contains(this._element)) {
+    //         throw Error("element must be rendered to have a bounding box.")
+    //     }
+    //
+    //     if (this._element instanceof SVGGraphicsElement) {
+    //         return this._element.getBBox();
+    //     }
+    //
+    //     throw Error("element does not have a bounding box.");
+    // }
 
     // CHILDREN ELEMENT APPENDERS
 
@@ -447,7 +471,7 @@ class SVG {
             throw new Error("transform does not work on SVGSVGElement");
         }
 
-        let transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
+        let transform = (<SVGSVGElement> this.element.viewportElement).createSVGTransform();
         transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
 
         this.element.transform.baseVal.appendItem(transform);
