@@ -1,7 +1,7 @@
 import MusicXML from './Schema/MusicXML.js';
 
 function Main() {
-    fetch('./var/HelloWorld.xml')
+    fetch('../var/HelloWorld.xml')
         .then(response => response.text())
         .then((xmlString) => {
             MusicXML.render(xmlString)

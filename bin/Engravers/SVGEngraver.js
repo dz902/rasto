@@ -22,7 +22,7 @@ export default class SVGEngraver {
             .appendStyle(`
             @font-face {
                 font-family: "Bravura";
-                src: url(./fonts/bravura/woff/Bravura.woff) format("woff");
+                src: url(./Fonts/bravura/woff/Bravura.woff) format("woff");
             }
 
             svg.viewport {

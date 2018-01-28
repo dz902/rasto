@@ -1,6 +1,7 @@
 import glyphTable from '../GlyphTable.js';
 import Note from '../Schema/Note.js';
 import Engraver from '../Engraver.js';
+import metadata from '../Fonts/bravura/bravura_metadata.js';
 
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
@@ -41,7 +42,7 @@ export default class SVGEngraver implements Engraver {
             .appendStyle(`
             @font-face {
                 font-family: "Bravura";
-                src: url(./fonts/bravura/woff/Bravura.woff) format("woff");
+                src: url(./Fonts/bravura/woff/Bravura.woff) format("woff");
             }
 
             svg.viewport {
