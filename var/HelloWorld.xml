@@ -39,7 +39,7 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>quarter</type>
+                <type>eighth</type>
             </note>
             <note>
                 <chord />
@@ -48,7 +48,7 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>quarter</type>
+                <type>eighth</type>
             </note>
             <note>
                 <pitch>

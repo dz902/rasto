@@ -1,5 +1,5 @@
-import SVGEngraver from "../Engravers/SVGEngraver.js";
-import Note from "../Schema/Note.js";
+import SVGEngraver from '../Engravers/SVGEngraver.js';
+import Note from '../Schema/Note.js';
 
 export default class MusicXML {
     private music: DOM;
@@ -7,20 +7,20 @@ export default class MusicXML {
 
     static render(xmlString: string): Promise<MusicXML> {
         return SVGEngraver
-                   .create(600, 400)
-                   .then((engraver) => {
-                       // element must be rendered to get item bounding box
+            .create(600, 400)
+            .then((engraver) => {
+                // element must be rendered to get item bounding box
 
-                       let element = engraver.print();
+                let element = engraver.print();
 
-                       document.body.appendChild(element);
+                document.body.appendChild(element);
 
-                       let musicXML = new MusicXML(xmlString, engraver);
+                let musicXML = new MusicXML(xmlString, engraver);
 
-                       document.body.removeChild(element);
+                document.body.removeChild(element);
 
-                       return musicXML;
-                   });
+                return musicXML;
+            });
     }
 
     get element(): Element {
@@ -31,25 +31,25 @@ export default class MusicXML {
         this.engraver = engraver;
 
         const $music = DOM.parse(dataString);
-        const $scoreParts = $music.qq("score-partwise part-list score-part");
+        const $scoreParts = $music.qq('score-partwise part-list score-part');
 
-        let scoreParts: {[i: string]: string} = {};
+        let scoreParts: { [i: string]: string } = {};
         $scoreParts.each(($scorePart) => {
             const partName = $scorePart.q('part-name').value;
 
-            if ($scorePart.id === "") {
-                throw new Error("score-part does not have an ID");
+            if ($scorePart.id === '') {
+                throw new Error('score-part does not have an ID');
             } else {
                 scoreParts[$scorePart.id] = partName;
             }
         });
 
-        const $parts = $music.qq("score-partwise part");
+        const $parts = $music.qq('score-partwise part');
         $parts.each(($part) => {
-            $part.qq("measure")
-                .each(($measure) => {
-                    this.typesetMeasure($measure);
-                });
+            $part.qq('measure')
+                 .each(($measure) => {
+                     this.typesetMeasure($measure);
+                 });
         });
 
     }
@@ -57,42 +57,42 @@ export default class MusicXML {
     private typesetMeasure($measure: DOM): void {
         this.engraver.engraveStaves(50);
 
-        let measureAttr: {[key: string]: any} = {};
+        let measureAttr: { [key: string]: any } = {};
 
-        $measure.q("attributes")
+        $measure.q('attributes')
                 .eachChild(($attr) => {
                     switch ($attr.name) {
-                        case "divisions":
+                        case 'divisions':
                             measureAttr.divisions = $attr.numericValue;
                             break;
-                        case "time":
-                            measureAttr.timeBeats = $attr.q("beats").numericValue;
-                            measureAttr.timeBeatType = $attr.q("beat-type").numericValue;
+                        case 'time':
+                            measureAttr.timeBeats = $attr.q('beats').numericValue;
+                            measureAttr.timeBeatType = $attr.q('beat-type').numericValue;
                             break;
-                        case "clef":
-                            measureAttr.clefSign = $attr.q("sign").value;
-                            measureAttr.clefLine = $attr.q("line").numericValue;
+                        case 'clef':
+                            measureAttr.clefSign = $attr.q('sign').value;
+                            measureAttr.clefLine = $attr.q('line').numericValue;
                             break;
                     }
                 });
 
-        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine-1)*2);
+        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.moveHead(4);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         this.engraver.moveHead(4);
 
 
-        $measure.qq("note")
-                .group(node => node.has("chord"))
+        $measure.qq('note')
+                .group(node => node.has('chord'))
                 .forEach(($chord) => {
                     let notes: Note[] = [];
 
                     $chord.each(($note, i) => {
                         let note: Note = {
-                            pitchStep: $note.q("pitch step").value.toLowerCase(),
-                            pitchOctave: $note.q("pitch octave").numericValue,
-                            duration: $note.q("duration").numericValue,
-                            type: $note.q("type").value
+                            pitchStep: $note.q('pitch step').value.toLowerCase(),
+                            pitchOctave: $note.q('pitch octave').numericValue,
+                            duration: $note.q('duration').numericValue,
+                            type: $note.q('type').value
                         };
 
                         notes.push(note);
@@ -128,7 +128,7 @@ class DOM {
         if (x instanceof Element) {
             this.currentNode = x;
         } else {
-            this.currentNode = (new DOMParser()).parseFromString(x, "application/xml");
+            this.currentNode = (new DOMParser()).parseFromString(x, 'application/xml');
         }
     }
 
@@ -140,21 +140,21 @@ class DOM {
         if (this.currentNode instanceof Element) {
             let id = this.currentNode.id;
 
-            if (id === "") {
-                throw new Error("empty id");
+            if (id === '') {
+                throw new Error('empty id');
             }
 
             return id;
         }
 
-        throw new Error("document does not have ids");
+        throw new Error('document does not have ids');
     }
 
     get value(): string {
         let value = this.currentNode.textContent;
 
         if (value === null) {
-            throw new Error("no text content value found");
+            throw new Error('no text content value found');
         }
 
         return value;
@@ -164,7 +164,7 @@ class DOM {
         let numValue = Number(this.value);
 
         if (Number.isNaN(numValue)) {
-            throw new Error("value is not a number");
+            throw new Error('value is not a number');
         }
 
         return numValue;
