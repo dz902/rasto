@@ -57,9 +57,13 @@ export default class SVGEngraver implements Engraver {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle, line.ledgerLine, line.stem {
+            line.staffLine, line.barLineSingle, line.ledgerLine {
                 stroke-width: ${nn(engravingDefaults.staffLineThickness*STAFF_SPACE)}px;
                 stroke: #000;
+            }
+            
+            rect.stem {
+                fill: red;
             }
             
             line.ledgerLine {
@@ -171,13 +175,15 @@ export default class SVGEngraver implements Engraver {
                 noteWidth = noteWidthFromBBox(bboxes["noteheadHalf"]);
                 break;
             case "quarter":
+            case "16th":
+            case "32th":
                 noteWidth = noteWidthFromBBox(bboxes["noteheadBlack"]);
                 break;
             default:
                 throw new Error("unknown note type");
         }
 
-        let displacement = noteWidth;
+        let displacement = noteWidth - nn(this.meta["engravingDefaults"]["stemThickness"]);
 
         for (let i = 0; i < notes.length; ++i) {
             let note = notes[i];
@@ -215,6 +221,9 @@ export default class SVGEngraver implements Engraver {
                     noteAnchors = noteAnchors["noteWhole"];
                     break;
                 case "half":
+                case "quarter":
+                case "16th":
+                case "32th":
                     noteAnchors = noteAnchors["noteheadHalf"];
                     break;
                 default:
@@ -254,12 +263,24 @@ export default class SVGEngraver implements Engraver {
 
                 offsets = {
                     x: nn(noteAnchors["stemDownNW"][0])+nn(this.meta["engravingDefaults"]["stemThickness"]),
-                    y: nn(noteAnchors["stemDownNW"][1])
+                    y: nn(-noteAnchors["stemDownNW"][1])
                 }
             }
 
             this.engraveStem(staffPlaceBottom, staffPlaceTop, offsets);
+
+            let flagNeeded = ["quarter", "eighth", "16th", "32th", "64th"].indexOf(lowestNote.type) !== -1;
+
+            if (flagNeeded) {
+
+            }
         }
+    }
+
+    engraveFlag(flagType: string, staffPlace: number, offsets: {x: number, y: number}): SVG {
+        this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
+
+        return this.engraveGlyph(flagType, offsets.x);
     }
 
     engraveStem(staffPlaceBottom: number, staffPlaceTop: number, offsets: { x: number; y: number }): SVG {
@@ -267,10 +288,17 @@ export default class SVGEngraver implements Engraver {
 
         // y offset is compensated to make sure stem touches the right line as desired
 
-        this.moveHead(undefined, this.headPosition.y-offsets.y);
+        let height = Math.abs(staffPlaceTop-staffPlaceBottom) / 2;
+        let movingUp = offsets.y < 0;
 
-        let stem = SVG.createRect(nn(this.meta["engravingDefaults"]["stemThickness"]),
-                                  (Math.abs(staffPlaceTop-staffPlaceBottom)/2+offsets.y))
+        if (movingUp) {
+            height += offsets.y;
+            offsets.y = 0;
+        } else {
+            height -= offsets.y;
+        }
+
+        let stem = SVG.createRect(nn(this.meta["engravingDefaults"]["stemThickness"]), height)
                       .addClass("stem");
 
         return this.engraveElement(stem)

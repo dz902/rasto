@@ -25,36 +25,10 @@
                 </clef>
             </attributes>
             <note>
-                <pitch>
-                    <step>A</step>
-                    <octave>3</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
                 <chord />
                 <pitch>
                     <step>C</step>
                     <octave>4</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
-                <chord />
-                <pitch>
-                    <step>D</step>
-                    <octave>4</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
-                <chord />
-                <pitch>
-                    <step>C</step>
-                    <octave>5</octave>
                 </pitch>
                 <duration>2</duration>
                 <type>half</type>
@@ -65,7 +39,7 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>whole</type>
+                <type>quarter</type>
             </note>
             <note>
                 <chord />
@@ -74,27 +48,9 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>whole</type>
+                <type>quarter</type>
             </note>
             <note>
-                <pitch>
-                    <step>C</step>
-                    <octave>4</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
-                <chord />
-                <pitch>
-                    <step>F</step>
-                    <octave>4</octave>
-                </pitch>
-                <duration>2</duration>
-                <type>half</type>
-            </note>
-            <note>
-                <chord />
                 <pitch>
                     <step>A</step>
                     <octave>5</octave>
