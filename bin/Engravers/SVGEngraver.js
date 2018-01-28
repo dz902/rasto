@@ -1,4 +1,5 @@
 import glyphTable from '../GlyphTable.js';
+import metadata from '../Fonts/bravura/bravura_metadata.js';
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
 const STAFF_PLACE_MIDDLE_LINE = 4;
@@ -7,17 +8,16 @@ const STAFF_PLACE_BOTTOM_LINE = 0;
 const STAFF_PLACE_SPAN_OCTAVE = 7;
 const STEP_NAMES = 'cdefgab';
 export default class SVGEngraver {
-    constructor(width, height, meta) {
+    constructor(width, height) {
         this.headPosition = { x: 0, y: 0 };
+        this.meta = metadata;
         this.currentState = {};
         this.width = width;
         this.height = height;
-        this.meta = meta;
         const viewport = SVG.make()
             .size(width, height);
         this.score = viewport.appendSVG()
             .move(5, 5);
-        let engravingDefaults = meta.engravingDefaults;
         this.score
             .appendStyle(`
             @font-face {
@@ -39,7 +39,7 @@ export default class SVGEngraver {
             }
             
             line.staffLine, line.barLineSingle, line.ledgerLine {
-                stroke-width: ${nn(engravingDefaults.staffLineThickness * STAFF_SPACE)}px;
+                stroke-width: ${this.defaults.staffLineThickness * STAFF_SPACE}px;
                 stroke: #000;
             }
             
@@ -48,7 +48,7 @@ export default class SVGEngraver {
             }
             
             line.ledgerLine {
-                stroke-width: ${nn(engravingDefaults['legerLineThickness'] * STAFF_SPACE)}px;
+                stroke-width: ${this.defaults.legerLineThickness * STAFF_SPACE}px;
             }
             
             line.barLineSingle {
@@ -57,9 +57,7 @@ export default class SVGEngraver {
             `);
     }
     static create(width, height) {
-        return fetch('./fonts/bravura/bravura_metadata.json')
-            .then(response => response.json())
-            .then((meta) => new SVGEngraver(width, height, meta));
+        return new SVGEngraver(width, height);
     }
     engraveBarLineSingle() {
         let line = SVG.createLine([0, 4])
@@ -97,7 +95,7 @@ export default class SVGEngraver {
             this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
             this.engraveStaffLine(width)
                 .addClass('ledgerLine')
-                .translate(nn(-this.meta['engravingDefaults']['legerLineExtension'] / 2));
+                .translate(-this.defaults.legerLineExtension / 2);
         };
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
@@ -127,27 +125,26 @@ export default class SVGEngraver {
         let lowestStaffPlace = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
         let lastStaffPlace = lowestStaffPlace;
         let noteWidthFromBBox = (bbox) => {
-            return nn(bbox['bBoxNE'][0] - bbox['bBoxSW'][0]);
+            return bbox['bBoxNE'][0] - bbox['bBoxSW'][0];
         };
-        let bboxes = this.meta['glyphBBoxes'];
         let noteWidth;
         switch (lowestNote.type) {
             case 'whole':
-                noteWidth = noteWidthFromBBox(bboxes['noteWhole']);
+                noteWidth = noteWidthFromBBox(this.bboxes['noteWhole']);
                 break;
             case 'half':
-                noteWidth = noteWidthFromBBox(bboxes['noteheadHalf']);
+                noteWidth = noteWidthFromBBox(this.bboxes['noteheadHalf']);
                 break;
             case 'quarter':
             case 'eighth':
             case '16th':
             case '32th':
-                noteWidth = noteWidthFromBBox(bboxes['noteheadBlack']);
+                noteWidth = noteWidthFromBBox(this.bboxes['noteheadBlack']);
                 break;
             default:
                 throw new Error('unknown note type');
         }
-        let displacement = noteWidth - nn(this.meta['engravingDefaults']['stemThickness']);
+        let displacement = noteWidth - this.defaults.stemThickness;
         for (let i = 0; i < notes.length; ++i) {
             let note = notes[i];
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
@@ -163,24 +160,24 @@ export default class SVGEngraver {
             }
             let ledgerNeeded = (staffPlace < STAFF_PLACE_BOTTOM_LINE || staffPlace > STAFF_PLACE_TOP_LINE);
             if (ledgerNeeded) {
-                this.engraveLedgerLine(nn(noteWidth + this.meta['engravingDefaults']['legerLineExtension']), staffPlace);
+                this.engraveLedgerLine(noteWidth + this.defaults.legerLineExtension, staffPlace);
             }
             lastStaffPlace = staffPlace;
         }
         let stemNeeded = (lowestNote.type !== 'whole');
         let highestNote = notes[notes.length - 1];
         if (stemNeeded) {
-            let noteAnchors = this.meta['glyphsWithAnchors'];
+            let noteAnchors;
             switch (lowestNote.type) {
                 case 'whole':
-                    noteAnchors = noteAnchors['noteWhole'];
+                    noteAnchors = this.anchors['noteWhole'];
                     break;
                 case 'half':
                 case 'quarter':
                 case 'eighth':
                 case '16th':
                 case '32th':
-                    noteAnchors = noteAnchors['noteheadHalf'];
+                    noteAnchors = this.anchors['noteheadHalf'];
                     break;
                 default:
                     throw new Error('unknown note type');
@@ -200,8 +197,8 @@ export default class SVGEngraver {
                 }
                 stemStaffPlaceBottom = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
                 stemOffsets = {
-                    x: nn(noteAnchors['stemUpSE'][0]),
-                    y: nn(-noteAnchors['stemUpSE'][1])
+                    x: noteAnchors['stemUpSE'][0],
+                    y: -noteAnchors['stemUpSE'][1]
                 };
             }
             else {
@@ -213,8 +210,8 @@ export default class SVGEngraver {
                 }
                 stemStaffPlaceTop = staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep);
                 stemOffsets = {
-                    x: nn(noteAnchors['stemDownNW'][0]) + nn(this.meta['engravingDefaults']['stemThickness']),
-                    y: nn(-noteAnchors['stemDownNW'][1])
+                    x: noteAnchors['stemDownNW'][0] + this.defaults.stemThickness,
+                    y: -noteAnchors['stemDownNW'][1]
                 };
             }
             this.engraveStem(stemStaffPlaceBottom, stemStaffPlaceTop, stemOffsets);
@@ -234,10 +231,10 @@ export default class SVGEngraver {
                 else {
                     flagType += 'Down';
                 }
-                let flagAnchor = this.meta['glyphsWithAnchors'][flagType];
+                let flagAnchor = this.anchors[flagType];
                 let flagOffsets = {
-                    x: stemOffsets.x + nn(flagAnchor['stemUpNW'][0]) - nn(this.meta['engravingDefaults']['stemThickness']),
-                    y: stemOffsets.y + nn(flagAnchor['stemUpNW'][1])
+                    x: stemOffsets.x + flagAnchor['stemUpNW'][0] - this.defaults.stemThickness,
+                    y: stemOffsets.y + flagAnchor['stemUpNW'][1]
                 };
                 flagOffsets.x;
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
@@ -260,10 +257,10 @@ export default class SVGEngraver {
         else {
             height -= offsets.y;
         }
-        let stem = SVG.createRect(nn(this.meta['engravingDefaults']['stemThickness']), height)
+        let stem = SVG.createRect(this.defaults.stemThickness, height)
             .addClass('stem');
         return this.engraveElement(stem)
-            .translate(offsets.x - nn(this.meta['engravingDefaults']['stemThickness']), offsets.y);
+            .translate(offsets.x - this.defaults.stemThickness, offsets.y);
     }
     engraveNoteHead(noteHeadType, offsetX, staffPlace) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
@@ -319,6 +316,15 @@ export default class SVGEngraver {
     }
     print() {
         return this.score.viewport.element;
+    }
+    get defaults() {
+        return this.meta.engravingDefaults;
+    }
+    get anchors() {
+        return this.meta.glyphsWithAnchors;
+    }
+    get bboxes() {
+        return this.meta.glyphBBoxes;
     }
     topMarginFromStaffPlace(staffPlace) {
         return 4 - staffPlace / 2;
@@ -441,12 +447,5 @@ class SVG {
         this._element.textContent = text;
         return this;
     }
-}
-function nn(value) {
-    let n = Number(value);
-    if (Number.isNaN(n)) {
-        throw new Error('value is not a number');
-    }
-    return n;
 }
 //# sourceMappingURL=SVGEngraver.js.map

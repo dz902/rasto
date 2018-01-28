@@ -1,16 +1,13 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
 export default class MusicXML {
     static render(xmlString) {
-        return SVGEngraver
-            .create(600, 400)
-            .then((engraver) => {
-            // element must be rendered to get item bounding box
-            let element = engraver.print();
-            document.body.appendChild(element);
-            let musicXML = new MusicXML(xmlString, engraver);
-            document.body.removeChild(element);
-            return musicXML;
-        });
+        let engraver = SVGEngraver.create(600, 400);
+        // element must be rendered to get item bounding box
+        let element = engraver.print();
+        document.body.appendChild(element);
+        let musicXML = new MusicXML(xmlString, engraver);
+        document.body.removeChild(element);
+        return musicXML;
     }
     get element() {
         return this.engraver.print();

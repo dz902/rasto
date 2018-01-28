@@ -5,22 +5,20 @@ export default class MusicXML {
     private music: DOM;
     private engraver: SVGEngraver;
 
-    static render(xmlString: string): Promise<MusicXML> {
-        return SVGEngraver
-            .create(600, 400)
-            .then((engraver) => {
-                // element must be rendered to get item bounding box
+    static render(xmlString: string): MusicXML {
+        let engraver = SVGEngraver.create(600, 400);
 
-                let element = engraver.print();
+        // element must be rendered to get item bounding box
 
-                document.body.appendChild(element);
+        let element = engraver.print();
 
-                let musicXML = new MusicXML(xmlString, engraver);
+        document.body.appendChild(element);
 
-                document.body.removeChild(element);
+        let musicXML = new MusicXML(xmlString, engraver);
 
-                return musicXML;
-            });
+        document.body.removeChild(element);
+
+        return musicXML;
     }
 
     get element(): Element {
