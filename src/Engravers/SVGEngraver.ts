@@ -29,7 +29,7 @@ export default class SVGEngraver implements Engraver {
             .size(width, height);
 
         this.score = viewport.appendSVG()
-            .move(50, 50);
+            .move(5, 5);
 
         let engravingDefaults = meta.engravingDefaults;
 
@@ -72,13 +72,11 @@ export default class SVGEngraver implements Engraver {
             `);
     }
 
-    engraveBarLineSingle(): SVGEngraver {
-        const barLine = this.score.appendSVG()
-                                  .move(this.headPosition.x, this.headPosition.y)
-                                      .appendLine([0, 0], [0, 32])
-                                      .addClass("barLineSingle");
+    engraveBarLineSingle(): SVG {
+        let line = SVG.createLine([0, 4])
+                      .addClass("barLineSingle");
 
-        return this;
+        return this.engraveElement(line);
     }
 
     engraveStaves(width: number): SVGEngraver {
@@ -111,9 +109,9 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveStaffLine(width: number): SVG {
-        return this.score.appendSVG()
-                         .move(this.headPosition.x, this.headPosition.y)
-                         .appendLine([0, 0], [width*STAFF_SPACE, 0]);
+        let line = SVG.createLine([width, 0]);
+
+        return this.engraveElement(line);
     }
 
     engraveLedgerLine(width: number, fromStaffPlace: number): void {
@@ -233,26 +231,29 @@ export default class SVGEngraver implements Engraver {
                 staffPlaceTop = highestStaffPlace+7;
             }
 
-            this.engraveStem({x: nn(noteAnchors["stemUpSE"][0]), y: nn(-noteAnchors["stemUpSE"][1])},
-                             staffPlaceTop,
-                             staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep));
+            this.engraveStem(staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep), staffPlaceTop, {
+                x: nn(noteAnchors["stemUpSE"][0]),
+                y: nn(-noteAnchors["stemUpSE"][1])
+            });
         }
     }
 
-    engraveStem(offsets: {x: number, y: number}, staffPlaceTop: number, staffPlaceBottom: number): SVG {
+    engraveStem(staffPlaceBottom: number, staffPlaceTop: number, offsets: { x: number; y: number }): SVG {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
 
         // y offset is compensated to make sure stem touches the right line as desired
 
-        return this.score.appendSVG()
-                         .move(this.headPosition.x, this.headPosition.y-(offsets.y)*STAFF_SPACE)
-                             .appendRect(nn(this.meta["engravingDefaults"]["stemThickness"])*STAFF_SPACE,
-                                        (Math.abs(staffPlaceTop-staffPlaceBottom)/2+offsets.y)*STAFF_SPACE)
-                             .addClass("stem")
-                             .translate(offsets.x-nn(this.meta["engravingDefaults"]["stemThickness"]), offsets.y);
+        this.moveHead(undefined, this.headPosition.y-offsets.y);
+
+        let stem = SVG.createRect(nn(this.meta["engravingDefaults"]["stemThickness"]),
+                                  (Math.abs(staffPlaceTop-staffPlaceBottom)/2+offsets.y))
+                      .addClass("stem");
+
+        return this.engraveElement(stem)
+                   .translate(offsets.x-nn(this.meta["engravingDefaults"]["stemThickness"]), offsets.y);
     }
 
-    engraveNoteHead(noteHeadType: string, offset: number, staffPlace: number): void {
+    engraveNoteHead(noteHeadType: string, offsetX: number, staffPlace: number): SVG {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
         let glyphName: {[k: string]: string } = {
@@ -267,7 +268,7 @@ export default class SVGEngraver implements Engraver {
             throw new Error("unknown note type");
         }
 
-        this.engraveGlyph(glyphName[noteHeadType], offset);
+        return this.engraveGlyph(glyphName[noteHeadType], offsetX);
     }
 
     engraveTimeSignature(bpm: number, beatUnit: number): SVGEngraver {
@@ -279,7 +280,7 @@ export default class SVGEngraver implements Engraver {
         return this;
     }
 
-    engraveGlyph(glyphName: string, offset: number): SVG {
+    engraveGlyph(glyphName: string, offsetX: number): SVG {
         const glyphChar = glyphTable[glyphName];
 
         let glyphNameNotFound = (glyphChar === undefined);
@@ -288,23 +289,30 @@ export default class SVGEngraver implements Engraver {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
 
-        const glyphText = this.score.appendSVG()
-                                    .size(32, 128)
-                                    .move(this.headPosition.x, this.headPosition.y)
-                                        .appendText(glyphChar)
-                                        .translate(offset)
-                                        .addClass("glyph");
+        let glyphText = SVG.createText(glyphChar)
+                           .addClass("glyph");
+        let glyph = this.engraveElement(glyphText)
+                        .translate(offsetX);
 
-        return glyphText.viewport;
+        return glyph;
+    }
+
+    engraveElement(element: SVG): SVG {
+        let svg = this.score.appendSVG()
+                            .move(this.headPosition.x, this.headPosition.y);
+
+        let child = svg.appendElement(element);
+
+        return child;
     }
 
     moveHead(xx?: number, y?: number): void {
         if (xx !== undefined) {
-            this.headPosition.x += xx*STAFF_SPACE;
+            this.headPosition.x += xx;
         }
 
         if (y !== undefined) {
-            this.headPosition.y = y*STAFF_SPACE;
+            this.headPosition.y = y;
         }
     }
 
@@ -323,6 +331,27 @@ export default class SVGEngraver implements Engraver {
 
 class SVG {
     private _element: SVGGraphicsElement;
+
+    static create(elementName: string): SVG {
+        return new SVG(elementName);
+    }
+
+    static createText(text: string): SVG {
+        return SVG.create("text").textContent(text);
+    }
+
+    static createLine(endingPoint: [number, number]): SVG {
+        return SVG.create("line")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", endingPoint[0] * STAFF_SPACE)
+            .attr("y2", endingPoint[1] * STAFF_SPACE);
+    }
+
+    static createRect(width: number, height: number): SVG {
+        return SVG.create("rect")
+                  .size(width, height);
+    }
 
     static make(): SVG {
         const svg = new SVG("svg");
@@ -380,27 +409,16 @@ class SVG {
         return this.appendChild("svg");
     }
 
-    appendText(text: string): SVG {
-        return this.appendChild("text").textContent(text);
-    }
-
     appendStyle(style: string): SVG {
         return this.appendChild("defs")
             .appendChild("style")
             .textContent(style);
     }
 
-    appendLine(startingPoint: [number, number], endingPoint: [number, number]): SVG {
-        return this.appendChild("line")
-                   .attr("x1", startingPoint[0])
-                   .attr("y1", startingPoint[1])
-                   .attr("x2", endingPoint[0])
-                   .attr("y2", endingPoint[1]);
-    }
+    appendElement(child: SVG): SVG {
+        this._element.appendChild(child.element);
 
-    appendRect(width: number, height: number): SVG {
-        return this.appendChild("rect")
-                   .size(width, height);
+        return child;
     }
 
     // PROPERTY MANIPULATORS
@@ -411,11 +429,11 @@ class SVG {
 
     move(x?: number, y?: number): SVG {
         if (x) {
-            this.attr("x", x);
+            this.attr("x", x * STAFF_SPACE);
         }
 
         if (y) {
-            this.attr("y", y);
+            this.attr("y", y * STAFF_SPACE);
         }
 
         return this;
@@ -430,7 +448,7 @@ class SVG {
         }
 
         let transform = (<SVGSVGElement> this.viewport.element).createSVGTransform();
-        transform.setTranslate(x ? x*STAFF_SPACE : 0, y ? y*STAFF_SPACE : 0);
+        transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
 
         this.element.transform.baseVal.appendItem(transform);
 
@@ -438,8 +456,8 @@ class SVG {
     }
 
     size(width: number, height: number): SVG {
-        return this.attr("width", width)
-                   .attr("height", height);
+        return this.attr("width", width * STAFF_SPACE)
+                   .attr("height", height * STAFF_SPACE);
     }
 
     appendChild(elementName: string): SVG {
@@ -466,14 +484,6 @@ class SVG {
         this._element.textContent = text;
 
         return this;
-    }
-
-    // LAYOUT HELPERS
-
-    alignCenter(): SVG {
-        const leftPadding = (this.viewport.width - this.actualWidth) / 2;
-
-        return this.translate(leftPadding);
     }
 }
 

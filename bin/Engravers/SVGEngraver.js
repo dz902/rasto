@@ -12,7 +12,7 @@ export default class SVGEngraver {
         const viewport = SVG.make()
             .size(width, height);
         this.score = viewport.appendSVG()
-            .move(50, 50);
+            .move(5, 5);
         let engravingDefaults = meta.engravingDefaults;
         this.score
             .appendStyle(`
@@ -58,11 +58,9 @@ export default class SVGEngraver {
             .then((meta) => new SVGEngraver(width, height, meta));
     }
     engraveBarLineSingle() {
-        const barLine = this.score.appendSVG()
-            .move(this.headPosition.x, this.headPosition.y)
-            .appendLine([0, 0], [0, 32])
+        let line = SVG.createLine([0, 4])
             .addClass("barLineSingle");
-        return this;
+        return this.engraveElement(line);
     }
     engraveStaves(width) {
         for (let i = 0; i < 5; ++i) {
@@ -87,9 +85,8 @@ export default class SVGEngraver {
         return this;
     }
     engraveStaffLine(width) {
-        return this.score.appendSVG()
-            .move(this.headPosition.x, this.headPosition.y)
-            .appendLine([0, 0], [width * STAFF_SPACE, 0]);
+        let line = SVG.createLine([width, 0]);
+        return this.engraveElement(line);
     }
     engraveLedgerLine(width, fromStaffPlace) {
         let engraveOffsetLine = (staffPlace) => {
@@ -186,19 +183,22 @@ export default class SVGEngraver {
             else {
                 staffPlaceTop = highestStaffPlace + 7;
             }
-            this.engraveStem({ x: nn(noteAnchors["stemUpSE"][0]), y: nn(-noteAnchors["stemUpSE"][1]) }, staffPlaceTop, staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep));
+            this.engraveStem(staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep), staffPlaceTop, {
+                x: nn(noteAnchors["stemUpSE"][0]),
+                y: nn(-noteAnchors["stemUpSE"][1])
+            });
         }
     }
-    engraveStem(offsets, staffPlaceTop, staffPlaceBottom) {
+    engraveStem(staffPlaceBottom, staffPlaceTop, offsets) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
         // y offset is compensated to make sure stem touches the right line as desired
-        return this.score.appendSVG()
-            .move(this.headPosition.x, this.headPosition.y - (offsets.y) * STAFF_SPACE)
-            .appendRect(nn(this.meta["engravingDefaults"]["stemThickness"]) * STAFF_SPACE, (Math.abs(staffPlaceTop - staffPlaceBottom) / 2 + offsets.y) * STAFF_SPACE)
-            .addClass("stem")
+        this.moveHead(undefined, this.headPosition.y - offsets.y);
+        let stem = SVG.createRect(nn(this.meta["engravingDefaults"]["stemThickness"]), (Math.abs(staffPlaceTop - staffPlaceBottom) / 2 + offsets.y))
+            .addClass("stem");
+        return this.engraveElement(stem)
             .translate(offsets.x - nn(this.meta["engravingDefaults"]["stemThickness"]), offsets.y);
     }
-    engraveNoteHead(noteHeadType, offset, staffPlace) {
+    engraveNoteHead(noteHeadType, offsetX, staffPlace) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         let glyphName = {
             "whole": "noteWhole",
@@ -209,7 +209,7 @@ export default class SVGEngraver {
         if (glyphNameNotFound) {
             throw new Error("unknown note type");
         }
-        this.engraveGlyph(glyphName[noteHeadType], offset);
+        return this.engraveGlyph(glyphName[noteHeadType], offsetX);
     }
     engraveTimeSignature(bpm, beatUnit) {
         this.moveHead(undefined, 1);
@@ -218,26 +218,30 @@ export default class SVGEngraver {
         this.engraveGlyph(`timeSig${beatUnit}`, 0);
         return this;
     }
-    engraveGlyph(glyphName, offset) {
+    engraveGlyph(glyphName, offsetX) {
         const glyphChar = glyphTable[glyphName];
         let glyphNameNotFound = (glyphChar === undefined);
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
-        const glyphText = this.score.appendSVG()
-            .size(32, 128)
-            .move(this.headPosition.x, this.headPosition.y)
-            .appendText(glyphChar)
-            .translate(offset)
+        let glyphText = SVG.createText(glyphChar)
             .addClass("glyph");
-        return glyphText.viewport;
+        let glyph = this.engraveElement(glyphText)
+            .translate(offsetX);
+        return glyph;
+    }
+    engraveElement(element) {
+        let svg = this.score.appendSVG()
+            .move(this.headPosition.x, this.headPosition.y);
+        let child = svg.appendElement(element);
+        return child;
     }
     moveHead(xx, y) {
         if (xx !== undefined) {
-            this.headPosition.x += xx * STAFF_SPACE;
+            this.headPosition.x += xx;
         }
         if (y !== undefined) {
-            this.headPosition.y = y * STAFF_SPACE;
+            this.headPosition.y = y;
         }
     }
     resetHead() {
@@ -251,6 +255,23 @@ export default class SVGEngraver {
     }
 }
 class SVG {
+    static create(elementName) {
+        return new SVG(elementName);
+    }
+    static createText(text) {
+        return SVG.create("text").textContent(text);
+    }
+    static createLine(endingPoint) {
+        return SVG.create("line")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", endingPoint[0] * STAFF_SPACE)
+            .attr("y2", endingPoint[1] * STAFF_SPACE);
+    }
+    static createRect(width, height) {
+        return SVG.create("rect")
+            .size(width, height);
+    }
     static make() {
         const svg = new SVG("svg");
         return svg.addClass("viewport");
@@ -293,24 +314,14 @@ class SVG {
     appendSVG() {
         return this.appendChild("svg");
     }
-    appendText(text) {
-        return this.appendChild("text").textContent(text);
-    }
     appendStyle(style) {
         return this.appendChild("defs")
             .appendChild("style")
             .textContent(style);
     }
-    appendLine(startingPoint, endingPoint) {
-        return this.appendChild("line")
-            .attr("x1", startingPoint[0])
-            .attr("y1", startingPoint[1])
-            .attr("x2", endingPoint[0])
-            .attr("y2", endingPoint[1]);
-    }
-    appendRect(width, height) {
-        return this.appendChild("rect")
-            .size(width, height);
+    appendElement(child) {
+        this._element.appendChild(child.element);
+        return child;
     }
     // PROPERTY MANIPULATORS
     id(id) {
@@ -318,10 +329,10 @@ class SVG {
     }
     move(x, y) {
         if (x) {
-            this.attr("x", x);
+            this.attr("x", x * STAFF_SPACE);
         }
         if (y) {
-            this.attr("y", y);
+            this.attr("y", y * STAFF_SPACE);
         }
         return this;
     }
@@ -337,8 +348,8 @@ class SVG {
         return this;
     }
     size(width, height) {
-        return this.attr("width", width)
-            .attr("height", height);
+        return this.attr("width", width * STAFF_SPACE)
+            .attr("height", height * STAFF_SPACE);
     }
     appendChild(elementName) {
         const child = new SVG(elementName);
@@ -356,11 +367,6 @@ class SVG {
     textContent(text) {
         this._element.textContent = text;
         return this;
-    }
-    // LAYOUT HELPERS
-    alignCenter() {
-        const leftPadding = (this.viewport.width - this.actualWidth) / 2;
-        return this.translate(leftPadding);
     }
 }
 function nn(value) {
