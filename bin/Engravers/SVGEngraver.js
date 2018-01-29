@@ -100,9 +100,10 @@ export default class SVGEngraver {
     engraveLedgerLine(width, fromStaffPlace) {
         let engraveOffsetLine = (staffPlace) => {
             this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
-            this.engraveStaffLine(width)
+            let line = SVG.createLine([width, 0])
                 .addClass('ledgerLine')
                 .translate(-this.defaults.legerLineExtension / 2);
+            return this.engraveElement(line);
         };
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
         let ledgerLineIsBelowStaff = (fromStaffPlace < 0);
@@ -299,9 +300,9 @@ export default class SVGEngraver {
             height -= offsets.y;
         }
         let stem = SVG.createRect(this.defaults.stemThickness, height)
-            .addClass('stem');
-        return this.engraveElement(stem)
+            .addClass('stem')
             .translate(offsets.x - this.defaults.stemThickness, offsets.y);
+        return this.engraveElement(stem);
     }
     engraveNoteHead(noteHeadType, offsetX, staffPlace) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
@@ -334,9 +335,9 @@ export default class SVGEngraver {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
         let glyphText = SVG.createText(codePoints.codepoint)
-            .addClass('glyph');
-        let glyph = this.engraveElement(glyphText)
+            .addClass('glyph')
             .translate(offsetX);
+        let glyph = this.engraveElement(glyphText);
         return glyph;
     }
     engraveElement(element) {

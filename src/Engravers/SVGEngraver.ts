@@ -129,9 +129,12 @@ export default class SVGEngraver implements Engraver {
         let engraveOffsetLine = (staffPlace: number) => {
             this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
-            this.engraveStaffLine(width)
-                .addClass('ledgerLine')
-                .translate(-this.defaults.legerLineExtension / 2);
+
+            let line = SVG.createLine([width, 0])
+                          .addClass('ledgerLine')
+                          .translate(-this.defaults.legerLineExtension / 2);
+
+            return this.engraveElement(line);
         };
 
         let nearestEvenStaffPlace = fromStaffPlace > 0 ? (fromStaffPlace) & ~1 : (fromStaffPlace + 1) & ~1;
@@ -377,10 +380,10 @@ export default class SVGEngraver implements Engraver {
         }
 
         let stem = SVG.createRect(this.defaults.stemThickness, height)
-                      .addClass('stem');
+                      .addClass('stem')
+                      .translate(offsets.x - this.defaults.stemThickness, offsets.y);
 
-        return this.engraveElement(stem)
-                   .translate(offsets.x - this.defaults.stemThickness, offsets.y);
+        return this.engraveElement(stem);
     }
 
     engraveNoteHead(noteHeadType: string, offsetX: number, staffPlace: number): SVG {
@@ -423,9 +426,9 @@ export default class SVGEngraver implements Engraver {
         }
 
         let glyphText = SVG.createText(codePoints.codepoint)
-                           .addClass('glyph');
-        let glyph = this.engraveElement(glyphText)
-                        .translate(offsetX);
+                           .addClass('glyph')
+                           .translate(offsetX);
+        let glyph = this.engraveElement(glyphText);
 
         return glyph;
     }
