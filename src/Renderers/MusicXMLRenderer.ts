@@ -85,6 +85,10 @@ export class MusicXMLRenderer {
                     let notes: Note[] = [];
 
                     $chord.each(($note, i) => {
+                        if ($note.has('rest')) {
+                            return;
+                        }
+
                         let note: Note = {
                             pitchStep: $note.q('pitch step').value.toLowerCase(),
                             pitchOctave: nn($note.q('pitch octave').value),
@@ -92,18 +96,17 @@ export class MusicXMLRenderer {
                             type: $note.q('type').value
                         };
 
-                        $note.has('beam', ($beam) => {
-                            note.beamNumber = nn($beam.attributes['number']);
+                        $note.has('beam', ($beams) => {
+                            note.beams = [];
 
-                            switch ($beam.value) {
-                                case 'begin':
-                                case 'continue':
-                                case 'end':
-                                    note.beam = $beam.value;
-                                    break;
-                                default:
-                                    throw new Error('unknown beam type');
-                            }
+                            $beams.each(($beam) => {
+                                let beam: Beam = {
+                                    number: nn($beam.attributes['number']),
+                                    type: ensureBeamType($beam.value)
+                                };
+
+                                note.beams!.push(beam);
+                            });
                         });
 
                         notes.push(note);
@@ -211,9 +214,9 @@ class DOM {
         return DOMCollection.wrap(result);
     }
 
-    has(childNodeName: string, callback?: (node: DOM) => void): boolean {
+    has(childNodeName: string, callback?: (node: DOMCollection) => void): boolean {
         try {
-            let node = this.q(childNodeName);
+            let node = this.qq(childNodeName);
 
             if (callback) {
                 callback(node);
@@ -304,9 +307,28 @@ export interface Note {
     pitchStep: string;
     duration: number;
     type: string;
-    beam?: 'begin' | 'continue' | 'end';
-    beamNumber?: number;
+    beams?: Beam[];
 }
+
+export interface Beam {
+    number: number;
+    type: BeamType;
+}
+
+type BeamType = 'begin' | 'continue' | 'end';
+
+function ensureBeamType(type: string): BeamType {
+    if (isBeamType(type)) {
+        return type;
+    } else {
+        throw new Error(`type ${type} is not valid beam type`);
+    }
+}
+
+function isBeamType(type: string): type is BeamType {
+    return ['begin', 'continue', 'end'].indexOf(type) !== -1;
+}
+
 
 export interface Attributes {
     [k: string]: string;

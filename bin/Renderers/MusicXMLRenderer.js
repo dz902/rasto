@@ -61,23 +61,24 @@ export class MusicXMLRenderer {
             .forEach(($chord) => {
             let notes = [];
             $chord.each(($note, i) => {
+                if ($note.has('rest')) {
+                    return;
+                }
                 let note = {
                     pitchStep: $note.q('pitch step').value.toLowerCase(),
                     pitchOctave: nn($note.q('pitch octave').value),
                     duration: nn($note.q('duration').value),
                     type: $note.q('type').value
                 };
-                $note.has('beam', ($beam) => {
-                    note.beamNumber = nn($beam.attributes['number']);
-                    switch ($beam.value) {
-                        case 'begin':
-                        case 'continue':
-                        case 'end':
-                            note.beam = $beam.value;
-                            break;
-                        default:
-                            throw new Error('unknown beam type');
-                    }
+                $note.has('beam', ($beams) => {
+                    note.beams = [];
+                    $beams.each(($beam) => {
+                        let beam = {
+                            number: nn($beam.attributes['number']),
+                            type: ensureBeamType($beam.value)
+                        };
+                        note.beams.push(beam);
+                    });
                 });
                 notes.push(note);
             });
@@ -159,7 +160,7 @@ class DOM {
     }
     has(childNodeName, callback) {
         try {
-            let node = this.q(childNodeName);
+            let node = this.qq(childNodeName);
             if (callback) {
                 callback(node);
             }
@@ -225,5 +226,16 @@ function nn(value) {
         throw new Error('value is not a number');
     }
     return numValue;
+}
+function ensureBeamType(type) {
+    if (isBeamType(type)) {
+        return type;
+    }
+    else {
+        throw new Error(`type ${type} is not valid beam type`);
+    }
+}
+function isBeamType(type) {
+    return ['begin', 'continue', 'end'].indexOf(type) !== -1;
 }
 //# sourceMappingURL=MusicXMLRenderer.js.map

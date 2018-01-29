@@ -205,7 +205,7 @@ export default class SVGEngraver {
                 }
                 stemStaffPlaceBottom = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
                 stemOffsets = {
-                    x: noteAnchors['stemUpSE'][0],
+                    x: noteAnchors['stemUpSE'][0] - this.defaults.stemThickness,
                     y: -noteAnchors['stemUpSE'][1]
                 };
             }
@@ -218,12 +218,12 @@ export default class SVGEngraver {
                 }
                 stemStaffPlaceTop = staffPlaceFromOctaveAndStep(highestNote.pitchOctave, highestNote.pitchStep);
                 stemOffsets = {
-                    x: noteAnchors['stemDownNW'][0] + this.defaults.stemThickness,
+                    x: noteAnchors['stemDownNW'][0],
                     y: -noteAnchors['stemDownNW'][1]
                 };
             }
             this.engraveStem(stemStaffPlaceBottom, stemStaffPlaceTop, stemOffsets);
-            let beamsNeeded = (lowestNote.beam !== undefined);
+            let beamsNeeded = (lowestNote.beams !== undefined);
             let flagNeeded = (['eighth', '16th', '32nd', '64th'].indexOf(lowestNote.type) !== -1) && !beamsNeeded;
             if (flagNeeded) {
                 let flagType;
@@ -241,28 +241,47 @@ export default class SVGEngraver {
                     flagType += 'Down';
                 }
                 let flagAnchor = this.anchors[flagType];
-                let flagOffsets = {
-                    x: stemOffsets.x + flagAnchor['stemUpNW'][0] - this.defaults.stemThickness,
-                    y: stemOffsets.y + flagAnchor['stemUpNW'][1]
-                };
+                let flagOffsets;
+                if (flagAnchor && flagAnchor['stemUpNW']) {
+                    if (stemPointsUp) {
+                        flagOffsets = {
+                            x: stemOffsets.x + flagAnchor['stemUpNW'][0] - this.defaults.stemThickness,
+                            y: stemOffsets.y + flagAnchor['stemUpNW'][1]
+                        };
+                    }
+                    else {
+                        flagOffsets = {
+                            x: stemOffsets.x + flagAnchor['stemUpNW'][0] + this.defaults.stemThickness,
+                            y: stemOffsets.y + flagAnchor['stemUpNW'][1]
+                        };
+                    }
+                }
+                else {
+                    flagOffsets = stemOffsets;
+                }
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
             }
             else if (beamsNeeded) {
-                let beams = this.state.beams;
-                switch (lowestNote.beam) {
-                    case "begin":
-                        beams[lowestNote.beamNumber] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
-                        break;
-                    case "end":
-                        let leftNote = beams[lowestNote.beamNumber];
-                        let rightNote = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
-                        console.log("A");
-                        console.log(leftNote, rightNote);
-                        this.temporarilyMoveHeadTo(leftNote[0], leftNote[1], () => {
-                            let beamWidth = rightNote[0] - leftNote[0];
-                            this.engraveBeam(1, leftNote[1], rightNote[1], beamWidth, stemOffsets);
-                        });
-                        break;
+                for (let beam of lowestNote.beams) {
+                    switch (beam.type) {
+                        case "begin":
+                            this.state.beams[beam.number] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                            break;
+                        case "end":
+                            let beamOffsets = { x: stemOffsets.x, y: 0 };
+                            let leftNote = this.state.beams[beam.number];
+                            let rightNote = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                            if (beam.number <= 2) {
+                                let beamSpacing = (this.defaults.beamThickness + this.defaults.beamSpacing) * (beam.number - 1);
+                                beamOffsets.y += stemPointsUp ? beamSpacing : -beamSpacing;
+                                beamOffsets.y -= stemPointsUp ? 0 : this.defaults.beamThickness;
+                            }
+                            this.temporarilyMoveHeadTo(leftNote[0], leftNote[1], () => {
+                                let beamWidth = rightNote[0] - leftNote[0];
+                                this.engraveBeam(leftNote[1], rightNote[1], beamWidth, beamOffsets);
+                            });
+                            break;
+                    }
                 }
             }
         }
@@ -274,14 +293,17 @@ export default class SVGEngraver {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         return this.engraveGlyph(flagType, offsets.x);
     }
-    engraveBeam(beamCount, staffPlaceLeft, staffPlaceRight, width, offsets) {
+    engraveBeam(staffPlaceLeft, staffPlaceRight, width, offsets) {
+        console.log('aaa');
+        console.log(staffPlaceLeft, staffPlaceRight);
         staffPlaceLeft = this.topMarginFromStaffPlace(staffPlaceLeft);
         staffPlaceRight = this.topMarginFromStaffPlace(staffPlaceRight);
+        console.log(staffPlaceLeft, staffPlaceRight);
         this.moveHead(undefined, staffPlaceLeft);
         let pointNW = [0, 0];
-        let pointNE = [width, 0];
-        let pointSW = [0, staffPlaceLeft + 0.25];
-        let pointSE = [width, staffPlaceRight + 0.25];
+        let pointNE = [width, staffPlaceRight - staffPlaceLeft];
+        let pointSW = [0, staffPlaceRight - staffPlaceLeft + this.defaults.beamThickness];
+        let pointSE = [width, this.defaults.beamThickness];
         let beam = SVG.createPolygon([pointNW, pointNE, pointSE, pointSW])
             .addClass("beam")
             .translate(offsets.x, offsets.y);
@@ -301,7 +323,7 @@ export default class SVGEngraver {
         }
         let stem = SVG.createRect(this.defaults.stemThickness, height)
             .addClass('stem')
-            .translate(offsets.x - this.defaults.stemThickness, offsets.y);
+            .translate(offsets.x, offsets.y);
         return this.engraveElement(stem);
     }
     engraveNoteHead(noteHeadType, offsetX, staffPlace) {
@@ -337,8 +359,7 @@ export default class SVGEngraver {
         let glyphText = SVG.createText(codePoints.codepoint)
             .addClass('glyph')
             .translate(offsetX);
-        let glyph = this.engraveElement(glyphText);
-        return glyph;
+        return this.engraveElement(glyphText);
     }
     engraveElement(element) {
         let svg = this.score.appendSVG()

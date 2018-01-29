@@ -27,6 +27,8 @@ export interface EngravingDefaults {
     stemThickness: number;
     legerLineThickness: number;
     legerLineExtension: number;
+    beamThickness: number;
+    beamSpacing: number;
 }
 
 export interface GlyphBBox {
