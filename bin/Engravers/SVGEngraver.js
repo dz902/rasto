@@ -1,4 +1,4 @@
-import glyphTable from '../GlyphTable.js';
+import * as SMuLF from '../Schema/SMuFL.js';
 import metadata from '../Fonts/bravura/bravura_metadata.js';
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
@@ -11,6 +11,7 @@ export default class SVGEngraver {
     constructor(width, height) {
         this.headPosition = { x: 0, y: 0 };
         this.meta = metadata;
+        this.codePoints = SMuLF.formattedCodePoints;
         this.currentState = {};
         this.width = width;
         this.height = height;
@@ -285,12 +286,12 @@ export default class SVGEngraver {
         return this;
     }
     engraveGlyph(glyphName, offsetX) {
-        const glyphChar = glyphTable[glyphName];
-        let glyphNameNotFound = (glyphChar === undefined);
+        let codePoints = this.codePoints[glyphName];
+        let glyphNameNotFound = (codePoints === undefined);
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
-        let glyphText = SVG.createText(glyphChar)
+        let glyphText = SVG.createText(codePoints.codepoint)
             .addClass('glyph');
         let glyph = this.engraveElement(glyphText)
             .translate(offsetX);

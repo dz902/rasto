@@ -1,4 +1,3 @@
-import glyphTable from '../GlyphTable.js';
 import * as SMuLF from '../Schema/SMuFL.js';
 import { Note } from '../Renderers/MusicXML.js';
 import Engraver from '../Engraver.js';
@@ -18,6 +17,7 @@ export default class SVGEngraver implements Engraver {
     private width: number;
     private height: number;
     private meta: SMuLF.Meta = metadata;
+    private codePoints: SMuLF.GlyphCodePointList = SMuLF.formattedCodePoints;
     private currentState: any = {};
 
     static create(width: number, height: number): SVGEngraver {
@@ -356,15 +356,14 @@ export default class SVGEngraver implements Engraver {
     }
 
     engraveGlyph(glyphName: string, offsetX: number): SVG {
-        const glyphChar = glyphTable[glyphName];
-
-        let glyphNameNotFound = (glyphChar === undefined);
+        let codePoints = this.codePoints[glyphName];
+        let glyphNameNotFound = (codePoints === undefined);
 
         if (glyphNameNotFound) {
             throw new Error(`glyph name "${glyphName}" does not exist.`);
         }
 
-        let glyphText = SVG.createText(glyphChar)
+        let glyphText = SVG.createText(codePoints.codepoint)
                            .addClass('glyph');
         let glyph = this.engraveElement(glyphText)
                         .translate(offsetX);
