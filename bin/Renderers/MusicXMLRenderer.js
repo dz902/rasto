@@ -1,4 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
+import { Note, Beam } from '../Schema/Music.js';
 export class MusicXMLRenderer {
     static render(xmlString) {
         let engraver = SVGEngraver.create(600, 400);
@@ -55,28 +56,18 @@ export class MusicXMLRenderer {
         });
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
-        let beams = [];
         $measure.qq('note')
             .group(node => node.has('chord'))
             .forEach(($chord) => {
             let notes = [];
-            $chord.each(($note, i) => {
+            $chord.each(($note) => {
                 if ($note.has('rest')) {
                     return;
                 }
-                let note = {
-                    pitchStep: $note.q('pitch step').value.toLowerCase(),
-                    pitchOctave: nn($note.q('pitch octave').value),
-                    duration: nn($note.q('duration').value),
-                    type: $note.q('type').value
-                };
+                let note = new Note(uniq(), nn($note.q('pitch octave').value), $note.q('pitch step').value, nn($note.q('duration').value), $note.q('type').value);
                 $note.has('beam', ($beams) => {
-                    note.beams = [];
                     $beams.each(($beam) => {
-                        let beam = {
-                            number: nn($beam.attributes['number']),
-                            type: ensureBeamType($beam.value)
-                        };
+                        let beam = new Beam(uniq(), nn($beam.attributes['number']), $beam.value);
                         note.beams.push(beam);
                     });
                 });
@@ -95,8 +86,8 @@ class DOM {
     static parse(dataString) {
         return new DOM(dataString);
     }
-    static wrap(node) {
-        return new DOM(node);
+    static wrap(element) {
+        return new DOM(element);
     }
     constructor(x) {
         if (x instanceof Element) {
@@ -171,26 +162,45 @@ class DOM {
         return true;
     }
     eachChild(callback) {
-        DOMCollection.wrap(this.currentNode.childNodes)
+        DOMCollection.wrap(this.currentNode.children)
             .each(callback);
+    }
+    collectAttributes() {
+        let attrs = {};
+        let collectNestedAttributes = ($a, prefix = "") => {
+            $a.eachChild(($nestedA) => {
+                if ($nestedA.element.children.length > 0) {
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $a.name));
+                }
+                else {
+                    attrs[prefix + $nestedA.name] = $nestedA.value;
+                }
+            });
+        };
+        this.q('attributes')
+            .eachChild(collectNestedAttributes);
+        return attrs;
     }
 }
 class DOMCollection {
-    constructor(nodes) {
-        this.currentNodes = [];
-        if (nodes instanceof NodeList) {
-            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(node)));
+    constructor(elements) {
+        this.currentElements = [];
+        if (elements instanceof HTMLCollection || elements instanceof NodeList) {
+            for (let i = 0; i < elements.length; ++i) {
+                let element = elements[i];
+                this.currentElements.push(DOM.wrap(element));
+            }
         }
         else {
-            this.currentNodes = nodes;
+            this.currentElements = elements;
         }
     }
     item(id) {
-        return this.currentNodes[id];
+        return this.currentElements[id];
     }
     each(callback) {
-        for (let i = 0; i < this.currentNodes.length; ++i) {
-            callback(this.currentNodes[i], i);
+        for (let i = 0; i < this.currentElements.length; ++i) {
+            callback(this.item(i), i);
         }
     }
     group(callback) {
@@ -213,11 +223,11 @@ class DOMCollection {
         splitGroup();
         return groups;
     }
-    static wrap(nodes) {
-        return new DOMCollection(nodes);
+    static wrap(elements) {
+        return new DOMCollection(elements);
     }
-    static use(nodes) {
-        return new DOMCollection(nodes);
+    static use(elements) {
+        return new DOMCollection(elements);
     }
 }
 function nn(value) {
@@ -227,15 +237,8 @@ function nn(value) {
     }
     return numValue;
 }
-function ensureBeamType(type) {
-    if (isBeamType(type)) {
-        return type;
-    }
-    else {
-        throw new Error(`type ${type} is not valid beam type`);
-    }
+function uniq() {
+    return String(performance.now()).split('.').join('');
 }
-function isBeamType(type) {
-    return ['begin', 'continue', 'end'].indexOf(type) !== -1;
-}
+// PRIMITIVE TYPES
 //# sourceMappingURL=MusicXMLRenderer.js.map

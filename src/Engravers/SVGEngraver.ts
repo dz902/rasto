@@ -1,5 +1,5 @@
 import * as SMuFL from '../Schema/SMuFL.js';
-import { Note } from '../Renderers/MusicXMLRenderer.js';  // FIX
+import { Note } from '../Schema/Music.js';  // FIX
 import Engraver from '../Engraver.js';
 
 const EM = 32;

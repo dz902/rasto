@@ -1,5 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-import has = Reflect.has;
+import { Note, Beam } from '../Schema/Music.js';
 
 export class MusicXMLRenderer {
     private music: DOM;
@@ -77,35 +77,33 @@ export class MusicXMLRenderer {
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
 
-        let beams = [];
-
         $measure.qq('note')
                 .group(node => node.has('chord'))
                 .forEach(($chord) => {
                     let notes: Note[] = [];
 
-                    $chord.each(($note, i) => {
+                    $chord.each(($note) => {
                         if ($note.has('rest')) {
                             return;
                         }
 
-                        let note: Note = {
-                            pitchStep: $note.q('pitch step').value.toLowerCase(),
-                            pitchOctave: nn($note.q('pitch octave').value),
-                            duration: nn($note.q('duration').value),
-                            type: $note.q('type').value
-                        };
+                        let note: Note = new Note (
+                            uniq(),
+                            nn($note.q('pitch octave').value),
+                            $note.q('pitch step').value,
+                            nn($note.q('duration').value),
+                            $note.q('type').value
+                        );
 
                         $note.has('beam', ($beams) => {
-                            note.beams = [];
-
                             $beams.each(($beam) => {
-                                let beam: Beam = {
-                                    number: nn($beam.attributes['number']),
-                                    type: ensureBeamType($beam.value)
-                                };
+                                let beam: Beam = new Beam(
+                                    uniq(),
+                                    nn($beam.attributes['number']),
+                                    $beam.value
+                                );
 
-                                note.beams!.push(beam);
+                                note.beams.push(beam);
                             });
                         });
 
@@ -133,8 +131,8 @@ class DOM {
         return new DOM(dataString);
     }
 
-    static wrap(node: Element): DOM {
-        return new DOM(node);
+    static wrap(element: Element): DOM {
+        return new DOM(element);
     }
 
     private constructor(x: string | Element) {
@@ -229,21 +227,42 @@ class DOM {
     }
 
     eachChild(callback: (node: DOM) => void): void {
-        DOMCollection.wrap(this.currentNode.childNodes)
+        DOMCollection.wrap(this.currentNode.children)
                      .each(callback);
+    }
+
+    collectAttributes(): Attributes {
+        let attrs: Attributes = {};
+
+        let collectNestedAttributes = ($a: DOM, prefix: string = ""): void => {
+            $a.eachChild(($nestedA) => {
+                if ($nestedA.element.children.length > 0) {
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $a.name));
+                } else {
+                    attrs[prefix+$nestedA.name] = $nestedA.value;
+                }
+            });
+        };
+
+
+        this.q('attributes')
+            .eachChild(collectNestedAttributes);
+
+        return attrs;
     }
 }
 
+
 class DOMCollection {
-    private currentNodes: DOM[] = [];
+    private currentElements: DOM[] = [];
 
     item(id: number): DOM {
-        return this.currentNodes[id];
+        return this.currentElements[id];
     }
 
-    each(callback: (node: DOM, index?: number) => void) {
-        for (let i = 0; i < this.currentNodes.length; ++i) {
-            callback(this.currentNodes[i], i);
+    each(callback: (element: DOM, index?: number) => void) {
+        for (let i = 0; i < this.currentElements.length; ++i) {
+            callback(this.item(i), i);
         }
     }
 
@@ -275,19 +294,22 @@ class DOMCollection {
         return groups;
     }
 
-    static wrap(nodes: NodeList): DOMCollection {
-        return new DOMCollection(nodes);
+    static wrap(elements: HTMLCollection): DOMCollection {
+        return new DOMCollection(elements);
     }
 
-    static use(nodes: DOM[]): DOMCollection {
-        return new DOMCollection(nodes);
+    static use(elements: DOM[]): DOMCollection {
+        return new DOMCollection(elements);
     }
 
-    private constructor(nodes: NodeList | DOM[]) {
-        if (nodes instanceof NodeList) {
-            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
+    private constructor(elements: HTMLCollection | NodeList | DOM[]) {
+        if (elements instanceof HTMLCollection || elements instanceof NodeList) {
+            for (let i = 0; i < elements.length; ++i) {
+                let element = elements[i];
+                this.currentElements.push(DOM.wrap(<Element> element));
+            }
         } else {
-            this.currentNodes = nodes;
+            this.currentElements = elements;
         }
     }
 }
@@ -302,34 +324,12 @@ function nn(value: any): number {
     return numValue;
 }
 
-export interface Note {
-    pitchOctave: number;
-    pitchStep: string;
-    duration: number;
-    type: string;
-    beams?: Beam[];
-}
-
-export interface Beam {
-    number: number;
-    type: BeamType;
-}
-
-type BeamType = 'begin' | 'continue' | 'end';
-
-function ensureBeamType(type: string): BeamType {
-    if (isBeamType(type)) {
-        return type;
-    } else {
-        throw new Error(`type ${type} is not valid beam type`);
-    }
-}
-
-function isBeamType(type: string): type is BeamType {
-    return ['begin', 'continue', 'end'].indexOf(type) !== -1;
-}
-
-
 export interface Attributes {
     [k: string]: string;
 }
+
+function uniq(): string {
+    return String(performance.now()).split('.').join('');
+}
+
+// PRIMITIVE TYPES
