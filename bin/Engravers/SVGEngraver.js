@@ -47,6 +47,9 @@ export default class SVGEngraver {
             }
             
             rect.stem {
+            }
+            
+            polygon.beam {
                 fill: red;
             }
             
@@ -250,9 +253,14 @@ export default class SVGEngraver {
                         beams[lowestNote.beamNumber] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
                         break;
                     case "end":
-                        let beamPointBegin = beams[lowestNote.beamNumber];
-                        let beamPointEnd = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
-                        this.engraveBeam(1, beamPointBegin, beamPointEnd);
+                        let leftNote = beams[lowestNote.beamNumber];
+                        let rightNote = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                        console.log("A");
+                        console.log(leftNote, rightNote);
+                        this.temporarilyMoveHeadTo(leftNote[0], leftNote[1], () => {
+                            let beamWidth = rightNote[0] - leftNote[0];
+                            this.engraveBeam(1, leftNote[1], rightNote[1], beamWidth, stemOffsets);
+                        });
                         break;
                 }
             }
@@ -265,9 +273,17 @@ export default class SVGEngraver {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         return this.engraveGlyph(flagType, offsets.x);
     }
-    engraveBeam(beamCount, pointBegin, pointEnd) {
-        let p = [pointBegin[0] + 0.25, pointBegin[1] + 0.25];
-        let beam = SVG.createPolygon([pointBegin, pointEnd, p]);
+    engraveBeam(beamCount, staffPlaceLeft, staffPlaceRight, width, offsets) {
+        staffPlaceLeft = this.topMarginFromStaffPlace(staffPlaceLeft);
+        staffPlaceRight = this.topMarginFromStaffPlace(staffPlaceRight);
+        this.moveHead(undefined, staffPlaceLeft);
+        let pointNW = [0, 0];
+        let pointNE = [width, 0];
+        let pointSW = [0, staffPlaceLeft + 0.25];
+        let pointSE = [width, staffPlaceRight + 0.25];
+        let beam = SVG.createPolygon([pointNW, pointNE, pointSE, pointSW])
+            .addClass("beam")
+            .translate(offsets.x, offsets.y);
         return this.engraveElement(beam);
     }
     engraveStem(staffPlaceBottom, staffPlaceTop, offsets) {
@@ -337,6 +353,12 @@ export default class SVGEngraver {
             this.headPosition.y = y;
         }
     }
+    temporarilyMoveHeadTo(x, y, callback) {
+        let originalHeadPosition = this.headPosition;
+        this.headPosition = { x: x, y: y };
+        callback();
+        this.headPosition = originalHeadPosition;
+    }
     resetHead() {
         this.headPosition = { x: 0, y: 0 };
     }
@@ -378,33 +400,34 @@ class SVG {
             .size(width, height);
     }
     static createPolygon(points) {
+        points = points.map(p => [p[0] * STAFF_SPACE, p[1] * STAFF_SPACE]);
         return SVG.create('polygon')
             .attr('points', points.map(p => p.join(',')).join(' '));
     }
     constructor(el) {
         if (el instanceof SVGGraphicsElement) {
-            this._element = el;
+            this.childElement = el;
         }
         else {
-            this._element = document.createElementNS('http://www.w3.org/2000/svg', el);
+            this.childElement = document.createElementNS('http://www.w3.org/2000/svg', el);
         }
     }
     // ATTRIBUTE GETTERS
     get element() {
-        return this._element;
+        return this.childElement;
     }
     get width() {
         // this is extremely confusing as svg elements will ignore explicit width
         // only to calculate bounding box from its content
         // we need to have glyphs with fixed dimensions
-        return Number(this._element.getAttribute('width'));
+        return Number(this.childElement.getAttribute('width'));
     }
     //
     // get actualWidth(): number {
     //     return this.bbox.width;
     // }
     get viewport() {
-        const viewport = this._element.viewportElement;
+        const viewport = this.childElement.viewportElement;
         return viewport === null ? this : (new SVG(viewport));
     }
     // get bbox(): BoundingBox {
@@ -428,7 +451,7 @@ class SVG {
             .textContent(style);
     }
     appendElement(child) {
-        this._element.appendChild(child.element);
+        this.childElement.appendChild(child.element);
         return child;
     }
     // PROPERTY MANIPULATORS
@@ -450,7 +473,10 @@ class SVG {
         if (this.element instanceof SVGSVGElement) {
             throw new Error('transform does not work on SVGSVGElement');
         }
-        let transform = this.element.viewportElement.createSVGTransform();
+        if (!SVG.transfomer) {
+            SVG.transfomer = SVG.create("svg").element;
+        }
+        let transform = SVG.transfomer.createSVGTransform();
         transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
         this.element.transform.baseVal.appendItem(transform);
         return this;
@@ -461,19 +487,19 @@ class SVG {
     }
     appendChild(elementName) {
         const child = new SVG(elementName);
-        this._element.appendChild(child.element);
+        this.childElement.appendChild(child.element);
         return child;
     }
     attr(k, v) {
-        this._element.setAttribute(k, `${v}`);
+        this.childElement.setAttribute(k, `${v}`);
         return this;
     }
     addClass(className) {
-        this._element.classList.add(className);
+        this.childElement.classList.add(className);
         return this;
     }
     textContent(text) {
-        this._element.textContent = text;
+        this.childElement.textContent = text;
         return this;
     }
 }

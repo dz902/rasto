@@ -64,6 +64,9 @@ export default class SVGEngraver implements Engraver {
             }
             
             rect.stem {
+            }
+            
+            polygon.beam {
                 fill: red;
             }
             
@@ -309,10 +312,19 @@ export default class SVGEngraver implements Engraver {
                         beams[lowestNote.beamNumber!] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
                         break;
                     case "end":
-                        let beamPointBegin: [number, number] = beams[lowestNote.beamNumber!];
-                        let beamPointEnd: [number, number] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                        let leftNote: Coordinates = beams[lowestNote.beamNumber!];
+                        let rightNote: Coordinates = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
 
-                        this.engraveBeam(1, beamPointBegin, beamPointEnd);
+                        console.log("A");
+                        console.log(leftNote, rightNote);
+
+                        this.temporarilyMoveHeadTo(leftNote[0], leftNote[1], () => {
+
+                            let beamWidth = rightNote[0] - leftNote[0];
+
+                            this.engraveBeam(1, leftNote[1], rightNote[1], beamWidth, stemOffsets);
+                        });
+
                         break;
                 }
 
@@ -331,9 +343,20 @@ export default class SVGEngraver implements Engraver {
         return this.engraveGlyph(flagType, offsets.x);
     }
 
-    engraveBeam(beamCount: number, pointBegin: [number, number], pointEnd: [number, number]): SVG {
-        let p: [number, number] = [pointBegin[0]+0.25, pointBegin[1]+0.25];
-        let beam = SVG.createPolygon([pointBegin, pointEnd, p]);
+    engraveBeam(beamCount: number, staffPlaceLeft: number, staffPlaceRight: number, width: number, offsets: {x: number, y: number}): SVG {
+        staffPlaceLeft = this.topMarginFromStaffPlace(staffPlaceLeft);
+        staffPlaceRight = this.topMarginFromStaffPlace(staffPlaceRight);
+
+        this.moveHead(undefined, staffPlaceLeft);
+
+        let pointNW: Coordinates = [0, 0];
+        let pointNE: Coordinates = [width, 0];
+        let pointSW: Coordinates = [0, staffPlaceLeft+0.25];
+        let pointSE: Coordinates = [width, staffPlaceRight+0.25];
+
+        let beam = SVG.createPolygon([pointNW, pointNE, pointSE, pointSW])
+                      .addClass("beam")
+                      .translate(offsets.x, offsets.y);
 
         return this.engraveElement(beam);
     }
@@ -409,7 +432,7 @@ export default class SVGEngraver implements Engraver {
 
     engraveElement(element: SVG): SVG {
         let svg = this.score.appendSVG()
-                      .move(this.headPosition.x, this.headPosition.y);
+                            .move(this.headPosition.x, this.headPosition.y);
 
         let child = svg.appendElement(element);
 
@@ -424,6 +447,16 @@ export default class SVGEngraver implements Engraver {
         if (y !== undefined) {
             this.headPosition.y = y;
         }
+    }
+
+    temporarilyMoveHeadTo(x: number, y: number, callback: () => void): void {
+        let originalHeadPosition = this.headPosition;
+
+        this.headPosition = {x: x, y: y};
+
+        callback();
+
+        this.headPosition = originalHeadPosition;
     }
 
     resetHead(): void {
@@ -456,7 +489,8 @@ export default class SVGEngraver implements Engraver {
 }
 
 class SVG {
-    private _element: SVGGraphicsElement;
+    private childElement: SVGGraphicsElement;
+    private static transfomer: SVGSVGElement; // awkward requirement for creating transform objects
 
     static create(elementName: string): SVG {
         return new SVG(elementName);
@@ -466,7 +500,7 @@ class SVG {
         return SVG.create('text').textContent(text);
     }
 
-    static createLine(endingPoint: [number, number]): SVG {
+    static createLine(endingPoint: Coordinates): SVG {
         return SVG.create('line')
                   .attr('x1', 0)
                   .attr('y1', 0)
@@ -479,23 +513,24 @@ class SVG {
                   .size(width, height);
     }
 
-    static createPolygon(points: [number, number][]): SVG {
+    static createPolygon(points: Coordinates[]): SVG {
+        points = points.map(p => <Coordinates>[p[0]*STAFF_SPACE, p[1]*STAFF_SPACE]);
         return SVG.create('polygon')
                   .attr('points', points.map(p => p.join(',')).join(' '));
     }
 
     private constructor(el: string | SVGGraphicsElement) {
         if (el instanceof SVGGraphicsElement) {
-            this._element = el;
+            this.childElement = el;
         } else {
-            this._element = <SVGGraphicsElement> document.createElementNS('http://www.w3.org/2000/svg', el);
+            this.childElement = <SVGGraphicsElement> document.createElementNS('http://www.w3.org/2000/svg', el);
         }
     }
 
     // ATTRIBUTE GETTERS
 
     get element(): SVGGraphicsElement {
-        return this._element;
+        return this.childElement;
     }
 
     get width(): number {
@@ -503,7 +538,7 @@ class SVG {
         // only to calculate bounding box from its content
         // we need to have glyphs with fixed dimensions
 
-        return Number(this._element.getAttribute('width'));
+        return Number(this.childElement.getAttribute('width'));
     }
 
     //
@@ -512,7 +547,7 @@ class SVG {
     // }
 
     get viewport(): SVG {
-        const viewport = this._element.viewportElement;
+        const viewport = this.childElement.viewportElement;
 
         return viewport === null ? this : (new SVG(viewport));
     }
@@ -542,7 +577,7 @@ class SVG {
     }
 
     appendElement(child: SVG): SVG {
-        this._element.appendChild(child.element);
+        this.childElement.appendChild(child.element);
 
         return child;
     }
@@ -573,7 +608,11 @@ class SVG {
             throw new Error('transform does not work on SVGSVGElement');
         }
 
-        let transform = (<SVGSVGElement> this.element.viewportElement).createSVGTransform();
+        if (!SVG.transfomer) {
+            SVG.transfomer = <SVGSVGElement> SVG.create("svg").element;
+        }
+
+        let transform = SVG.transfomer.createSVGTransform();
         transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
 
         this.element.transform.baseVal.appendItem(transform);
@@ -589,25 +628,25 @@ class SVG {
     appendChild(elementName: string): SVG {
         const child = new SVG(elementName);
 
-        this._element.appendChild(child.element);
+        this.childElement.appendChild(child.element);
 
         return child;
     }
 
     attr(k: string, v: any): SVG {
-        this._element.setAttribute(k, `${v}`);
+        this.childElement.setAttribute(k, `${v}`);
 
         return this;
     }
 
     addClass(className: string): SVG {
-        this._element.classList.add(className);
+        this.childElement.classList.add(className);
 
         return this;
     }
 
     textContent(text: string): SVG {
-        this._element.textContent = text;
+        this.childElement.textContent = text;
 
         return this;
     }
