@@ -1,4 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
+import has = Reflect.has;
 
 export class MusicXMLRenderer {
     private music: DOM;
@@ -60,24 +61,23 @@ export class MusicXMLRenderer {
                 .eachChild(($attr) => {
                     switch ($attr.name) {
                         case 'divisions':
-                            measureAttr.divisions = $attr.numericValue;
+                            measureAttr.divisions = nn($attr.value);
                             break;
                         case 'time':
-                            measureAttr.timeBeats = $attr.q('beats').numericValue;
-                            measureAttr.timeBeatType = $attr.q('beat-type').numericValue;
+                            measureAttr.timeBeats = nn($attr.q('beats').value);
+                            measureAttr.timeBeatType = nn($attr.q('beat-type').value);
                             break;
                         case 'clef':
                             measureAttr.clefSign = $attr.q('sign').value;
-                            measureAttr.clefLine = $attr.q('line').numericValue;
+                            measureAttr.clefLine = nn($attr.q('line').value);
                             break;
                     }
                 });
 
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
-        this.engraver.moveHead(4);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
-        this.engraver.moveHead(4);
 
+        let beams = [];
 
         $measure.qq('note')
                 .group(node => node.has('chord'))
@@ -87,17 +87,29 @@ export class MusicXMLRenderer {
                     $chord.each(($note, i) => {
                         let note: Note = {
                             pitchStep: $note.q('pitch step').value.toLowerCase(),
-                            pitchOctave: $note.q('pitch octave').numericValue,
-                            duration: $note.q('duration').numericValue,
+                            pitchOctave: nn($note.q('pitch octave').value),
+                            duration: nn($note.q('duration').value),
                             type: $note.q('type').value
                         };
+
+                        $note.has('beam', ($beam) => {
+                            note.beamNumber = nn($beam.attributes['number']);
+
+                            switch ($beam.value) {
+                                case 'begin':
+                                case 'continue':
+                                case 'end':
+                                    note.beam = $beam.value;
+                                    break;
+                                default:
+                                    throw new Error('unknown beam type');
+                            }
+                        });
 
                         notes.push(note);
                     });
 
                     this.engraver.engraveChord(notes);
-
-                    this.engraver.moveHead(8);
                 });
 
         this.engraver.resetHead();
@@ -112,6 +124,7 @@ export class MusicXMLRenderer {
 
 class DOM {
     private currentNode: Element | Document;
+    private noteAttributes: Attributes;
 
     static parse(dataString: string): DOM {
         return new DOM(dataString);
@@ -151,24 +164,31 @@ class DOM {
         let value = this.currentNode.textContent;
 
         if (value === null) {
-            throw new Error('no text content value found');
+            return "";
         }
 
         return value;
     }
 
-    get numericValue(): number {
-        let numValue = Number(this.value);
-
-        if (Number.isNaN(numValue)) {
-            throw new Error('value is not a number');
-        }
-
-        return numValue;
-    }
-
     get name(): string {
         return this.currentNode.nodeName.toLowerCase();
+    }
+
+    get attributes(): Attributes {
+        if (this.currentNode instanceof Document) {
+            throw new Error('cannot get document attribute');
+        }
+
+        if (!this.noteAttributes) {
+            this.noteAttributes = {};
+
+            for (let i = 0; i < this.currentNode.attributes.length; ++i) {
+                let attribute = this.currentNode.attributes.item(i);
+                this.noteAttributes[attribute.name] = attribute.value;
+            }
+        }
+
+        return this.noteAttributes;
     }
 
     q(selector: string): DOM {
@@ -191,9 +211,13 @@ class DOM {
         return DOMCollection.wrap(result);
     }
 
-    has(childNodeName: string): boolean {
+    has(childNodeName: string, callback?: (node: DOM) => void): boolean {
         try {
-            this.q(childNodeName);
+            let node = this.q(childNodeName);
+
+            if (callback) {
+                callback(node);
+            }
         } catch (e) {
             return false;
         }
@@ -265,9 +289,25 @@ class DOMCollection {
     }
 }
 
+function nn(value: any): number {
+    let numValue = Number(value);
+
+    if (Number.isNaN(numValue)) {
+        throw new Error('value is not a number');
+    }
+
+    return numValue;
+}
+
 export interface Note {
     pitchOctave: number;
     pitchStep: string;
     duration: number;
     type: string;
+    beam?: 'begin' | 'continue' | 'end';
+    beamNumber?: number;
+}
+
+export interface Attributes {
+    [k: string]: string;
 }

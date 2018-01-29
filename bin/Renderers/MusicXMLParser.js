@@ -1,11 +1,11 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-export class MusicXMLParser {
+export class MusicXMLRenderer {
     static render(xmlString) {
         let engraver = SVGEngraver.create(600, 400);
         // element must be rendered to get item bounding box
         let element = engraver.print();
         document.body.appendChild(element);
-        let musicXML = new MusicXMLParser(xmlString, engraver);
+        let musicXML = new MusicXMLRenderer(xmlString, engraver);
         document.body.removeChild(element);
         return musicXML;
     }
@@ -66,17 +66,18 @@ export class MusicXMLParser {
                     duration: nn($note.q('duration').value),
                     type: $note.q('type').value
                 };
-                let $beam = $note.q('beam');
-                switch ($beam.value) {
-                    case 'begin':
-                    case 'continue':
-                    case 'end':
-                        note.beam = $beam.value;
-                        break;
-                    default:
-                        throw new Error('unknown beam type');
-                }
-                note.beamNumber = nn($beam.attributes['number']);
+                let hasBeam = $note.has('beam', ($beam) => {
+                    switch ($beam.value) {
+                        case 'begin':
+                        case 'continue':
+                        case 'end':
+                            note.beam = $beam.value;
+                            break;
+                        default:
+                            throw new Error('unknown beam type');
+                    }
+                    note.beamNumber = nn($beam.attributes['number']);
+                });
                 notes.push(note);
             });
             this.engraver.engraveChord(notes);
@@ -155,9 +156,12 @@ class DOM {
         }
         return DOMCollection.wrap(result);
     }
-    has(childNodeName) {
+    has(childNodeName, callback) {
         try {
-            this.q(childNodeName);
+            let node = this.q(childNodeName);
+            if (callback) {
+                callback(node);
+            }
         }
         catch (e) {
             return false;
@@ -221,4 +225,4 @@ function nn(value) {
     }
     return numValue;
 }
-//# sourceMappingURL=MusicXML.js.map
+//# sourceMappingURL=MusicXMLParser.js.map

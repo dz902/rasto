@@ -9,7 +9,10 @@ const STEP_NAMES = 'cdefgab';
 export default class SVGEngraver {
     constructor(width, height) {
         this.headPosition = { x: 0, y: 0 };
-        this.currentState = {};
+        this.state = {
+            beams: [],
+            clefSign: 'G'
+        };
         this.meta = SMuFL.load('Bravura');
         this.width = width;
         this.height = height;
@@ -73,8 +76,8 @@ export default class SVGEngraver {
     }
     engraveClef(clefSign, staffPlace) {
         let clefGlyphName = '';
-        switch (clefSign.toLowerCase()) {
-            case 'g':
+        switch (clefSign) {
+            case 'G':
                 clefGlyphName = 'gClef';
                 break;
             default:
@@ -82,7 +85,8 @@ export default class SVGEngraver {
         }
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         this.engraveGlyph(clefGlyphName, 0);
-        this.currentState.clefSign = clefSign;
+        this.state.clefSign = clefSign;
+        this.moveHead(4);
         return this;
     }
     engraveStaffLine(width) {
@@ -115,7 +119,7 @@ export default class SVGEngraver {
             throw new Error('empty chord');
         }
         let startingStaffPlace = 30;
-        if (this.currentState.clefSign === 'f') {
+        if (this.state.clefSign === 'F') {
             startingStaffPlace = 18;
         }
         let staffPlaceFromOctaveAndStep = (octave, step) => {
@@ -138,7 +142,7 @@ export default class SVGEngraver {
             case 'quarter':
             case 'eighth':
             case '16th':
-            case '32th':
+            case '32nd':
                 noteWidth = noteWidthFromBBox(this.bboxes['noteheadBlack']);
                 break;
             default:
@@ -176,7 +180,7 @@ export default class SVGEngraver {
                 case 'quarter':
                 case 'eighth':
                 case '16th':
-                case '32th':
+                case '32nd':
                     noteAnchors = this.anchors['noteheadHalf'];
                     break;
                 default:
@@ -215,7 +219,8 @@ export default class SVGEngraver {
                 };
             }
             this.engraveStem(stemStaffPlaceBottom, stemStaffPlaceTop, stemOffsets);
-            let flagNeeded = (['eighth', '16th', '32th', '64th'].indexOf(lowestNote.type) !== -1);
+            let beamsNeeded = (lowestNote.beam !== undefined);
+            let flagNeeded = (['eighth', '16th', '32nd', '64th'].indexOf(lowestNote.type) !== -1) && !beamsNeeded;
             if (flagNeeded) {
                 let flagType;
                 switch (lowestNote.type) {
@@ -238,11 +243,32 @@ export default class SVGEngraver {
                 };
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
             }
+            else if (beamsNeeded) {
+                let beams = this.state.beams;
+                switch (lowestNote.beam) {
+                    case "begin":
+                        beams[lowestNote.beamNumber] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                        break;
+                    case "end":
+                        let beamPointBegin = beams[lowestNote.beamNumber];
+                        let beamPointEnd = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                        this.engraveBeam(1, beamPointBegin, beamPointEnd);
+                        break;
+                }
+            }
         }
+        let basicSpacing = 1.5;
+        let extraSpacing = ['32nd', '16th', 'eighth', 'quarter', 'half', 'whole'].indexOf(lowestNote.type);
+        this.moveHead(basicSpacing + extraSpacing);
     }
     engraveFlag(flagType, staffPlace, offsets) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         return this.engraveGlyph(flagType, offsets.x);
+    }
+    engraveBeam(beamCount, pointBegin, pointEnd) {
+        let p = [pointBegin[0] + 0.25, pointBegin[1] + 0.25];
+        let beam = SVG.createPolygon([pointBegin, pointEnd, p]);
+        return this.engraveElement(beam);
     }
     engraveStem(staffPlaceBottom, staffPlaceTop, offsets) {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlaceTop));
@@ -269,7 +295,7 @@ export default class SVGEngraver {
             'quarter': 'noteheadBlack',
             'eighth': 'noteheadBlack',
             '16th': 'noteheadBlack',
-            '32th': 'noteheadBlack'
+            '32nd': 'noteheadBlack'
         };
         let glyphNameNotFound = (!glyphName[noteHeadType]);
         if (glyphNameNotFound) {
@@ -282,6 +308,7 @@ export default class SVGEngraver {
         this.engraveGlyph(`timeSig${bpm}`, 0);
         this.moveHead(undefined, 3);
         this.engraveGlyph(`timeSig${beatUnit}`, 0);
+        this.moveHead(4);
         return this;
     }
     engraveGlyph(glyphName, offsetX) {
@@ -349,6 +376,10 @@ class SVG {
     static createRect(width, height) {
         return SVG.create('rect')
             .size(width, height);
+    }
+    static createPolygon(points) {
+        return SVG.create('polygon')
+            .attr('points', points.map(p => p.join(',')).join(' '));
     }
     constructor(el) {
         if (el instanceof SVGGraphicsElement) {

@@ -1,5 +1,5 @@
 import * as SMuFL from '../Schema/SMuFL.js';
-import { Note } from '../Renderers/MusicXML.js';  // FIX
+import { Note } from '../Renderers/MusicXMLRenderer.js';  // FIX
 import Engraver from '../Engraver.js';
 
 const EM = 32;
@@ -16,7 +16,10 @@ export default class SVGEngraver implements Engraver {
     private width: number;
     private height: number;
     private meta: SMuFL.CombinedMeta;
-    private currentState: any = {};
+    private state: EngravingState = {
+        beams: [],
+        clefSign: 'G'
+    };
 
     static create(width: number, height: number): SVGEngraver {
         return new SVGEngraver(width, height);
@@ -94,8 +97,8 @@ export default class SVGEngraver implements Engraver {
     engraveClef(clefSign: string, staffPlace: number): SVGEngraver {
         let clefGlyphName: string = '';
 
-        switch (clefSign.toLowerCase()) {
-            case 'g':
+        switch (clefSign) {
+            case 'G':
                 clefGlyphName = 'gClef';
                 break;
             default:
@@ -105,7 +108,9 @@ export default class SVGEngraver implements Engraver {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
         this.engraveGlyph(clefGlyphName, 0);
 
-        this.currentState.clefSign = clefSign;
+        this.state.clefSign = clefSign;
+
+        this.moveHead(4);
 
         return this;
     }
@@ -147,7 +152,7 @@ export default class SVGEngraver implements Engraver {
 
         let startingStaffPlace = 30;
 
-        if (this.currentState.clefSign === 'f') {
+        if (this.state.clefSign === 'F') {
             startingStaffPlace = 18;
         }
 
@@ -175,7 +180,7 @@ export default class SVGEngraver implements Engraver {
             case 'quarter':
             case 'eighth':
             case '16th':
-            case '32th':
+            case '32nd':
                 noteWidth = noteWidthFromBBox(this.bboxes['noteheadBlack']);
                 break;
             default:
@@ -223,7 +228,7 @@ export default class SVGEngraver implements Engraver {
                 case 'quarter':
                 case 'eighth':
                 case '16th':
-                case '32th':
+                case '32nd':
                     noteAnchors = this.anchors['noteheadHalf'];
                     break;
                 default:
@@ -269,7 +274,8 @@ export default class SVGEngraver implements Engraver {
 
             this.engraveStem(stemStaffPlaceBottom, stemStaffPlaceTop, stemOffsets);
 
-            let flagNeeded = (['eighth', '16th', '32th', '64th'].indexOf(lowestNote.type) !== -1);
+            let beamsNeeded = (lowestNote.beam !== undefined);
+            let flagNeeded = (['eighth', '16th', '32nd', '64th'].indexOf(lowestNote.type) !== -1) && !beamsNeeded;
 
             if (flagNeeded) {
                 let flagType: string;
@@ -295,14 +301,41 @@ export default class SVGEngraver implements Engraver {
                 };
 
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
+            } else if (beamsNeeded) {
+                let beams = this.state.beams;
+
+                switch (lowestNote.beam) {
+                    case "begin":
+                        beams[lowestNote.beamNumber!] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+                        break;
+                    case "end":
+                        let beamPointBegin: [number, number] = beams[lowestNote.beamNumber!];
+                        let beamPointEnd: [number, number] = [this.headPosition.x, stemPointsUp ? stemStaffPlaceTop : stemStaffPlaceBottom];
+
+                        this.engraveBeam(1, beamPointBegin, beamPointEnd);
+                        break;
+                }
+
             }
         }
+
+        let basicSpacing = 1.5;
+        let extraSpacing = ['32nd', '16th', 'eighth', 'quarter', 'half', 'whole'].indexOf(lowestNote.type);
+
+        this.moveHead(basicSpacing + extraSpacing);
     }
 
     engraveFlag(flagType: string, staffPlace: number, offsets: { x: number, y: number }): SVG {
         this.moveHead(undefined, this.topMarginFromStaffPlace(staffPlace));
 
         return this.engraveGlyph(flagType, offsets.x);
+    }
+
+    engraveBeam(beamCount: number, pointBegin: [number, number], pointEnd: [number, number]): SVG {
+        let p: [number, number] = [pointBegin[0]+0.25, pointBegin[1]+0.25];
+        let beam = SVG.createPolygon([pointBegin, pointEnd, p]);
+
+        return this.engraveElement(beam);
     }
 
     engraveStem(staffPlaceBottom: number, staffPlaceTop: number, offsets: { x: number; y: number }): SVG {
@@ -336,7 +369,7 @@ export default class SVGEngraver implements Engraver {
             'quarter': 'noteheadBlack',
             'eighth': 'noteheadBlack',
             '16th': 'noteheadBlack',
-            '32th': 'noteheadBlack'
+            '32nd': 'noteheadBlack'
         };
 
         let glyphNameNotFound = (!glyphName[noteHeadType]);
@@ -353,6 +386,7 @@ export default class SVGEngraver implements Engraver {
         this.engraveGlyph(`timeSig${bpm}`, 0);
         this.moveHead(undefined, 3);
         this.engraveGlyph(`timeSig${beatUnit}`, 0);
+        this.moveHead(4);
 
         return this;
     }
@@ -443,6 +477,11 @@ class SVG {
     static createRect(width: number, height: number): SVG {
         return SVG.create('rect')
                   .size(width, height);
+    }
+
+    static createPolygon(points: [number, number][]): SVG {
+        return SVG.create('polygon')
+                  .attr('points', points.map(p => p.join(',')).join(' '));
     }
 
     private constructor(el: string | SVGGraphicsElement) {
@@ -573,3 +612,12 @@ class SVG {
         return this;
     }
 }
+
+interface EngravingState {
+    beams: {
+        [beamNumber: number]: Coordinates
+    };
+    clefSign: "G" | "F";
+}
+
+type Coordinates = [number, number];
