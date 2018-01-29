@@ -1,4 +1,20 @@
-import codePoints from '../Schema/SMuFL/glyphnames.js';
+import glyphnames from '../Schema/SMuFL/glyphnames.js';
+import metadata from '../Fonts/bravura/bravura_metadata.js';
+
+export function load(fontName: string): CombinedMeta {
+    let combinedMeta: CombinedMeta = {
+        engravingDefaults: metadata.engravingDefaults,
+        glyphBBoxes: metadata.glyphBBoxes,
+        glyphsWithAnchors: metadata.glyphsWithAnchors,
+        glyphnames: formatCodePoints(glyphnames)
+    };
+
+    return combinedMeta;
+}
+
+export interface CombinedMeta extends Meta {
+    glyphnames: GlyphCodePointList;
+}
 
 export interface Meta {
     engravingDefaults: EngravingDefaults;
@@ -40,8 +56,6 @@ export interface GlyphCodePoint {
     alternateCodepoint?: string;
     codepoint: string;
 }
-
-export const formattedCodePoints = formatCodePoints(codePoints);
 
 function formatCodePoints(codePoints: GlyphCodePointList): GlyphCodePointList {
     let convertCodePoint = (p: string): string => {

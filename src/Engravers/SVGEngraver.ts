@@ -1,7 +1,6 @@
-import * as SMuLF from '../Schema/SMuFL.js';
-import { Note } from '../Renderers/MusicXML.js';
+import * as SMuFL from '../Schema/SMuFL.js';
+import { Note } from '../Renderers/MusicXML.js';  // FIX
 import Engraver from '../Engraver.js';
-import metadata from '../Fonts/bravura/bravura_metadata.js';
 
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
@@ -16,8 +15,7 @@ export default class SVGEngraver implements Engraver {
     private score: SVG;
     private width: number;
     private height: number;
-    private meta: SMuLF.Meta = metadata;
-    private codePoints: SMuLF.GlyphCodePointList = SMuLF.formattedCodePoints;
+    private meta: SMuFL.CombinedMeta;
     private currentState: any = {};
 
     static create(width: number, height: number): SVGEngraver {
@@ -25,10 +23,13 @@ export default class SVGEngraver implements Engraver {
     }
 
     private constructor(width: number, height: number) {
+        this.meta = SMuFL.load('Bravura');
+
         this.width = width;
         this.height = height;
 
-        const viewport = SVG.make()
+        let viewport = SVG.create('svg')
+                            .addClass('viewport')
                             .size(width, height);
 
         this.score = viewport.appendSVG()
@@ -71,6 +72,7 @@ export default class SVGEngraver implements Engraver {
                 stroke-linecap: square;
             }
             `);
+
     }
 
     engraveBarLineSingle(): SVG {
@@ -157,7 +159,7 @@ export default class SVGEngraver implements Engraver {
         let lowestStaffPlace: number = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
         let lastStaffPlace: number = lowestStaffPlace;
 
-        let noteWidthFromBBox = (bbox: SMuLF.GlyphBBox) => {
+        let noteWidthFromBBox = (bbox: SMuFL.GlyphBBox) => {
             return bbox['bBoxNE'][0] - bbox['bBoxSW'][0];
         };
 
@@ -211,7 +213,7 @@ export default class SVGEngraver implements Engraver {
         let highestNote = notes[notes.length - 1];
 
         if (stemNeeded) {
-            let noteAnchors: SMuLF.GlyphAnchors;
+            let noteAnchors: SMuFL.GlyphAnchors;
 
             switch (lowestNote.type) {
                 case 'whole':
@@ -398,16 +400,20 @@ export default class SVGEngraver implements Engraver {
         return this.score.viewport.element;
     }
 
-    private get defaults(): SMuLF.EngravingDefaults {
+    private get defaults(): SMuFL.EngravingDefaults {
         return this.meta.engravingDefaults;
     }
 
-    private get anchors(): SMuLF.GlyphAnchorsList {
+    private get anchors(): SMuFL.GlyphAnchorsList {
         return this.meta.glyphsWithAnchors;
     }
 
-    private get bboxes(): SMuLF.GlyphBBoxList {
+    private get bboxes(): SMuFL.GlyphBBoxList {
         return this.meta.glyphBBoxes;
+    }
+
+    private get codePoints(): SMuFL.GlyphCodePointList {
+        return this.meta.glyphnames;
     }
 
     private topMarginFromStaffPlace(staffPlace: number) {
@@ -437,12 +443,6 @@ class SVG {
     static createRect(width: number, height: number): SVG {
         return SVG.create('rect')
                   .size(width, height);
-    }
-
-    static make(): SVG {
-        const svg = new SVG('svg');
-
-        return svg.addClass('viewport');
     }
 
     private constructor(el: string | SVGGraphicsElement) {

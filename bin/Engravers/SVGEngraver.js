@@ -1,5 +1,4 @@
-import * as SMuLF from '../Schema/SMuFL.js';
-import metadata from '../Fonts/bravura/bravura_metadata.js';
+import * as SMuFL from '../Schema/SMuFL.js';
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
 const STAFF_PLACE_MIDDLE_LINE = 4;
@@ -10,12 +9,12 @@ const STEP_NAMES = 'cdefgab';
 export default class SVGEngraver {
     constructor(width, height) {
         this.headPosition = { x: 0, y: 0 };
-        this.meta = metadata;
-        this.codePoints = SMuLF.formattedCodePoints;
         this.currentState = {};
+        this.meta = SMuFL.load('Bravura');
         this.width = width;
         this.height = height;
-        const viewport = SVG.make()
+        let viewport = SVG.create('svg')
+            .addClass('viewport')
             .size(width, height);
         this.score = viewport.appendSVG()
             .move(5, 5);
@@ -326,6 +325,9 @@ export default class SVGEngraver {
     get bboxes() {
         return this.meta.glyphBBoxes;
     }
+    get codePoints() {
+        return this.meta.glyphnames;
+    }
     topMarginFromStaffPlace(staffPlace) {
         return 4 - staffPlace / 2;
     }
@@ -347,10 +349,6 @@ class SVG {
     static createRect(width, height) {
         return SVG.create('rect')
             .size(width, height);
-    }
-    static make() {
-        const svg = new SVG('svg');
-        return svg.addClass('viewport');
     }
     constructor(el) {
         if (el instanceof SVGGraphicsElement) {

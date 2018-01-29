@@ -1,5 +1,14 @@
-import codePoints from '../Schema/SMuFL/glyphnames.js';
-export const formattedCodePoints = formatCodePoints(codePoints);
+import glyphnames from '../Schema/SMuFL/glyphnames.js';
+import metadata from '../Fonts/bravura/bravura_metadata.js';
+export function load(fontName) {
+    let combinedMeta = {
+        engravingDefaults: metadata.engravingDefaults,
+        glyphBBoxes: metadata.glyphBBoxes,
+        glyphsWithAnchors: metadata.glyphsWithAnchors,
+        glyphnames: formatCodePoints(glyphnames)
+    };
+    return combinedMeta;
+}
 function formatCodePoints(codePoints) {
     let convertCodePoint = (p) => {
         let hex = p.match(/U\+([0-9A-F]+)/);
