@@ -54,6 +54,7 @@ export class MusicXMLRenderer {
                     break;
             }
         });
+        console.log($measure.collectAttributes());
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         $measure.qq('note')
@@ -169,16 +170,16 @@ class DOM {
         let attrs = {};
         let collectNestedAttributes = ($a, prefix = "") => {
             $a.eachChild(($nestedA) => {
+                console.log($nestedA.element);
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $a.name));
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + "/"));
                 }
                 else {
                     attrs[prefix + $nestedA.name] = $nestedA.value;
                 }
             });
         };
-        this.q('attributes')
-            .eachChild(collectNestedAttributes);
+        collectNestedAttributes(this.q('attributes'));
         return attrs;
     }
 }

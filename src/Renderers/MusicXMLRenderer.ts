@@ -74,6 +74,8 @@ export class MusicXMLRenderer {
                     }
                 });
 
+        console.log($measure.collectAttributes());
+
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
 
@@ -236,17 +238,16 @@ class DOM {
 
         let collectNestedAttributes = ($a: DOM, prefix: string = ""): void => {
             $a.eachChild(($nestedA) => {
+                console.log($nestedA.element);
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $a.name));
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + "/"));
                 } else {
                     attrs[prefix+$nestedA.name] = $nestedA.value;
                 }
             });
         };
 
-
-        this.q('attributes')
-            .eachChild(collectNestedAttributes);
+        collectNestedAttributes(this.q('attributes'));
 
         return attrs;
     }
@@ -294,7 +295,7 @@ class DOMCollection {
         return groups;
     }
 
-    static wrap(elements: HTMLCollection): DOMCollection {
+    static wrap(elements: HTMLCollection | NodeListOf<Element>): DOMCollection {
         return new DOMCollection(elements);
     }
 
@@ -302,7 +303,7 @@ class DOMCollection {
         return new DOMCollection(elements);
     }
 
-    private constructor(elements: HTMLCollection | NodeList | DOM[]) {
+    private constructor(elements: HTMLCollection | NodeListOf<Element> | DOM[]) {
         if (elements instanceof HTMLCollection || elements instanceof NodeList) {
             for (let i = 0; i < elements.length; ++i) {
                 let element = elements[i];
