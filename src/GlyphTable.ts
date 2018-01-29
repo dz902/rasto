@@ -7,6 +7,7 @@ const glyphTable: { [name: string]: string } = {
     'noteheadBlack': '\uE0A4',
 
     'flag8thUp': '\uE240',
+    'flag16thUp': '\uE242',
 
     'timeSig4': '\uE084'
 };

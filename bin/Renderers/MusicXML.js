@@ -1,267 +1,203 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-import Note from '../Schema/Note.js';
-
-export default class MusicXML {
-    private music: DOM;
-    private engraver: SVGEngraver;
-
-    static render(xmlString: string): MusicXML {
+export class MusicXMLRenderer {
+    static render(xmlString) {
         let engraver = SVGEngraver.create(600, 400);
-
         // element must be rendered to get item bounding box
-
         let element = engraver.print();
-
         document.body.appendChild(element);
-
-        let musicXML = new MusicXML(xmlString, engraver);
-
+        let musicXML = new MusicXMLRenderer(xmlString, engraver);
         document.body.removeChild(element);
-
         return musicXML;
     }
-
-    get element(): Element {
+    get element() {
         return this.engraver.print();
     }
-
-    private constructor(dataString: string, engraver: SVGEngraver) {
+    constructor(dataString, engraver) {
         this.engraver = engraver;
-
         const $music = DOM.parse(dataString);
         const $scoreParts = $music.qq('score-partwise part-list score-part');
-
-        let scoreParts: { [i: string]: string } = {};
+        let scoreParts = {};
         $scoreParts.each(($scorePart) => {
             const partName = $scorePart.q('part-name').value;
-
             if ($scorePart.id === '') {
                 throw new Error('score-part does not have an ID');
-            } else {
+            }
+            else {
                 scoreParts[$scorePart.id] = partName;
             }
         });
-
         const $parts = $music.qq('score-partwise part');
         $parts.each(($part) => {
             $part.qq('measure')
-                 .each(($measure) => {
-                     this.typesetMeasure($measure);
-                 });
+                .each(($measure) => {
+                this.typesetMeasure($measure);
+            });
         });
-
     }
-
-    private typesetMeasure($measure: DOM): void {
+    typesetMeasure($measure) {
         this.engraver.engraveStaves(50);
-
-        let measureAttr: { [key: string]: any } = {};
-
+        let measureAttr = {};
         $measure.q('attributes')
-                .eachChild(($attr) => {
-                    switch ($attr.name) {
-                        case 'divisions':
-                            measureAttr.divisions = $attr.numericValue;
-                            break;
-                        case 'time':
-                            measureAttr.timeBeats = $attr.q('beats').numericValue;
-                            measureAttr.timeBeatType = $attr.q('beat-type').numericValue;
-                            break;
-                        case 'clef':
-                            measureAttr.clefSign = $attr.q('sign').value;
-                            measureAttr.clefLine = $attr.q('line').numericValue;
-                            break;
-                    }
-                });
-
+            .eachChild(($attr) => {
+            switch ($attr.name) {
+                case 'divisions':
+                    measureAttr.divisions = $attr.numericValue;
+                    break;
+                case 'time':
+                    measureAttr.timeBeats = $attr.q('beats').numericValue;
+                    measureAttr.timeBeatType = $attr.q('beat-type').numericValue;
+                    break;
+                case 'clef':
+                    measureAttr.clefSign = $attr.q('sign').value;
+                    measureAttr.clefLine = $attr.q('line').numericValue;
+                    break;
+            }
+        });
         this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
         this.engraver.moveHead(4);
         this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
         this.engraver.moveHead(4);
-
-
         $measure.qq('note')
-                .group(node => node.has('chord'))
-                .forEach(($chord) => {
-                    let notes: Note[] = [];
-
-                    $chord.each(($note, i) => {
-                        let note: Note = {
-                            pitchStep: $note.q('pitch step').value.toLowerCase(),
-                            pitchOctave: $note.q('pitch octave').numericValue,
-                            duration: $note.q('duration').numericValue,
-                            type: $note.q('type').value
-                        };
-
-                        notes.push(note);
-                    });
-
-                    this.engraver.engraveChord(notes);
-
-                    this.engraver.moveHead(8);
-                });
-
+            .group(node => node.has('chord'))
+            .forEach(($chord) => {
+            let notes = [];
+            $chord.each(($note, i) => {
+                let note = {
+                    pitchStep: $note.q('pitch step').value.toLowerCase(),
+                    pitchOctave: $note.q('pitch octave').numericValue,
+                    duration: $note.q('duration').numericValue,
+                    type: $note.q('type').value
+                };
+                notes.push(note);
+            });
+            this.engraver.engraveChord(notes);
+            this.engraver.moveHead(8);
+        });
         this.engraver.resetHead();
         this.engraver.moveHead(50);
         this.engraver.engraveBarLineSingle();
     }
-
-    private typesetChord($chord: DOMCollection) {
-
+    typesetChord($chord) {
     }
 }
-
 class DOM {
-    private currentNode: Element | Document;
-
-    static parse(dataString: string): DOM {
+    static parse(dataString) {
         return new DOM(dataString);
     }
-
-    static wrap(node: Element): DOM {
+    static wrap(node) {
         return new DOM(node);
     }
-
-    private constructor(x: string | Element) {
+    constructor(x) {
         if (x instanceof Element) {
             this.currentNode = x;
-        } else {
+        }
+        else {
             this.currentNode = (new DOMParser()).parseFromString(x, 'application/xml');
         }
     }
-
-    get element(): Element | Document {
+    get element() {
         return this.currentNode;
     }
-
-    get id(): string {
+    get id() {
         if (this.currentNode instanceof Element) {
             let id = this.currentNode.id;
-
             if (id === '') {
                 throw new Error('empty id');
             }
-
             return id;
         }
-
         throw new Error('document does not have ids');
     }
-
-    get value(): string {
+    get value() {
         let value = this.currentNode.textContent;
-
         if (value === null) {
             throw new Error('no text content value found');
         }
-
         return value;
     }
-
-    get numericValue(): number {
+    get numericValue() {
         let numValue = Number(this.value);
-
         if (Number.isNaN(numValue)) {
             throw new Error('value is not a number');
         }
-
         return numValue;
     }
-
-    get name(): string {
+    get name() {
         return this.currentNode.nodeName.toLowerCase();
     }
-
-    q(selector: string): DOM {
+    q(selector) {
         let result = this.currentNode.querySelector(selector);
-
         if (result === null) {
             throw new Error(`selector "${selector}" has no matches`);
-        } else {
+        }
+        else {
             return DOM.wrap(result);
         }
     }
-
-    qq(selector: string): DOMCollection {
+    qq(selector) {
         let result = this.currentNode.querySelectorAll(selector);
-
         if (result.length === 0) {
             throw new Error(`selector "${selector}" has no matches`);
         }
-
         return DOMCollection.wrap(result);
     }
-
-    has(childNodeName: string): boolean {
+    has(childNodeName) {
         try {
             this.q(childNodeName);
-        } catch (e) {
+        }
+        catch (e) {
             return false;
         }
-
         return true;
     }
-
-    eachChild(callback: (node: DOM) => void): void {
+    eachChild(callback) {
         DOMCollection.wrap(this.currentNode.childNodes)
-                     .each(callback);
+            .each(callback);
     }
 }
-
 class DOMCollection {
-    private currentNodes: DOM[] = [];
-
-    item(id: number): DOM {
+    constructor(nodes) {
+        this.currentNodes = [];
+        if (nodes instanceof NodeList) {
+            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(node)));
+        }
+        else {
+            this.currentNodes = nodes;
+        }
+    }
+    item(id) {
         return this.currentNodes[id];
     }
-
-    each(callback: (node: DOM, index?: number) => void) {
+    each(callback) {
         for (let i = 0; i < this.currentNodes.length; ++i) {
             callback(this.currentNodes[i], i);
         }
     }
-
-    group(callback: (node: DOM) => boolean): DOMCollection[] {
-        let groups: DOMCollection[] = [];
-        let currentGroup: DOM[] = [];
-
+    group(callback) {
+        let groups = [];
+        let currentGroup = [];
         let splitGroup = () => {
             let itemsInGroup = currentGroup.length > 0;
-
             if (itemsInGroup) {
                 groups.push(DOMCollection.use(currentGroup));
                 currentGroup = [];
             }
         };
-
         this.each((node) => {
             let nodeIsUngroupable = !callback(node);
-
             if (nodeIsUngroupable) {
                 splitGroup();
             }
-
             currentGroup.push(node);
         });
-
         splitGroup();
-
         return groups;
     }
-
-    static wrap(nodes: NodeList): DOMCollection {
+    static wrap(nodes) {
         return new DOMCollection(nodes);
     }
-
-    static use(nodes: DOM[]): DOMCollection {
+    static use(nodes) {
         return new DOMCollection(nodes);
-    }
-
-    private constructor(nodes: NodeList | DOM[]) {
-        if (nodes instanceof NodeList) {
-            nodes.forEach((node) => this.currentNodes.push(DOM.wrap(<Element> node)));
-        } else {
-            this.currentNodes = nodes;
-        }
     }
 }
+//# sourceMappingURL=MusicXML.js.map

@@ -1,5 +1,6 @@
 import glyphTable from '../GlyphTable.js';
 import * as SMuLF from '../Schema/SMuFL.js';
+import { Note } from '../Renderers/MusicXML.js';
 import Engraver from '../Engraver.js';
 import metadata from '../Fonts/bravura/bravura_metadata.js';
 
@@ -291,8 +292,6 @@ export default class SVGEngraver implements Engraver {
                     y: stemOffsets.y + flagAnchor['stemUpNW'][1]
                 };
 
-                flagOffsets.x;
-
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
             }
         }
@@ -574,11 +573,4 @@ class SVG {
 
         return this;
     }
-}
-
-interface Note {
-    pitchOctave: number,
-    pitchStep: string,
-    duration: number,
-    type: string
 }

@@ -236,7 +236,6 @@ export default class SVGEngraver {
                     x: stemOffsets.x + flagAnchor['stemUpNW'][0] - this.defaults.stemThickness,
                     y: stemOffsets.y + flagAnchor['stemUpNW'][1]
                 };
-                flagOffsets.x;
                 this.engraveFlag(flagType, stemStaffPlaceTop, flagOffsets);
             }
         }
