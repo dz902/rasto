@@ -25,7 +25,7 @@ export class ChordGlyph extends Glyph {
                     this.append(noteGlyph);
                 }
             });
-            console.log(this.element);
+            console.log(this.rawElement);
         };
         this.draw();
     }

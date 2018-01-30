@@ -1,7 +1,7 @@
 export class MusicalElement {
-    constructor() {
+    constructor(id) {
         this.data = {};
-        this.id = uniq();
+        this.id = id ? id : uniq();
     }
     addData(k, value) {
         this.data[k] = value;

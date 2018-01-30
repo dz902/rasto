@@ -36,6 +36,6 @@ export class ChordGlyph extends Glyph {
             }
         });
 
-        console.log(this.element);
+        console.log(this.rawElement);
     };
 }

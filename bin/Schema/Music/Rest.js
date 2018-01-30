@@ -1,7 +1,7 @@
 import { NoteRest } from '../Music.js';
 export class Rest extends NoteRest {
     constructor() {
-        super();
+        super("rest");
     }
 }
 //# sourceMappingURL=Rest.js.map

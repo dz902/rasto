@@ -20,6 +20,6 @@ export class CharGlyph extends Glyph {
         textElement.classList.add('glyph');
         textElement.textContent = codePoints.codepoint;
 
-        this.element.appendChild(textElement);
+        this.rawElement.appendChild(textElement);
     };
 }

@@ -2,8 +2,8 @@ export class MusicalElement {
     readonly id: string;
     readonly data: Data = {};
 
-    constructor() {
-        this.id = uniq();
+    constructor(id?:string) {
+        this.id = id ? id : uniq();
     }
 
     addData(k: string, value: any) {

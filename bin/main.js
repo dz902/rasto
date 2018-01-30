@@ -1,12 +1,12 @@
-import { MusicXMLRenderer as Parser } from './Renderers/MusicXMLRenderer.js';
+import { MusicXMLParser } from './Parsers/MusicXMLParser.js';
+import { SVGEngraver } from './Engravers/SVGEngraver.js';
 function Main() {
     fetch('../var/Beams.xml')
         .then(response => response.text())
         .then((xmlString) => {
-        let music = Parser.render(xmlString);
-        let musicElement = music.element;
-        document.getElementsByTagName('body')[0]
-            .appendChild(musicElement);
+        let score = MusicXMLParser.parse(xmlString);
+        let musicElement = SVGEngraver.engrave(score);
+        document.body.appendChild(musicElement);
     });
 }
 document.addEventListener('DOMContentLoaded', () => {

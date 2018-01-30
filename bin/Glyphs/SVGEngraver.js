@@ -617,9 +617,9 @@ class Glyph {
         this.id = id;
         // DRAW
         this.draw = () => {
-            this._element = Glyph.createElement('svg');
-            this._element.classList.add(`id-${this.id}`);
-            this._element.classList.add(this.type);
+            this.rawElement = Glyph.createElement('svg');
+            this.rawElement.classList.add(`id-${this.id}`);
+            this.rawElement.classList.add(this.type);
         };
         if (!Glyph.invisibleSVG) {
             Glyph.invisibleSVG = Glyph.createElement('svg');
@@ -635,13 +635,13 @@ class Glyph {
     }
     // SVG OPS
     get element() {
-        return this._element;
+        return this.rawElement;
     }
     get width() {
         return this.bbox.width;
     }
     get bbox() {
-        if (!document.body.contains(this._element)) {
+        if (!document.body.contains(this.rawElement)) {
             throw Error("element must be rendered to have a bounding box.");
         }
         if (this.element instanceof SVGGraphicsElement) {
@@ -650,17 +650,17 @@ class Glyph {
         throw Error("element does not have a bounding box.");
     }
     append(child) {
-        this.element.appendChild(child._element);
+        this.element.appendChild(child.rawElement);
     }
     translate(x, y) {
         // it turns out that transform is supported on nested svg elements
         // only in SVG 2 and SVG 2 was not implemented in Chrome
-        if (this._element instanceof SVGSVGElement) {
+        if (this.rawElement instanceof SVGSVGElement) {
             throw new Error('transform does not work on SVGSVGElement');
         }
         let transform = Glyph.invisibleSVG.createSVGTransform();
         transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
-        this._element.transform.baseVal.appendItem(transform);
+        this.rawElement.transform.baseVal.appendItem(transform);
     }
 }
 class CharGlyph extends Glyph {
