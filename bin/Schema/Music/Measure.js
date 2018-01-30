@@ -1,9 +1,9 @@
-import { Note, MusicalElement, ensureNumber } from '../Music.js';
+import { Note, Rest, MusicalElement, Chord, ensureNumber } from '../Music.js';
 export class Measure extends MusicalElement {
     constructor(divisions, timeBeats, timeBeatUnit, clefSign, clefLine) {
         super();
         this.notes = [];
-        this.chords = [[]];
+        this.marks = [];
         this.divisions = ensureNumber(divisions);
         this.timeBeats = ensureNumber(timeBeats);
         this.timeBeatType = ensureNumber(timeBeatUnit);
@@ -12,17 +12,32 @@ export class Measure extends MusicalElement {
     }
     addNote(note) {
         this.notes.push(note);
-        let lastChord = this.chords[this.chords.length - 1];
-        let noteIsChordNote = note instanceof Note && note.isChordNote;
-        if (noteIsChordNote) {
-            lastChord.push(note);
+        if (note instanceof Rest) {
+            this.marks.push(note);
+        }
+        else if (note instanceof Note) {
+            let lastMark = this.marks[this.marks.length - 1];
+            let lastMarkIsChord = lastMark instanceof Chord;
+            let lastChord;
+            if (lastMarkIsChord) {
+                lastChord = lastMark;
+            }
+            else {
+                lastChord = new Chord(note.type);
+                this.marks.push(lastChord);
+            }
+            let noteIsNotChordNote = !note.isChordNote;
+            if (noteIsNotChordNote) {
+                if (lastChord.notes.length > 0) {
+                    let newChord = new Chord(note.type);
+                    this.marks.push(newChord);
+                    lastChord = newChord;
+                }
+            }
+            lastChord.notes.push(note);
         }
         else {
-            if (lastChord.length > 0) {
-                let newLength = this.chords.push([]);
-                lastChord = this.chords[newLength - 1];
-            }
-            lastChord.push(note);
+            throw new Error();
         }
     }
 }

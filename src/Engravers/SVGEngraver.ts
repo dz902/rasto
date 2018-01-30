@@ -1,6 +1,7 @@
 import * as SMuFL from '../Schema/SMuFL.js';
-import { Note, Rest, NoteRest, Chord } from '../Schema/Music.js';  // FIX
+import { Mark, Note, Rest, NoteRest, Chord } from '../Schema/Music.js';  // FIX
 import Engraver from '../Engraver.js';
+import log from '../Utilities/Logger.js';
 
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
@@ -20,6 +21,7 @@ export default class SVGEngraver implements Engraver {
         beams: [],
         clefSign: 'G'
     };
+    private refs: { [id: string]: SVG } = {};
 
     static create(width: number, height: number): SVGEngraver {
         return new SVGEngraver(width, height);
@@ -150,7 +152,105 @@ export default class SVGEngraver implements Engraver {
         }
     }
 
-    engraveChord(notes: Chord): void {
+    createMark(mark: Mark): SVG {
+        if (mark instanceof Chord) {
+            return this.createChord(mark);
+        } else if (mark instanceof Rest) {
+            return this.createRest(mark);
+        }
+
+        throw new Error();
+    }
+
+    createChord(chord: Chord): SVG {
+        log('createChord', chord);
+
+        // ensureNonEmptyChord
+
+        let chordHasNoNotes: boolean = chord.notes.length === 0;
+        if (chordHasNoNotes) {
+            throw new Error('empty chord');
+        }
+
+        let chordSVG = this.drawSVG(chord.id, 'chord');
+
+        chord.notes.forEach((noteRest: NoteRest) => {
+            if (noteRest instanceof Note) {
+                let noteSVG = this.createNote(noteRest);
+
+                // checkAdjacentNotes
+
+                chordSVG.appendElement(noteSVG);
+            }
+        });
+
+        log(true);
+
+        return chordSVG;
+    }
+
+    createNote(note: Note): SVG {
+        log('createNote', note);
+
+        let noteSVG = this.drawSVG(note.id, 'note');
+        let noteHeadSVG = this.drawNoteHead(note.type);
+
+        noteSVG.appendElement(noteHeadSVG);
+
+        log(true)
+
+        return noteSVG;
+    }
+
+    drawSVG(id: string, type: string) {
+        let element = SVG.create('svg')
+                         .addClass(`id-${id}`)
+                         .addClass(type);
+
+        this.refs[id] = element;
+
+        return element;
+    }
+
+    drawNoteHead(type: string): SVG {
+        let noteheadGlyphNames: { [k: string]: string } = {
+            'whole': 'noteWhole',
+            'half': 'noteheadHalf',
+            'quarter': 'noteheadBlack',
+            'eighth': 'noteheadBlack',
+            '16th': 'noteheadBlack',
+            '32nd': 'noteheadBlack'
+        };
+
+        let noteheadGlyphName = noteheadGlyphNames[type];
+        let glyphNameNotFound = (!noteheadGlyphName);
+
+        if (glyphNameNotFound) {
+            throw new Error('unknown note type');
+        }
+
+        return this.drawGlyph(noteheadGlyphName);
+    }
+
+    drawGlyph(glyphName: string): SVG {
+        let codePoints = this.codePoints[glyphName];
+        let glyphCodePointsNotFound = (codePoints === undefined);
+
+        if (glyphCodePointsNotFound) {
+            throw new Error(`glyph name "${glyphName}" does not exist.`);
+        }
+
+        return SVG.createText(codePoints.codepoint)
+                  .addClass('glyph');
+    }
+
+    createRest(rest: Rest): SVG {
+        return this.drawSVG(rest.id, 'rest');
+    }
+
+    engraveChord(chord: Chord): void {
+        let notes = chord.notes;
+
         if (notes.length < 1) {
             throw new Error('empty chord');
         }

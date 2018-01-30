@@ -75,42 +75,9 @@ export class MusicXMLRenderer {
             }
             measure.addNote(note);
         });
-        measure.chords.forEach((chord) => {
-            this.engraver.engraveChord(chord);
-        });
-        measure.notes
-            .reduce((chords, note) => {
-            let lastChord = chords[chords.length];
-            let noteIsChordNote = note instanceof Note && note.isChordNote;
-            if (noteIsChordNote) {
-                lastChord.push(note);
-            }
-            else {
-                if (lastChord.length > 0) {
-                    let newLength = chords.push([]);
-                    lastChord = chords[newLength];
-                }
-                lastChord.push(note);
-            }
-            return chords;
-        }, [[]])
-            .forEach((chord) => {
-            let notes = [];
-            chord.forEach((note) => {
-                if (note instanceof Rest) {
-                    return;
-                }
-                if (note instanceof Note) {
-                    note.beams.forEach();
-                }
-                $note.has('beam', ($beams) => {
-                    $beams.each(($beam) => {
-                        let beam = new Beam(nn($beam.attributes['number']), $beam.value);
-                        note.beams.push(beam);
-                    });
-                });
-                notes.push(note);
-            });
+        measure.marks.forEach((mark) => {
+            let x = this.engraver.createMark(mark);
+            this.engraver.print().appendChild(x.element);
         });
         this.engraver.resetHead();
         this.engraver.moveHead(50);

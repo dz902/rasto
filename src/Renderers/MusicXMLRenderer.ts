@@ -1,5 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-import { Measure, Chord, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
+import { Measure, Mark, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
 
 export class MusicXMLRenderer {
     private music: DOM;
@@ -91,7 +91,11 @@ export class MusicXMLRenderer {
                     if ($note.has('rest')) {
                         note = new Rest();
                     } else {
-                        note = new Note($note.q('type').value, $note.q('pitch octave').value, $note.q('pitch step').value, $note.q('duration').value, $note.has('chord'));
+                        note = new Note($note.q('type').value,
+                                        $note.q('pitch octave').value,
+                                        $note.q('pitch step').value,
+                                        $note.q('duration').value,
+                                        $note.has('chord'));
 
                         $note.has('beam', ($beams) => {
                             $beams.each(($beam) => {
@@ -108,57 +112,10 @@ export class MusicXMLRenderer {
                     measure.addNote(note);
                 });
 
-        measure.chords.forEach((chord: Chord) => {
-            this.engraver.engraveChord(chord);
+        measure.marks.forEach((mark: Mark) => {
+            let x = this.engraver.createMark(mark);
+            this.engraver.print().appendChild(x.element);
         })
-
-        measure.notes
-               .reduce(
-                   (chords: Chord[], note: NoteRest): Chord[] => {
-                       let lastChord = chords[chords.length];
-                       let noteIsChordNote = note instanceof Note && note.isChordNote;
-
-                       if (noteIsChordNote) {
-                           lastChord.push(note);
-                       } else {
-                           if (lastChord.length > 0) {
-                               let newLength = chords.push([]);
-
-                               lastChord = chords[newLength];
-                           }
-
-                           lastChord.push(note);
-                       }
-
-                       return chords;
-                   }, [[]])
-               .forEach((chord: Chord) => {
-                   let notes: Note[] = [];
-
-                   chord.forEach((note: NoteRest) => {
-                       if (note instanceof Rest) {
-                           return;
-                       }
-
-                       if (note instanceof Note) {
-                           note.beams.forEach();
-                       }
-
-                       $note.has('beam', ($beams) => {
-                           $beams.each(($beam) => {
-                               let beam: Beam = new Beam(
-                                   nn($beam.attributes['number']),
-                                   $beam.value
-                               );
-
-                               note.beams.push(beam);
-                           });
-                       });
-
-                       notes.push(note);
-                   });
-
-               });
 
         this.engraver.resetHead();
         this.engraver.moveHead(50);

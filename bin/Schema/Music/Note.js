@@ -1,4 +1,4 @@
-import { NoteRest, ensure, ensureNumber } from '../Music.js';
+import { Stem, NoteRest, ensure, ensureNumber } from '../Music.js';
 export class Note extends NoteRest {
     constructor(type, pitchOctave, pitchStep, duration, isChordNote) {
         super(type);
@@ -7,10 +7,17 @@ export class Note extends NoteRest {
         this.pitchStep = ensurePitchStep(pitchStep);
         this.duration = ensureNumber(duration);
         this.isChordNote = isChordNote;
+        this.stem = new Stem("up");
     }
     addBeam(beam) {
         this.beams.push(beam);
     }
+    configureStem(stem) {
+        this.stem.configure(stem);
+    }
+}
+export function ensureNote(noteRest) {
+    return ensure(noteRest, `item is not a note`, (noteRest) => noteRest instanceof Note);
 }
 function ensurePitchStep(pitchStep) {
     return ensure(pitchStep, `pitch step ${pitchStep} is not valid pitch step`, (p) => (p !== '' && 'ABCDEFG'.indexOf(p) !== -1));

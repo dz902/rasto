@@ -1,4 +1,5 @@
-import { Note, NoteRest, MusicalElement, Chord, ensureNumber, NumericValue } from '../Music.js';
+import { Note, Rest, NoteRest, MusicalElement, Mark, Chord, ensureNumber, NumericValue } from '../Music.js';
+import { ensureChord } from './Chord';
 
 export class Measure extends MusicalElement {
     readonly divisions: number;
@@ -7,7 +8,7 @@ export class Measure extends MusicalElement {
     readonly clefSign: string;
     readonly clefLine: number;
     readonly notes: NoteRest[] = [];
-    readonly chords: Chord[] = [[]];
+    readonly marks: Mark[] = [];
 
     constructor(divisions: NumericValue,
                 timeBeats: NumericValue,
@@ -26,19 +27,37 @@ export class Measure extends MusicalElement {
     addNote(note: NoteRest) {
         this.notes.push(note);
 
-        let lastChord: Chord = this.chords[this.chords.length-1]
-        let noteIsChordNote: boolean = note instanceof Note && note.isChordNote
+        if (note instanceof Rest) {
+            this.marks.push(note);
+        } else if (note instanceof Note) {
+            let lastMark: Mark = this.marks[this.marks.length-1];
+            let lastMarkIsChord = lastMark instanceof Chord;
+            let lastChord: Chord;
 
-        if (noteIsChordNote) {
-            lastChord.push(note)
-        } else {
-            if (lastChord.length > 0) {
-                let newLength = this.chords.push([])
 
-                lastChord = this.chords[newLength-1]
+            if (lastMarkIsChord) {
+                lastChord = <Chord> lastMark;
+            } else {
+                lastChord = new Chord(note.type);
+
+                this.marks.push(lastChord);
             }
 
-            lastChord.push(note)
+            let noteIsNotChordNote: boolean = !note.isChordNote;
+
+            if (noteIsNotChordNote) {
+                if (lastChord.notes.length > 0) {
+                    let newChord = new Chord(note.type);
+
+                    this.marks.push(newChord);
+
+                    lastChord = newChord;
+                }
+            }
+
+            lastChord.notes.push(note)
+        } else {
+            throw new Error();
         }
     }
 }

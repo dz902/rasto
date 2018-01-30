@@ -1,4 +1,4 @@
-import { Beam, NoteRest, NumericValue, ensure, ensureNumber } from '../Music.js';
+import { Stem, Beam, NoteRest, NumericValue, ensure, ensureNumber } from '../Music.js';
 
 export class Note extends NoteRest {
     readonly pitchOctave: PitchOctave;
@@ -6,6 +6,7 @@ export class Note extends NoteRest {
     readonly duration: number;
     readonly beams: Beam[] = [];
     readonly isChordNote: boolean;
+    readonly stem: Stem;
 
     constructor(type: string,
                 pitchOctave: NumericValue,
@@ -18,14 +19,23 @@ export class Note extends NoteRest {
         this.pitchStep = ensurePitchStep(pitchStep);
         this.duration = ensureNumber(duration);
         this.isChordNote = isChordNote;
+
+        this.stem = new Stem("up");
     }
 
     addBeam(beam: Beam) {
         this.beams.push(beam);
     }
+
+    configureStem(stem: Stem) {
+        this.stem.configure(stem);
+    }
 }
 
-export type Chord = NoteRest[];
+export function ensureNote(noteRest: NoteRest): Note {
+    return ensure(noteRest, `item is not a note`,
+                  (noteRest: NoteRest): noteRest is Note => noteRest instanceof Note);
+}
 
 type PitchStep = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
