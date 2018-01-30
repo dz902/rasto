@@ -1,6 +1,10 @@
 export class MusicalElement {
     constructor() {
+        this.data = {};
         this.id = uniq();
+    }
+    addData(k, value) {
+        this.data[k] = value;
     }
 }
 export function ensure(value, errorMessage, predicate) {
@@ -11,7 +15,12 @@ export function ensure(value, errorMessage, predicate) {
         throw new Error(errorMessage);
     }
 }
+export function ensureNumber(value) {
+    let numericValue = Number(value);
+    return ensure(numericValue, `value ${value} is not a valid number`, (n) => !Number.isNaN(n));
+}
+// PRIVATE
 function uniq() {
     return String(performance.now()).split('.').join('');
 }
-//# sourceMappingURL=MusicalElement.js.map
+//# sourceMappingURL=Common.js.map

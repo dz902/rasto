@@ -1,5 +1,5 @@
 import * as SMuFL from '../Schema/SMuFL.js';
-import { Note } from '../Schema/Music.js';  // FIX
+import { Note, Rest, NoteRest, Chord } from '../Schema/Music.js';  // FIX
 import Engraver from '../Engraver.js';
 
 const EM = 32;
@@ -150,7 +150,7 @@ export default class SVGEngraver implements Engraver {
         }
     }
 
-    engraveChord(notes: Note[]): void {
+    engraveChord(notes: Chord): void {
         if (notes.length < 1) {
             throw new Error('empty chord');
         }
@@ -165,7 +165,8 @@ export default class SVGEngraver implements Engraver {
             return octave * 7 + STEP_NAMES.indexOf(step) - startingStaffPlace;
         };
 
-        let lowestNote: Note = notes[0];
+        let lowestNote: Note = notes[0] as Note;
+
         let lowestStaffPlace: number = staffPlaceFromOctaveAndStep(lowestNote.pitchOctave, lowestNote.pitchStep);
         let lastStaffPlace: number = lowestStaffPlace;
 
@@ -195,7 +196,13 @@ export default class SVGEngraver implements Engraver {
         let displacement = noteWidth - this.defaults.stemThickness;
 
         for (let i = 0; i < notes.length; ++i) {
-            let note = notes[i];
+            if (notes[i] instanceof Rest) {
+                return;
+            }
+
+            let note = notes[i] as Note;
+
+
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
 
             let isNotThird = Math.abs(staffPlace - lowestStaffPlace + 1) % 3 !== 0;
@@ -220,7 +227,7 @@ export default class SVGEngraver implements Engraver {
         }
 
         let stemNeeded = (lowestNote.type !== 'whole');
-        let highestNote = notes[notes.length - 1];
+        let highestNote = notes[notes.length - 1] as Note;
 
         if (stemNeeded) {
             let noteAnchors: SMuFL.GlyphAnchors;

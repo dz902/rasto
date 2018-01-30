@@ -1,5 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-import { Note, Beam } from '../Schema/Music.js';
+import { Measure, Chord, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
 
 export class MusicXMLRenderer {
     private music: DOM;
@@ -74,54 +74,95 @@ export class MusicXMLRenderer {
                     }
                 });
 
-        console.log($measure.collectAttributes());
+        let measureAttributes = $measure.collectAttributes();
+        let measure: Measure = new Measure(measureAttributes['divisions'],
+                                           measureAttributes['time/beats'],
+                                           measureAttributes['time/beat-type'],
+                                           measureAttributes['clef/sign'],
+                                           measureAttributes['clef/line']);
 
-        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
-        this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
+        this.engraver.engraveClef(measure.clefSign, (measure.clefLine - 1) * 2);
+        this.engraver.engraveTimeSignature(measure.timeBeats, measure.timeBeatType);
 
         $measure.qq('note')
-                .group(node => node.has('chord'))
-                .forEach(($chord) => {
-                    let notes: Note[] = [];
+                .each(($note) => {
+                    let note: NoteRest;
 
-                    $chord.each(($note) => {
-                        if ($note.has('rest')) {
-                            return;
-                        }
-
-                        let note: Note = new Note (
-                            uniq(),
-                            nn($note.q('pitch octave').value),
-                            $note.q('pitch step').value,
-                            nn($note.q('duration').value),
-                            $note.q('type').value
-                        );
+                    if ($note.has('rest')) {
+                        note = new Rest();
+                    } else {
+                        note = new Note($note.q('type').value, $note.q('pitch octave').value, $note.q('pitch step').value, $note.q('duration').value, $note.has('chord'));
 
                         $note.has('beam', ($beams) => {
                             $beams.each(($beam) => {
                                 let beam: Beam = new Beam(
-                                    uniq(),
-                                    nn($beam.attributes['number']),
+                                    $beam.attributes['number'],
                                     $beam.value
                                 );
 
-                                note.beams.push(beam);
+                                (note as Note).addBeam(beam);
                             });
                         });
+                    }
 
-                        notes.push(note);
-                    });
-
-                    this.engraver.engraveChord(notes);
+                    measure.addNote(note);
                 });
+
+        measure.chords.forEach((chord: Chord) => {
+            this.engraver.engraveChord(chord);
+        })
+
+        measure.notes
+               .reduce(
+                   (chords: Chord[], note: NoteRest): Chord[] => {
+                       let lastChord = chords[chords.length];
+                       let noteIsChordNote = note instanceof Note && note.isChordNote;
+
+                       if (noteIsChordNote) {
+                           lastChord.push(note);
+                       } else {
+                           if (lastChord.length > 0) {
+                               let newLength = chords.push([]);
+
+                               lastChord = chords[newLength];
+                           }
+
+                           lastChord.push(note);
+                       }
+
+                       return chords;
+                   }, [[]])
+               .forEach((chord: Chord) => {
+                   let notes: Note[] = [];
+
+                   chord.forEach((note: NoteRest) => {
+                       if (note instanceof Rest) {
+                           return;
+                       }
+
+                       if (note instanceof Note) {
+                           note.beams.forEach();
+                       }
+
+                       $note.has('beam', ($beams) => {
+                           $beams.each(($beam) => {
+                               let beam: Beam = new Beam(
+                                   nn($beam.attributes['number']),
+                                   $beam.value
+                               );
+
+                               note.beams.push(beam);
+                           });
+                       });
+
+                       notes.push(note);
+                   });
+
+               });
 
         this.engraver.resetHead();
         this.engraver.moveHead(50);
         this.engraver.engraveBarLineSingle();
-    }
-
-    private typesetChord($chord: DOMCollection) {
-
     }
 }
 
@@ -167,7 +208,7 @@ class DOM {
         let value = this.currentNode.textContent;
 
         if (value === null) {
-            return "";
+            return '';
         }
 
         return value;
@@ -236,13 +277,13 @@ class DOM {
     collectAttributes(): Attributes {
         let attrs: Attributes = {};
 
-        let collectNestedAttributes = ($a: DOM, prefix: string = ""): void => {
+        let collectNestedAttributes = ($a: DOM, prefix: string = ''): void => {
             $a.eachChild(($nestedA) => {
                 console.log($nestedA.element);
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + "/"));
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + '/'));
                 } else {
-                    attrs[prefix+$nestedA.name] = $nestedA.value;
+                    attrs[prefix + $nestedA.name] = $nestedA.value;
                 }
             });
         };
@@ -328,9 +369,3 @@ function nn(value: any): number {
 export interface Attributes {
     [k: string]: string;
 }
-
-function uniq(): string {
-    return String(performance.now()).split('.').join('');
-}
-
-// PRIMITIVE TYPES

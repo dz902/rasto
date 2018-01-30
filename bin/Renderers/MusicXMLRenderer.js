@@ -1,5 +1,5 @@
 import SVGEngraver from '../Engravers/SVGEngraver.js';
-import { Note, Beam } from '../Schema/Music.js';
+import { Measure, Note, Rest, Beam } from '../Schema/Music.js';
 export class MusicXMLRenderer {
     static render(xmlString) {
         let engraver = SVGEngraver.create(600, 400);
@@ -54,33 +54,67 @@ export class MusicXMLRenderer {
                     break;
             }
         });
-        console.log($measure.collectAttributes());
-        this.engraver.engraveClef(measureAttr.clefSign, (measureAttr.clefLine - 1) * 2);
-        this.engraver.engraveTimeSignature(measureAttr.timeBeats, measureAttr.timeBeatType);
+        let measureAttributes = $measure.collectAttributes();
+        let measure = new Measure(measureAttributes['divisions'], measureAttributes['time/beats'], measureAttributes['time/beat-type'], measureAttributes['clef/sign'], measureAttributes['clef/line']);
+        this.engraver.engraveClef(measure.clefSign, (measure.clefLine - 1) * 2);
+        this.engraver.engraveTimeSignature(measure.timeBeats, measure.timeBeatType);
         $measure.qq('note')
-            .group(node => node.has('chord'))
-            .forEach(($chord) => {
-            let notes = [];
-            $chord.each(($note) => {
-                if ($note.has('rest')) {
-                    return;
-                }
-                let note = new Note(uniq(), nn($note.q('pitch octave').value), $note.q('pitch step').value, nn($note.q('duration').value), $note.q('type').value);
+            .each(($note) => {
+            let note;
+            if ($note.has('rest')) {
+                note = new Rest();
+            }
+            else {
+                note = new Note($note.q('type').value, $note.q('pitch octave').value, $note.q('pitch step').value, $note.q('duration').value, $note.has('chord'));
                 $note.has('beam', ($beams) => {
                     $beams.each(($beam) => {
-                        let beam = new Beam(uniq(), nn($beam.attributes['number']), $beam.value);
+                        let beam = new Beam($beam.attributes['number'], $beam.value);
+                        note.addBeam(beam);
+                    });
+                });
+            }
+            measure.addNote(note);
+        });
+        measure.chords.forEach((chord) => {
+            this.engraver.engraveChord(chord);
+        });
+        measure.notes
+            .reduce((chords, note) => {
+            let lastChord = chords[chords.length];
+            let noteIsChordNote = note instanceof Note && note.isChordNote;
+            if (noteIsChordNote) {
+                lastChord.push(note);
+            }
+            else {
+                if (lastChord.length > 0) {
+                    let newLength = chords.push([]);
+                    lastChord = chords[newLength];
+                }
+                lastChord.push(note);
+            }
+            return chords;
+        }, [[]])
+            .forEach((chord) => {
+            let notes = [];
+            chord.forEach((note) => {
+                if (note instanceof Rest) {
+                    return;
+                }
+                if (note instanceof Note) {
+                    note.beams.forEach();
+                }
+                $note.has('beam', ($beams) => {
+                    $beams.each(($beam) => {
+                        let beam = new Beam(nn($beam.attributes['number']), $beam.value);
                         note.beams.push(beam);
                     });
                 });
                 notes.push(note);
             });
-            this.engraver.engraveChord(notes);
         });
         this.engraver.resetHead();
         this.engraver.moveHead(50);
         this.engraver.engraveBarLineSingle();
-    }
-    typesetChord($chord) {
     }
 }
 class DOM {
@@ -114,7 +148,7 @@ class DOM {
     get value() {
         let value = this.currentNode.textContent;
         if (value === null) {
-            return "";
+            return '';
         }
         return value;
     }
@@ -168,11 +202,11 @@ class DOM {
     }
     collectAttributes() {
         let attrs = {};
-        let collectNestedAttributes = ($a, prefix = "") => {
+        let collectNestedAttributes = ($a, prefix = '') => {
             $a.eachChild(($nestedA) => {
                 console.log($nestedA.element);
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + "/"));
+                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + '/'));
                 }
                 else {
                     attrs[prefix + $nestedA.name] = $nestedA.value;
@@ -238,8 +272,4 @@ function nn(value) {
     }
     return numValue;
 }
-function uniq() {
-    return String(performance.now()).split('.').join('');
-}
-// PRIMITIVE TYPES
 //# sourceMappingURL=MusicXMLRenderer.js.map

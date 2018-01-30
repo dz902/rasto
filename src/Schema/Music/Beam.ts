@@ -1,15 +1,14 @@
-import { MusicalElement } from '../Music.js';
+import { MusicalElement, NumericValue, ensureNumber } from '../Music.js';
 
 export class Beam extends MusicalElement {
     readonly number: number;
     readonly type: BeamType;
 
-    constructor(readonly id: string,
-                number: number,
+    constructor(number: NumericValue,
                 type: string) {
-        super(id);
+        super();
 
-        this.number = number;
+        this.number = ensureNumber(number);
         this.type = ensureBeamType(type);
     }
 }

@@ -1,4 +1,5 @@
 import * as SMuFL from '../Schema/SMuFL.js';
+import { Rest } from '../Schema/Music.js'; // FIX
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
 const STAFF_PLACE_MIDDLE_LINE = 4;
@@ -154,6 +155,9 @@ export default class SVGEngraver {
         }
         let displacement = noteWidth - this.defaults.stemThickness;
         for (let i = 0; i < notes.length; ++i) {
+            if (notes[i] instanceof Rest) {
+                return;
+            }
             let note = notes[i];
             let staffPlace = staffPlaceFromOctaveAndStep(note.pitchOctave, note.pitchStep);
             let isNotThird = Math.abs(staffPlace - lowestStaffPlace + 1) % 3 !== 0;
