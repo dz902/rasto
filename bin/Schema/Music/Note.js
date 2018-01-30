@@ -13,7 +13,12 @@ export class Note extends NoteRest {
         this.beams.push(beam);
     }
     configureStem(stem) {
-        this.stem.configure(stem);
+    }
+    get staffPlace() {
+        return this.pitchOctave * 8 + 'CDEFGAB'.indexOf(this.pitchStep);
+    }
+    getIntervalTo(note) {
+        return Math.abs(this.staffPlace - note.staffPlace) + 1;
     }
 }
 export function ensureNote(noteRest) {

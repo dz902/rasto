@@ -16,6 +16,7 @@ export default class SVGEngraver {
             clefSign: 'G'
         };
         this.refs = {};
+        this.createInvisibleSVG();
         this.meta = SMuFL.load('Bravura');
         this.width = width;
         this.height = height;
@@ -67,6 +68,11 @@ export default class SVGEngraver {
     }
     static create(width, height) {
         return new SVGEngraver(width, height);
+    }
+    createInvisibleSVG() {
+        this.invisibleSVG = SVG.create('svg')
+            .attr('style', 'position: absolute; z-index: -100000; visibility: hidden;');
+        document.body.appendChild(this.invisibleSVG.element);
     }
     engraveBarLineSingle() {
         let line = SVG.createLine([0, 4])
@@ -138,10 +144,18 @@ export default class SVGEngraver {
             throw new Error('empty chord');
         }
         let chordSVG = this.drawSVG(chord.id, 'chord');
-        chord.notes.forEach((noteRest) => {
+        chord.notes.forEach((noteRest, i) => {
             if (noteRest instanceof Note) {
-                let noteSVG = this.createNote(noteRest);
+                let note = noteRest;
+                let noteSVG = this.createNote(note);
                 // checkAdjacentNotes
+                let lastNote = chord.notes[i - 1] ? chord.notes[i - 1] : note;
+                let isNotThirds = note.getIntervalTo(chord.lowestNote) % 3 !== 0;
+                let isSecond = note.getIntervalTo(lastNote) === 2;
+                let isAdjacent = isNotThirds && isSecond;
+                if (isAdjacent) {
+                    noteSVG.translate(noteSVG.width);
+                }
                 chordSVG.appendElement(noteSVG);
             }
         });
@@ -161,6 +175,7 @@ export default class SVGEngraver {
             .addClass(`id-${id}`)
             .addClass(type);
         this.refs[id] = element;
+        this.invisibleSVG.appendElement(element);
         return element;
     }
     drawNoteHead(type) {
@@ -519,27 +534,21 @@ class SVG {
         // this is extremely confusing as svg elements will ignore explicit width
         // only to calculate bounding box from its content
         // we need to have glyphs with fixed dimensions
-        return Number(this.childElement.getAttribute('width'));
+        return this.bbox.width;
     }
-    //
-    // get actualWidth(): number {
-    //     return this.bbox.width;
-    // }
     get viewport() {
         const viewport = this.childElement.viewportElement;
         return viewport === null ? this : (new SVG(viewport));
     }
-    // get bbox(): BoundingBox {
-    //     if (!document.body.contains(this._element)) {
-    //         throw Error("element must be rendered to have a bounding box.")
-    //     }
-    //
-    //     if (this._element instanceof SVGGraphicsElement) {
-    //         return this._element.getBBox();
-    //     }
-    //
-    //     throw Error("element does not have a bounding box.");
-    // }
+    get bbox() {
+        if (!document.body.contains(this.element)) {
+            throw Error("element must be rendered to have a bounding box.");
+        }
+        if (this.element instanceof SVGGraphicsElement) {
+            return this.element.getBBox();
+        }
+        throw Error("element does not have a bounding box.");
+    }
     // CHILDREN ELEMENT APPENDERS
     appendSVG() {
         return this.appendChild('svg');
@@ -600,6 +609,79 @@ class SVG {
     textContent(text) {
         this.childElement.textContent = text;
         return this;
+    }
+}
+class Glyph {
+    constructor() {
+        if (!Glyph.invisibleSVG) {
+            Glyph.invisibleSVG = Glyph.createElement('svg');
+            document.body.appendChild(Glyph.invisibleSVG);
+        }
+        this.meta = SMuFL.load('Bravura');
+        this.draw();
+    }
+    get width() {
+        return this.bbox.width;
+    }
+    get bbox() {
+        if (!document.body.contains(this.element)) {
+            throw Error("element must be rendered to have a bounding box.");
+        }
+        if (this.element instanceof SVGGraphicsElement) {
+            return this.element.getBBox();
+        }
+        throw Error("element does not have a bounding box.");
+    }
+    append(glyph) {
+        this.element.appendChild(glyph.element);
+    }
+    draw() {
+        this.element = Glyph.createElement('svg');
+    }
+    static createElement(name) {
+        let element = document.createElementNS('http://www.w3.org/2000/svg', name);
+        return element;
+    }
+}
+class CharGlyph extends Glyph {
+    constructor(charName) {
+        super();
+        this.charName = charName;
+    }
+    draw() {
+        let textElement = Glyph.createElement('text');
+        let codePoints = this.meta.glyphnames[this.charName];
+        if (!codePoints.codepoint) {
+            throw new Error();
+        }
+        this.element.appendChild(textElement);
+    }
+}
+class NoteGlyph extends Glyph {
+    constructor(note) {
+        super();
+        this.note = note;
+        this.draw();
+    }
+    draw() {
+        this.drawNoteHead();
+    }
+    drawNoteHead() {
+        let noteheadGlyphNames = {
+            'whole': 'noteWhole',
+            'half': 'noteheadHalf',
+            'quarter': 'noteheadBlack',
+            'eighth': 'noteheadBlack',
+            '16th': 'noteheadBlack',
+            '32nd': 'noteheadBlack'
+        };
+        let noteheadGlyphName = noteheadGlyphNames[this.note.type];
+        let glyphNameNotFound = (!noteheadGlyphName);
+        if (glyphNameNotFound) {
+            throw new Error('unknown note type');
+        }
+        let charGlyph = new CharGlyph(noteheadGlyphName);
+        this.append(charGlyph);
     }
 }
 //# sourceMappingURL=SVGEngraver.js.map

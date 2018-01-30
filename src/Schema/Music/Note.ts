@@ -28,7 +28,14 @@ export class Note extends NoteRest {
     }
 
     configureStem(stem: Stem) {
-        this.stem.configure(stem);
+    }
+
+    get staffPlace(): number {
+       return this.pitchOctave*8 + 'CDEFGAB'.indexOf(this.pitchStep);
+    }
+
+    getIntervalTo(note: Note): number {
+        return Math.abs(this.staffPlace - note.staffPlace) + 1;
     }
 }
 
