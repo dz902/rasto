@@ -1,5 +1,5 @@
-import SVGEngraver from '../Engravers/SVGEngraver.js';
-import { Measure, Mark, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
+import { SVGEngraver, ChordGlyph } from '../Engravers/SVGEngraver.js';
+import { Measure, Mark, Chord, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
 
 export class MusicXMLRenderer {
     private music: DOM;
@@ -113,8 +113,11 @@ export class MusicXMLRenderer {
                 });
 
         measure.marks.forEach((mark: Mark) => {
-            let x = this.engraver.createMark(mark);
-            this.engraver.print().appendChild(x.element);
+            if (mark instanceof Chord) {
+                let x = new ChordGlyph(mark);
+                console.log(x);
+                this.engraver.print().appendChild(x.element);
+            }
         })
 
         this.engraver.resetHead();

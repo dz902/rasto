@@ -8,7 +8,7 @@ const STAFF_PLACE_TOP_LINE = 9;
 const STAFF_PLACE_BOTTOM_LINE = 0;
 const STAFF_PLACE_SPAN_OCTAVE = 7;
 const STEP_NAMES = 'cdefgab';
-export default class SVGEngraver {
+export class SVGEngraver {
     constructor(width, height) {
         this.headPosition = { x: 0, y: 0 };
         this.state = {
@@ -612,19 +612,36 @@ class SVG {
     }
 }
 class Glyph {
-    constructor() {
+    constructor(type, id) {
+        this.type = type;
+        this.id = id;
+        // DRAW
+        this.draw = () => {
+            this._element = Glyph.createElement('svg');
+            this._element.classList.add(`id-${this.id}`);
+            this._element.classList.add(this.type);
+        };
         if (!Glyph.invisibleSVG) {
             Glyph.invisibleSVG = Glyph.createElement('svg');
+            Glyph.invisibleSVG.setAttribute('style', 'position: absolute; z-index: -100000; visibility: hidden;');
             document.body.appendChild(Glyph.invisibleSVG);
         }
-        this.meta = SMuFL.load('Bravura');
+        Glyph.meta = SMuFL.load('Bravura');
         this.draw();
+    }
+    static createElement(name) {
+        let element = document.createElementNS('http://www.w3.org/2000/svg', name);
+        return element;
+    }
+    // SVG OPS
+    get element() {
+        return this._element;
     }
     get width() {
         return this.bbox.width;
     }
     get bbox() {
-        if (!document.body.contains(this.element)) {
+        if (!document.body.contains(this._element)) {
             throw Error("element must be rendered to have a bounding box.");
         }
         if (this.element instanceof SVGGraphicsElement) {
@@ -632,39 +649,47 @@ class Glyph {
         }
         throw Error("element does not have a bounding box.");
     }
-    append(glyph) {
-        this.element.appendChild(glyph.element);
+    append(child) {
+        this.element.appendChild(child._element);
     }
-    draw() {
-        this.element = Glyph.createElement('svg');
-    }
-    static createElement(name) {
-        let element = document.createElementNS('http://www.w3.org/2000/svg', name);
-        return element;
+    translate(x, y) {
+        // it turns out that transform is supported on nested svg elements
+        // only in SVG 2 and SVG 2 was not implemented in Chrome
+        if (this._element instanceof SVGSVGElement) {
+            throw new Error('transform does not work on SVGSVGElement');
+        }
+        let transform = Glyph.invisibleSVG.createSVGTransform();
+        transform.setTranslate(x ? x * STAFF_SPACE : 0, y ? y * STAFF_SPACE : 0);
+        this._element.transform.baseVal.appendItem(transform);
     }
 }
 class CharGlyph extends Glyph {
-    constructor(charName) {
-        super();
+    constructor(type, id, charName) {
+        super(type, id);
+        this.type = type;
+        this.id = id;
         this.charName = charName;
-    }
-    draw() {
-        let textElement = Glyph.createElement('text');
-        let codePoints = this.meta.glyphnames[this.charName];
-        if (!codePoints.codepoint) {
-            throw new Error();
-        }
-        this.element.appendChild(textElement);
+        this.draw = () => {
+            let textElement = Glyph.createElement('text');
+            let codePoints = Glyph.meta.glyphnames[this.charName];
+            if (!codePoints.codepoint) {
+                throw new Error();
+            }
+            textElement.classList.add('glyph');
+            textElement.textContent = codePoints.codepoint;
+            this.element.appendChild(textElement);
+        };
+        this.draw();
     }
 }
 class NoteGlyph extends Glyph {
     constructor(note) {
-        super();
+        super('note', note.id);
         this.note = note;
+        this.draw = () => {
+            this.drawNoteHead();
+        };
         this.draw();
-    }
-    draw() {
-        this.drawNoteHead();
     }
     drawNoteHead() {
         let noteheadGlyphNames = {
@@ -680,8 +705,44 @@ class NoteGlyph extends Glyph {
         if (glyphNameNotFound) {
             throw new Error('unknown note type');
         }
-        let charGlyph = new CharGlyph(noteheadGlyphName);
-        this.append(charGlyph);
+        let textGlyph = new NoteHeadGlyph(this.note.id, noteheadGlyphName);
+        this.append(textGlyph);
+    }
+}
+export class NoteHeadGlyph extends CharGlyph {
+    constructor(noteId, charName) {
+        super('note-head', noteId, charName);
+        this.charName = charName;
+    }
+}
+export class ChordGlyph extends Glyph {
+    constructor(chord) {
+        super('chord', chord.id);
+        this.chord = chord;
+        this.draw = () => {
+            // ensureNonEmptyChord
+            let chordHasNoNotes = this.chord.notes.length === 0;
+            if (chordHasNoNotes) {
+                throw new Error('empty chord');
+            }
+            this.chord.notes.forEach((noteRest, i) => {
+                if (noteRest instanceof Note) {
+                    let note = noteRest;
+                    let noteGlyph = new NoteGlyph(note);
+                    // checkAdjacentNotes
+                    let lastNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
+                    let isNotThirds = note.getIntervalTo(this.chord.lowestNote) % 3 !== 0;
+                    let isSecond = note.getIntervalTo(lastNote) === 2;
+                    let isAdjacent = isNotThirds && isSecond;
+                    if (isAdjacent) {
+                        noteGlyph.translate(noteGlyph.width);
+                    }
+                    this.append(noteGlyph);
+                }
+            });
+            console.log(this.element);
+        };
+        this.draw();
     }
 }
 //# sourceMappingURL=SVGEngraver.js.map
