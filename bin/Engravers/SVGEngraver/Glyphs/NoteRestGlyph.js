@@ -1,6 +1,6 @@
 import { Glyph } from '../Glyphs.js';
 export class MarkGlyph extends Glyph {
-    shiftStaffPlace(staffPlace) {
+    shift(staffPlace) {
         this.move(undefined, -staffPlace / 2);
     }
 }

@@ -711,7 +711,7 @@ class NoteGlyph extends Glyph {
 }
 export class NoteHeadGlyph extends CharGlyph {
     constructor(noteId, charName) {
-        super('note-head', noteId, charName);
+        super('note-head', charName, noteId);
         this.charName = charName;
     }
 }

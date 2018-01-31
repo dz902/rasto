@@ -25,6 +25,10 @@ export class Glyph extends SVG {
         this.move(Glyph.headPosition.x);
         return this;
     }
+    shift(y) {
+        Glyph.headPosition.y -= y / 2;
+        this.move(undefined, Glyph.headPosition.y);
+    }
     // OVERRIDE WITH NEW UNITS
     move(x, y) {
         super.move(x ? x * Glyph.STAFF_SPACE : undefined, y ? y * Glyph.STAFF_SPACE : undefined);

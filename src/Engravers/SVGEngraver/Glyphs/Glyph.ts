@@ -46,6 +46,11 @@ export class Glyph extends SVG {
         return this;
     }
 
+    shift(y: number) {
+        Glyph.headPosition.y -= y/2;
+        this.move(undefined, Glyph.headPosition.y);
+    }
+
     // OVERRIDE WITH NEW UNITS
 
     move(x?: number, y?: number): Glyph {

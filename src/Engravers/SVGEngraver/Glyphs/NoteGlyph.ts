@@ -51,7 +51,7 @@ export class NoteGlyph extends MarkGlyph {
 
 class NoteHeadGlyph extends CharGlyph {
     constructor(noteId: string, protected charName: string) {
-        super('note-head', noteId, charName);
+        super('note-head', charName, noteId);
     }
 }
 

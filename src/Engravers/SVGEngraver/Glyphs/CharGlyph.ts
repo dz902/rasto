@@ -1,25 +1,29 @@
 import { SVG, Glyph } from './index.js';
 
 export class CharGlyph extends Glyph {
-    constructor(protected type: string,
-                protected id: string,
-                protected charName: string) {
+    protected textSVG: SVG;
+    protected charName: string;
+
+    constructor(charName: string, type: string, id: string = 'none') {
         super(type, id);
+
+        this.charName = charName;
 
         this.draw();
     }
 
     protected draw = (): void => {
-        let textElement = new SVG('text');
+        this.textSVG = new SVG('text');
+
         let codePoints = Glyph.meta.glyphnames[this.charName];
 
         if (!codePoints.codepoint) {
             throw new Error();
         }
 
-        textElement.addClass('glyph');
-        textElement.text(codePoints.codepoint);
+        this.textSVG.addClass('glyph');
+        this.textSVG.text(codePoints.codepoint);
 
-        this.append(textElement);
+        this.append(this.textSVG);
     };
 }

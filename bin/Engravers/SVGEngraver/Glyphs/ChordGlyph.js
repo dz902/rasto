@@ -14,7 +14,7 @@ export class ChordGlyph extends MarkGlyph {
                 let prevNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
                 this.drawNote(note, prevNote);
             });
-            this.shiftStaffPlace(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
+            this.shift(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
         };
         this.draw();
     }
@@ -30,7 +30,7 @@ export class ChordGlyph extends MarkGlyph {
         }
         // moveNoteToStaffPlace
         let offsetStaffPlace = intervalToLowestNote;
-        noteGlyph.shiftStaffPlace(offsetStaffPlace - 1);
+        noteGlyph.shift(offsetStaffPlace - 1);
         this.append(noteGlyph);
     }
     get baseStaffPlace() {
