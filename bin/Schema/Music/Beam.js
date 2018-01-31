@@ -1,4 +1,4 @@
-import { MusicalElement, ensureNumber } from '../Music.js';
+import { MusicalElement, ensureNumber } from './index.js';
 export class Beam extends MusicalElement {
     constructor(number, type) {
         super();

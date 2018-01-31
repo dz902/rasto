@@ -1,4 +1,4 @@
-import { MusicalElement, NumericValue, ensureNumber } from '../Music.js';
+import { MusicalElement, NumericValue, ensureNumber } from './index.js';
 
 export class Beam extends MusicalElement {
     readonly number: number;

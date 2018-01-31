@@ -1,4 +1,4 @@
-import { Mark, ensure } from '../Music.js';
+import { Mark, ensure } from './index.js';
 export class Chord extends Mark {
     constructor() {
         super(...arguments);

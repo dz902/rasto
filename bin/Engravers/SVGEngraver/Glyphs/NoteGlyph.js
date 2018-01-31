@@ -1,4 +1,4 @@
-import { Glyph, MarkGlyph, CharGlyph } from '../Glyphs.js';
+import { Glyph, MarkGlyph, CharGlyph } from './index.js';
 export class NoteGlyph extends MarkGlyph {
     constructor(note) {
         super('note', note.id);

@@ -1,4 +1,4 @@
-import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs.js';
+import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs/index.js';
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;
 export class SVGEngraver {

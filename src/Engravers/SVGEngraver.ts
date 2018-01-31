@@ -1,5 +1,5 @@
-import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs.js';
-import { Score } from '../Schema/Music.js'; // FIX
+import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs/index.js';
+import { Score } from '../Schema/Music/index.js'; // FIX
 import log from '../Utilities/Logger.js';
 
 const EM = 32;

@@ -1,4 +1,4 @@
-import { MusicalElement, MeasureAttributes, ensure } from '../Music.js';
+import { MusicalElement, MeasureAttributes, ensure } from './index.js';
 
 export class Mark extends MusicalElement {
     readonly type: MarkType;

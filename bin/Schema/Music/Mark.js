@@ -1,4 +1,4 @@
-import { MusicalElement, ensure } from '../Music.js';
+import { MusicalElement, ensure } from './index.js';
 export class Mark extends MusicalElement {
     constructor(type, context) {
         super();

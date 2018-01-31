@@ -1,5 +1,5 @@
-import { Glyph, ChordGlyph, RestGlyph } from '../Glyphs.js';
-import { Chord, Rest } from '../../../Schema/Music.js';
+import { Glyph, ChordGlyph, RestGlyph } from './index.js';
+import { Chord, Rest } from '../../../Schema/Music/index.js';
 export class MeasureGlyph extends Glyph {
     constructor(measure) {
         super('measure', measure.id);

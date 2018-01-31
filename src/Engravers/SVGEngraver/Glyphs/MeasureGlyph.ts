@@ -1,5 +1,5 @@
-import { Glyph, ChordGlyph, RestGlyph } from '../Glyphs.js';
-import { Measure, Chord, Rest } from '../../../Schema/Music.js';
+import { Glyph, ChordGlyph, RestGlyph } from './index.js';
+import { Measure, Chord, Rest } from '../../../Schema/Music/index.js';
 
 export class MeasureGlyph extends Glyph {
     constructor(private measure: Measure) {

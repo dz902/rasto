@@ -1,4 +1,4 @@
-import { Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music.js';
+import { Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 export class MusicXMLParser {
     static parse(xmlString) {
         let parser = new MusicXMLParser(xmlString);

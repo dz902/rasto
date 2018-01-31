@@ -1,9 +1,11 @@
-import { SVG, Glyph, MeasureGlyph } from '../Glyphs.js';
+import { SVG, Glyph, MeasureGlyph, StaffGlyph } from './index.js';
 export class ScoreGlyph extends Glyph {
     constructor(score) {
         super('score', score.id);
         this.score = score;
         this.draw = () => {
+            let staff = new StaffGlyph();
+            this.append(staff);
             this.score.parts[0].measures.forEach((measure) => {
                 let measureGlyph = new MeasureGlyph(measure);
                 this.append(measureGlyph);
@@ -29,8 +31,8 @@ export class ScoreGlyph extends Glyph {
                 font-size: 32px;
             }
             
-            line.staffLine, line.barLineSingle, line.ledgerLine {
-                stroke-width: ${2}px;
+            svg.staff-line line {
+                stroke-width: ${Glyph.meta.engravingDefaults.staffLineThickness * Glyph.STAFF_SPACE}px;
                 stroke: #000;
             }
             

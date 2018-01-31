@@ -1,12 +1,24 @@
-import { Glyph, MeasureGlyph } from '../Glyphs.js';
-import { Score } from '../../../Schema/Music.js';
+import { Glyph, LineGlyph } from './index.js';
 
 export class StaffGlyph extends Glyph {
+    constructor() {
+        super('staff');
+
+        this.draw();
+    }
+
     protected draw = () => {
         this.drawLine();
     }
 
     private drawLine() {
-        let line = Glyph.createElement('rect');
+        for (let i = 0; i < 5; ++i) {
+            let line = new LineGlyph('staff-line');
+
+            line.size(50)
+                .move(undefined, i);
+
+            this.append(line);
+        }
     }
 }

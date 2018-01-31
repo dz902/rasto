@@ -1,4 +1,4 @@
-import { Glyph } from '../Glyphs.js';
+import { Glyph } from './index.js';
 export class RestGlyph extends Glyph {
     constructor(rest) {
         super('rest', rest.id);

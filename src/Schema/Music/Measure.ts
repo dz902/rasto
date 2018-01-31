@@ -1,4 +1,4 @@
-import { Note, Rest, MusicalElement, Attributes, Mark, Chord, maybe, ensureNumber, NumericValue } from '../Music.js';
+import { Note, Rest, MusicalElement, Attributes, Mark, Chord, maybe, ensureNumber, NumericValue } from './index.js';
 
 export class Measure extends MusicalElement {
     readonly attributesList: MeasureAttributes[] = [];
@@ -12,8 +12,6 @@ export class Measure extends MusicalElement {
         // ensureMeasureAttributes
 
         let attributes: MeasureAttributes = {};
-
-        console.log(a);
 
         attributes.divisions = maybe(a.divisions, ensureNumber);
         attributes.timeBeats = maybe(a.timeBeats, ensureNumber);

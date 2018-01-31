@@ -63,6 +63,13 @@ export class SVG {
 
     // HELPERS
 
+    size(width: number, height: number): SVG {
+        this.setAttribute('width', width);
+        this.setAttribute('height', height);
+
+        return this;
+    }
+
     append(child: SVG): SVG {
         this.rawElement.appendChild(child.rawElement);
 
@@ -119,7 +126,7 @@ export class SVG {
         return this;
     }
 
-    private setAttribute(k: string, v: any): SVG {
+    setAttribute(k: string, v: any): SVG {
         this.element.setAttribute(k, `${v}`);
 
         return this;

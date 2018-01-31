@@ -1,7 +1,5 @@
-import { MarkGlyph, NoteGlyph } from '../Glyphs.js';
-import { Chord, Mark, Note } from '../../../Schema/Music.js';
-
-const STEP_NAMES = 'CDEFGAB';
+import { MarkGlyph, NoteGlyph, Glyph } from './index.js';
+import { Chord, Note } from '../../../Schema/Music/index.js';
 
 export class ChordGlyph extends MarkGlyph {
     constructor(private chord: Chord) {
@@ -26,7 +24,6 @@ export class ChordGlyph extends MarkGlyph {
             this.drawNote(note, prevNote);
         });
 
-        console.log(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
         this.shiftStaffPlace(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
     };
 
@@ -48,14 +45,14 @@ export class ChordGlyph extends MarkGlyph {
 
         let offsetStaffPlace = intervalToLowestNote;
 
-        noteGlyph.shiftStaffPlace(offsetStaffPlace);
+        noteGlyph.shiftStaffPlace(offsetStaffPlace-1);
 
         this.append(noteGlyph);
     }
 
     private get baseStaffPlace(): number {
         if (this.chord.context.clefSign === 'G') {
-            return 4*7+3;
+            return 4*8+3 + 7; // add an octave because staff lines are drawn top-down
         } else {
             return 0;
         }

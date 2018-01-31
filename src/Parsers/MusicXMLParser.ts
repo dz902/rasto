@@ -1,6 +1,4 @@
-import { SVGEngraver} from '../Engravers/SVGEngraver.js';
-import { Attributes, Score, Part, Measure, Mark, Chord, Note, Rest, Beam } from '../Schema/Music.js';
-import { ChordGlyph } from '../Engravers/SVGEngraver/Glyphs.js';
+import { Attributes, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -73,7 +71,7 @@ export class MusicXMLParser {
                         measure.addMark(new Rest(measure.currentAttributes));
                     } else {
                         let markIsNotChordNote = !$note.has('chord');
-                        let lastMark = measure.marks[measure.marks.length-1];
+                        let lastMark = measure.marks[measure.marks.length - 1];
                         let lastMarkIsNotChord = !(lastMark instanceof Chord);
 
                         if (markIsNotChordNote || lastMarkIsNotChord) {
@@ -208,7 +206,7 @@ class DOM {
                 let prefixedName = prefix + ' ' + $nestedA.name;
 
                 if ($nestedA.element.children.length > 0) {
-                    attrs = {...attrs, ...collectNestedAttributes($nestedA, prefixedName)};
+                    attrs = { ...attrs, ...collectNestedAttributes($nestedA, prefixedName) };
                 } else {
                     prefixedName = prefixedName.trim()
                                                .split(/[\-\s\/]/)

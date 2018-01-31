@@ -1,4 +1,4 @@
-import { Stem, MusicalElement, ensure, ensureMarkType, ensureNumber } from '../Music.js';
+import { Stem, MusicalElement, ensure, ensureMarkType, ensureNumber } from './index.js';
 export class Note extends MusicalElement {
     constructor(type, pitchOctave, pitchStep, duration) {
         super();

@@ -44,6 +44,11 @@ export class SVG {
         return numberOrDefault(this.element.getAttribute('y'), 0);
     }
     // HELPERS
+    size(width, height) {
+        this.setAttribute('width', width);
+        this.setAttribute('height', height);
+        return this;
+    }
     append(child) {
         this.rawElement.appendChild(child.rawElement);
         return this;

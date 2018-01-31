@@ -1,4 +1,4 @@
-import { SVG, Glyph } from '../Glyphs.js';
+import { SVG, Glyph } from './index.js';
 
 export class CharGlyph extends Glyph {
     constructor(protected type: string,

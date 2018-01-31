@@ -1,4 +1,4 @@
-import { MusicalElement, maybe, ensureNumber } from '../Music.js';
+import { MusicalElement, maybe, ensureNumber } from './index.js';
 export class Measure extends MusicalElement {
     constructor() {
         super(...arguments);
@@ -11,7 +11,6 @@ export class Measure extends MusicalElement {
     addAttributes(a) {
         // ensureMeasureAttributes
         let attributes = {};
-        console.log(a);
         attributes.divisions = maybe(a.divisions, ensureNumber);
         attributes.timeBeats = maybe(a.timeBeats, ensureNumber);
         attributes.timeBeatType = maybe(a.timeBeatType, ensureNumber);

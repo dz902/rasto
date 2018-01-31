@@ -1,4 +1,4 @@
-import { MusicalElement } from '../Music.js';
+import { MusicalElement } from './index.js';
 export class Score extends MusicalElement {
     constructor() {
         super(...arguments);

@@ -1,13 +1,12 @@
-import { SVG } from '../Glyphs.js';
+import { SVG } from './index.js';
 
 import * as SMuFL from '../../../Schema/SMuFL.js';
-
-const EM = 32;
-const STAFF_SPACE = 0.25 * EM;
 
 export class Glyph extends SVG {
     // STATIC
 
+    protected static readonly EM: number = 32;
+    protected static readonly STAFF_SPACE: number = Glyph.EM * 0.25;
     protected static meta: SMuFL.CombinedMeta;
     protected static refs: { [id: string]: SVGGraphicsElement } = {};
     protected static headPosition: { x: number, y: number} = { x: 0, y: 0 };
@@ -15,7 +14,7 @@ export class Glyph extends SVG {
     // INSTANCE
 
     constructor(protected type: string,
-                protected id: string) {
+                protected id: string = 'none') {
         super('svg');
 
         Glyph.meta = SMuFL.load('Bravura');
@@ -50,13 +49,13 @@ export class Glyph extends SVG {
     // OVERRIDE WITH NEW UNITS
 
     move(x?: number, y?: number): Glyph {
-        super.move(x ? x*STAFF_SPACE : undefined, y ? y*STAFF_SPACE : undefined);
+        super.move(x ? x*Glyph.STAFF_SPACE : undefined, y ? y*Glyph.STAFF_SPACE : undefined);
 
         return this;
     }
 
     translate(x?: number, y?: number): Glyph {
-        super.translate(x ? x*STAFF_SPACE : undefined, y ? y*STAFF_SPACE : undefined);
+        super.translate(x ? x*Glyph.STAFF_SPACE : undefined, y ? y*Glyph.STAFF_SPACE : undefined);
 
         return this;
     }
