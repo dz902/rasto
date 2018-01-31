@@ -1,16 +1,8 @@
 export class SVG {
     protected static invisibleSVG: SVGSVGElement;
-    protected rawElement: SVGSVGElement;
+    protected rawElement: SVGGraphicsElement;
 
-    static wrapElement(element: SVGGraphicsElement): SVGSVGElement {
-        let wrapper = <SVGSVGElement> SVG.createElement('svg');
-
-        wrapper.appendChild(element);
-
-        return wrapper;
-    }
-
-    static createElement(name: string): SVGGraphicsElement {
+    private createElement(name: string): SVGGraphicsElement {
         let element = document.createElementNS('http://www.w3.org/2000/svg', name);
 
         // addElementToInvisibleSVG
@@ -18,8 +10,10 @@ export class SVG {
         if (!SVG.invisibleSVG) {
             // funny this won't work as style is not loaded into a blank svg, now we only use width in metadata
             // FIX: to be removed
-            SVG.invisibleSVG = <SVGSVGElement> document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            SVG.invisibleSVG.setAttribute('style', 'position: absolute; z-index: -100000; visibility: hidden;');
+            let temporaryViewport = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            temporaryViewport.setAttribute('style', 'position: absolute; z-index: -100000; visibility: hidden;');
+
+            SVG.invisibleSVG = <SVGSVGElement> temporaryViewport;
 
             document.body.appendChild(SVG.invisibleSVG);
         }
@@ -29,9 +23,17 @@ export class SVG {
         return element;
     }
 
+    constructor(el: string | SVGGraphicsElement) {
+        if (el instanceof SVGGraphicsElement) {
+            this.rawElement = el;
+        } else {
+            this.rawElement = this.createElement(el);
+        }
+    }
+
     // PROPS
 
-    get element(): SVGSVGElement {
+    get element(): SVGGraphicsElement {
         return this.rawElement;
     }
 
@@ -61,8 +63,10 @@ export class SVG {
 
     // HELPERS
 
-    append(child: SVG): void {
+    append(child: SVG): SVG {
         this.rawElement.appendChild(child.rawElement);
+
+        return this;
     }
 
     move(x?: number, y?: number): void {
@@ -86,7 +90,7 @@ export class SVG {
         let notTransformed = transformerG === null;
 
         if (notTransformed) {
-            transformerG = SVG.createElement('g');
+            transformerG = (new SVG('g')).rawElement;
 
             transformerG.classList.add('transformer');
 
@@ -101,6 +105,18 @@ export class SVG {
         transform.setTranslate(x ? x : 0, y ? y : 0);
 
         transformerG!.transform.baseVal.appendItem(transform);
+    }
+
+    text(textContent: string): SVG {
+        this.rawElement.textContent = textContent;
+
+        return this;
+    }
+
+    addClass(className: string): SVG {
+        this.rawElement.classList.add(className);
+
+        return this;
     }
 
     private setAttribute(k: string, v: any): SVG {

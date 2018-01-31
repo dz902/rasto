@@ -9,14 +9,14 @@ export class Glyph extends SVG {
     // STATIC
 
     protected static meta: SMuFL.CombinedMeta;
-    protected static refs: { [id: string]: SVGSVGElement } = {};
+    protected static refs: { [id: string]: SVGGraphicsElement } = {};
     protected static headPosition: { x: number, y: number} = { x: 0, y: 0 };
 
     // INSTANCE
 
     constructor(protected type: string,
                 protected id: string) {
-        super();
+        super('svg');
 
         Glyph.meta = SMuFL.load('Bravura');
 
@@ -30,7 +30,6 @@ export class Glyph extends SVG {
         // there are no other way to automatically call the right draw()
         // keeping explicit draw() calls make code more readable
         // so do not refactor
-        this.rawElement = <SVGSVGElement> Glyph.createElement('svg');
 
         this.rawElement.classList.add(`id-${this.id}`);
         this.rawElement.classList.add(this.type);

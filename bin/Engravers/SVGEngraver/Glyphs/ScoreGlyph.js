@@ -1,4 +1,4 @@
-import { Glyph, MeasureGlyph } from '../Glyphs.js';
+import { SVG, Glyph, MeasureGlyph } from '../Glyphs.js';
 export class ScoreGlyph extends Glyph {
     constructor(score) {
         super('score', score.id);
@@ -12,8 +12,8 @@ export class ScoreGlyph extends Glyph {
         this.draw();
         this.element.setAttribute('x', '50');
         this.element.setAttribute('y', '100');
-        let style = Glyph.createElement('style');
-        style.textContent = `
+        let style = new SVG('style');
+        style.text(`
             @font-face {
                 font-family: "Bravura";
                 src: url(./Fonts/bravura/woff/Bravura.woff) format("woff");
@@ -47,8 +47,8 @@ export class ScoreGlyph extends Glyph {
             
             line.barLineSingle {
                 stroke-linecap: square;
-        }`;
-        this.element.appendChild(style);
+        }`);
+        this.append(style);
     }
 }
 //# sourceMappingURL=ScoreGlyph.js.map

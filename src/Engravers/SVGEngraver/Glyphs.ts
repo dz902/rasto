@@ -1,6 +1,7 @@
 export * from './Glyphs/Common.js';
 export * from './Glyphs/Glyph.js'; // order is fucking important...
 export * from './Glyphs/CharGlyph.js';
+export * from './Glyphs/StaffGlyph.js';
 export * from './Glyphs/MarkGlyph.js';
 export * from './Glyphs/ChordGlyph.js';
 export * from './Glyphs/NoteGlyph.js';

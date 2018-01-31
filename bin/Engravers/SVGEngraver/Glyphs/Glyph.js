@@ -5,7 +5,7 @@ const STAFF_SPACE = 0.25 * EM;
 export class Glyph extends SVG {
     // INSTANCE
     constructor(type, id) {
-        super();
+        super('svg');
         this.type = type;
         this.id = id;
         // DRAW
@@ -14,7 +14,6 @@ export class Glyph extends SVG {
             // there are no other way to automatically call the right draw()
             // keeping explicit draw() calls make code more readable
             // so do not refactor
-            this.rawElement = Glyph.createElement('svg');
             this.rawElement.classList.add(`id-${this.id}`);
             this.rawElement.classList.add(this.type);
             Glyph.refs[this.id] = this.rawElement;

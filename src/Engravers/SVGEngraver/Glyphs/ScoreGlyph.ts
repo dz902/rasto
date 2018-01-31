@@ -1,5 +1,5 @@
-import { Glyph, MeasureGlyph } from '../Glyphs.js';
-import { Score, Measure } from '../../../Schema/Music.js'
+import { SVG, Glyph, MeasureGlyph } from '../Glyphs.js';
+import { Score } from '../../../Schema/Music.js';
 
 export class ScoreGlyph extends Glyph {
     constructor(private score: Score) {
@@ -10,9 +10,9 @@ export class ScoreGlyph extends Glyph {
         this.element.setAttribute('x', '50');
         this.element.setAttribute('y', '100');
 
-        let style = Glyph.createElement('style');
+        let style = new SVG('style');
 
-        style.textContent = `
+        style.text(`
             @font-face {
                 font-family: "Bravura";
                 src: url(./Fonts/bravura/woff/Bravura.woff) format("woff");
@@ -46,9 +46,9 @@ export class ScoreGlyph extends Glyph {
             
             line.barLineSingle {
                 stroke-linecap: square;
-        }`;
+        }`);
 
-        this.element.appendChild(style);
+        this.append(style);
     }
 
     protected draw = (): void => {

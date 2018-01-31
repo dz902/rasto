@@ -1,4 +1,4 @@
-import { Glyph } from '../Glyphs.js';
+import { SVG, Glyph } from '../Glyphs.js';
 export class CharGlyph extends Glyph {
     constructor(type, id, charName) {
         super(type, id);
@@ -6,14 +6,14 @@ export class CharGlyph extends Glyph {
         this.id = id;
         this.charName = charName;
         this.draw = () => {
-            let textElement = Glyph.createElement('text');
+            let textElement = new SVG('text');
             let codePoints = Glyph.meta.glyphnames[this.charName];
             if (!codePoints.codepoint) {
                 throw new Error();
             }
-            textElement.classList.add('glyph');
-            textElement.textContent = codePoints.codepoint;
-            this.rawElement.appendChild(textElement);
+            textElement.addClass('glyph');
+            textElement.text(codePoints.codepoint);
+            this.append(textElement);
         };
         this.draw();
     }
