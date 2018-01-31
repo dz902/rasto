@@ -10,6 +10,10 @@ export class Glyph extends SVG {
         this.id = id;
         // DRAW
         this.draw = () => {
+            // has to keep strange syntax to get correct this.draw()
+            // there are no other way to automatically call the right draw()
+            // keeping explicit draw() calls make code more readable
+            // so do not refactor
             this.rawElement = Glyph.createElement('svg');
             this.rawElement.classList.add(`id-${this.id}`);
             this.rawElement.classList.add(this.type);

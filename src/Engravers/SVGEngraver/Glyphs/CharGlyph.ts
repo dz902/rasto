@@ -9,7 +9,7 @@ export class CharGlyph extends Glyph {
         this.draw();
     }
 
-    draw = (): void => {
+    protected draw = (): void => {
         let textElement = Glyph.createElement('text');
         let codePoints = Glyph.meta.glyphnames[this.charName];
 

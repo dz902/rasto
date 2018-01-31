@@ -4,7 +4,7 @@ const STAFF_SPACE = 0.25 * EM;
 export class SVGEngraver {
     static engrave(score) {
         let scoreGlyph = new ScoreGlyph(score);
-        return scoreGlyph.element;
+        return ScoreGlyph.wrapElement(scoreGlyph.element);
     }
 }
 class SVG {

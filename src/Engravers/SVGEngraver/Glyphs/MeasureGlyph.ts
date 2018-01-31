@@ -8,7 +8,7 @@ export class MeasureGlyph extends Glyph {
         this.draw();
     }
 
-    draw = (): void => {
+    protected draw = (): void => {
         this.measure.marks.forEach((mark) => {
             if (mark instanceof Chord) {
                 this.drawChord(mark);
@@ -20,7 +20,7 @@ export class MeasureGlyph extends Glyph {
         });
     }
 
-    drawChord(chord: Chord): void {
+    private drawChord(chord: Chord): void {
         let chordGlyph = new ChordGlyph(chord);
 
         chordGlyph.advance(10);

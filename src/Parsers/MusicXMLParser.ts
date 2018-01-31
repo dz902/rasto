@@ -1,5 +1,5 @@
 import { SVGEngraver} from '../Engravers/SVGEngraver.js';
-import { Score, Part, Measure, Mark, Chord, Note, Rest, NoteRest, Beam } from '../Schema/Music.js';
+import { Attributes, Score, Part, Measure, Mark, Chord, Note, Rest, Beam } from '../Schema/Music.js';
 import { ChordGlyph } from '../Engravers/SVGEngraver/Glyphs.js';
 
 export class MusicXMLParser {
@@ -55,40 +55,37 @@ export class MusicXMLParser {
     }
 
     private extractMeasure($measure: DOM): Measure {
+        let measure: Measure = new Measure();
 
-        let measureAttributes = $measure.collectAttributes();
-        let measure: Measure = new Measure(measureAttributes['divisions'],
-                                           measureAttributes['time/beats'],
-                                           measureAttributes['time/beat-type'],
-                                           measureAttributes['clef/sign'],
-                                           measureAttributes['clef/line']);
+        $measure.qq('attributes, note')
+                .each(($element) => {
+                    if ($element.name === 'attributes') {
+                        measure.addAttributes($measure.collectAttributes($element));
 
-        $measure.qq('note')
-                .each(($note) => {
-                    let note: NoteRest;
-
-                    if ($note.has('rest')) {
-                        note = new Rest();
-                    } else {
-                        note = new Note($note.q('type').value,
-                                        $note.q('pitch octave').value,
-                                        $note.q('pitch step').value,
-                                        $note.q('duration').value,
-                                        $note.has('chord'));
-
-                        $note.has('beam', ($beams) => {
-                            $beams.each(($beam) => {
-                                let beam: Beam = new Beam(
-                                    $beam.attributes['number'],
-                                    $beam.value
-                                );
-
-                                (note as Note).addBeam(beam);
-                            });
-                        });
+                        return;
                     }
 
-                    measure.addNote(note);
+                    let $note: DOM = $element;
+
+                    let markIsRest = $note.has('rest');
+
+                    if (markIsRest) {
+                        measure.addMark(new Rest(measure.currentAttributes));
+                    } else {
+                        let markIsNotChordNote = !$note.has('chord');
+                        let lastMark = measure.marks[measure.marks.length-1];
+                        let lastMarkIsNotChord = !(lastMark instanceof Chord);
+
+                        if (markIsNotChordNote || lastMarkIsNotChord) {
+                            lastMark = new Chord($note.q('type').value, measure.currentAttributes);
+                            measure.addMark(lastMark);
+                        }
+
+                        (<Chord> lastMark).notes.push(new Note($note.q('type').value,
+                                                               $note.q('pitch octave').value,
+                                                               $note.q('pitch step').value,
+                                                               $note.q('duration').value));
+                    }
                 });
 
         return measure;
@@ -203,23 +200,30 @@ class DOM {
                      .each(callback);
     }
 
-    collectAttributes(): Attributes {
-        let attrs: Attributes = {};
+    collectAttributes($attributes: DOM): Attributes {
+        let collectNestedAttributes = ($a: DOM, prefix: string = ''): Attributes => {
+            let attrs: Attributes = {};
 
-        let collectNestedAttributes = ($a: DOM, prefix: string = ''): void => {
             $a.eachChild(($nestedA) => {
-                console.log($nestedA.element);
+                let prefixedName = prefix + ' ' + $nestedA.name;
+
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + '/'));
+                    attrs = {...attrs, ...collectNestedAttributes($nestedA, prefixedName)};
                 } else {
-                    attrs[prefix + $nestedA.name] = $nestedA.value;
+                    prefixedName = prefixedName.trim()
+                                               .split(/[\-\s\/]/)
+                                               .map(v => v[0].toUpperCase() + v.substr(1).toLowerCase())
+                                               .join('');
+                    prefixedName = prefixedName[0].toLowerCase() + prefixedName.substr(1);
+
+                    attrs[prefixedName] = $nestedA.value;
                 }
             });
+
+            return attrs;
         };
 
-        collectNestedAttributes(this.q('attributes'));
-
-        return attrs;
+        return collectNestedAttributes($attributes);
     }
 }
 
@@ -283,8 +287,4 @@ class DOMCollection {
             this.currentElements = elements;
         }
     }
-}
-
-export interface Attributes {
-    [k: string]: string;
 }

@@ -7,6 +7,19 @@ export class MusicalElement {
         this.data[k] = value;
     }
 }
+export function maybe(value, thenCallback) {
+    if (value !== undefined) {
+        if (thenCallback) {
+            return thenCallback(value);
+        }
+        else {
+            return value;
+        }
+    }
+    else {
+        return undefined;
+    }
+}
 export function ensure(value, errorMessage, predicate) {
     if (predicate(value)) {
         return value;

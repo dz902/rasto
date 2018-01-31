@@ -25,7 +25,11 @@ export class Glyph extends SVG {
 
     // DRAW
 
-    draw = (): void => {  /* has to keep strange syntax to get correct this.draw() */
+    protected draw = (): void => {
+        // has to keep strange syntax to get correct this.draw()
+        // there are no other way to automatically call the right draw()
+        // keeping explicit draw() calls make code more readable
+        // so do not refactor
         this.rawElement = <SVGSVGElement> Glyph.createElement('svg');
 
         this.rawElement.classList.add(`id-${this.id}`);

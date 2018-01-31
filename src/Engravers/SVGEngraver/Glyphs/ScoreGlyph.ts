@@ -8,7 +8,7 @@ export class ScoreGlyph extends Glyph {
         this.draw();
 
         this.element.setAttribute('x', '50');
-        this.element.setAttribute('y', '50');
+        this.element.setAttribute('y', '100');
 
         let style = Glyph.createElement('style');
 
@@ -51,7 +51,7 @@ export class ScoreGlyph extends Glyph {
         this.element.appendChild(style);
     }
 
-    draw = (): void => {
+    protected draw = (): void => {
         this.score.parts[0].measures.forEach((measure) => {
             let measureGlyph = new MeasureGlyph(measure);
 

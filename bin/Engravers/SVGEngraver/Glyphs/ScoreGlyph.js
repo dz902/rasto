@@ -11,7 +11,7 @@ export class ScoreGlyph extends Glyph {
         };
         this.draw();
         this.element.setAttribute('x', '50');
-        this.element.setAttribute('y', '50');
+        this.element.setAttribute('y', '100');
         let style = Glyph.createElement('style');
         style.textContent = `
             @font-face {

@@ -11,6 +11,18 @@ export class MusicalElement {
     }
 }
 
+export function maybe<T>(value: T, thenCallback?: (value: T) => any): T | undefined {
+    if (value !== undefined) {
+        if (thenCallback) {
+            return thenCallback(value);
+        } else {
+            return value;
+        }
+    } else {
+        return undefined;
+    }
+}
+
 export function ensure<U, T>(value: U, errorMessage: string, predicate: (value: U | T) => value is T): T {
     if (predicate(value)) {
         return value;
@@ -32,6 +44,10 @@ export type Data = {
 };
 
 export type NumericValue = string | number;
+
+export interface Attributes {
+    [k: string]: any;
+}
 
 // PRIVATE
 

@@ -1,24 +1,23 @@
-import { Stem, Beam, NoteRest, NumericValue, ensure, ensureNumber } from '../Music.js';
+import { Stem, Beam, Mark, MusicalElement, NumericValue, MarkType, ensure, ensureMarkType, ensureNumber } from '../Music.js';
 
-export class Note extends NoteRest {
+export class Note extends MusicalElement {
+    readonly type: MarkType;
     readonly pitchOctave: PitchOctave;
     readonly pitchStep: PitchStep;
     readonly duration: number;
     readonly beams: Beam[] = [];
-    readonly isChordNote: boolean;
     readonly stem: Stem;
 
     constructor(type: string,
                 pitchOctave: NumericValue,
                 pitchStep: string,
-                duration: NumericValue,
-                isChordNote: boolean) {
-        super(type);
+                duration: NumericValue) {
+        super();
 
+        this.type = ensureMarkType(type);
         this.pitchOctave = ensurePitchOctave(Number(pitchOctave));
         this.pitchStep = ensurePitchStep(pitchStep);
         this.duration = ensureNumber(duration);
-        this.isChordNote = isChordNote;
 
         this.stem = new Stem("up");
     }
@@ -37,11 +36,6 @@ export class Note extends NoteRest {
     getIntervalTo(note: Note): number {
         return Math.abs(this.staffPlace - note.staffPlace) + 1;
     }
-}
-
-export function ensureNote(noteRest: NoteRest): Note {
-    return ensure(noteRest, `item is not a note`,
-                  (noteRest: NoteRest): noteRest is Note => noteRest instanceof Note);
 }
 
 type PitchStep = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';

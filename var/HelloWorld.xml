@@ -25,7 +25,6 @@
                 </clef>
             </attributes>
             <note>
-                <chord />
                 <pitch>
                     <step>C</step>
                     <octave>4</octave>
@@ -48,7 +47,16 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>eighth</type>
+                <type>16th</type>
+            </note>
+            <note>
+                <chord />
+                <pitch>
+                    <step>A</step>
+                    <octave>4</octave>
+                </pitch>
+                <duration>2</duration>
+                <type>16th</type>
             </note>
             <note>
                 <pitch>

@@ -1,5 +1,5 @@
-import { NoteRest, ensure } from '../Music.js';
-export class Chord extends NoteRest {
+import { Mark, ensure } from '../Music.js';
+export class Chord extends Mark {
     constructor() {
         super(...arguments);
         this.notes = [];

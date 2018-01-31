@@ -1,63 +1,42 @@
-import { Note, Rest, NoteRest, MusicalElement, Mark, Chord, ensureNumber, NumericValue } from '../Music.js';
-import { ensureChord } from './Chord';
+import { Note, Rest, MusicalElement, Attributes, Mark, Chord, maybe, ensureNumber, NumericValue } from '../Music.js';
 
 export class Measure extends MusicalElement {
-    readonly divisions: number;
-    readonly timeBeats: number;
-    readonly timeBeatType: number;
-    readonly clefSign: string;
-    readonly clefLine: number;
-    readonly notes: NoteRest[] = [];
+    readonly attributesList: MeasureAttributes[] = [];
     readonly marks: Mark[] = [];
 
-    constructor(divisions: NumericValue,
-                timeBeats: NumericValue,
-                timeBeatUnit: NumericValue,
-                clefSign: string,
-                clefLine: NumericValue) {
-        super();
-
-        this.divisions = ensureNumber(divisions);
-        this.timeBeats = ensureNumber(timeBeats);
-        this.timeBeatType = ensureNumber(timeBeatUnit);
-        this.clefSign = clefSign;
-        this.clefLine = ensureNumber(clefLine);
+    get currentAttributes(): MeasureAttributes {
+        return this.attributesList[this.attributesList.length-1];
     }
 
-    addNote(note: NoteRest) {
-        this.notes.push(note);
+    addAttributes(a: Attributes) {
+        // ensureMeasureAttributes
 
-        if (note instanceof Rest) {
-            this.marks.push(note);
-        } else if (note instanceof Note) {
-            let lastMark: Mark = this.marks[this.marks.length-1];
-            let lastMarkIsChord = lastMark instanceof Chord;
-            let lastChord: Chord;
+        let attributes: MeasureAttributes = {};
 
+        console.log(a);
 
-            if (lastMarkIsChord) {
-                lastChord = <Chord> lastMark;
-            } else {
-                lastChord = new Chord(note.type);
+        attributes.divisions = maybe(a.divisions, ensureNumber);
+        attributes.timeBeats = maybe(a.timeBeats, ensureNumber);
+        attributes.timeBeatType = maybe(a.timeBeatType, ensureNumber);
+        attributes.clefSign = maybe(a.clefSign);
+        attributes.clefLine = maybe(a.clefLine, ensureNumber);
 
-                this.marks.push(lastChord);
-            }
-
-            let noteIsNotChordNote: boolean = !note.isChordNote;
-
-            if (noteIsNotChordNote) {
-                if (lastChord.notes.length > 0) {
-                    let newChord = new Chord(note.type);
-
-                    this.marks.push(newChord);
-
-                    lastChord = newChord;
-                }
-            }
-
-            lastChord.notes.push(note)
-        } else {
-            throw new Error();
+        if (this.attributesList.length > 0) {
+            attributes = {...this.attributesList[this.attributesList.length-1], ...attributes}; // inherit and overwrite
         }
+
+        this.attributesList.push(attributes);
+    }
+
+    addMark(mark: Mark) {
+        this.marks.push(mark);
     }
 }
+
+export interface MeasureAttributes extends Attributes {
+    divisions?: NumericValue;
+    timeBeats?: NumericValue;
+    timeBeatType?: NumericValue;
+    clefSign?: string;
+    clefLine?: NumericValue;
+};

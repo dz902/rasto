@@ -6,18 +6,9 @@ function Main() {
         .then(response => response.text())
         .then((xmlString) => {
             let score = MusicXMLParser.parse(xmlString);
-            let musicElement = SVGEngraver.engrave(score);
+            let musicalElement = SVGEngraver.engrave(score);
 
-
-            document.querySelectorAll('.note').forEach((n) => {
-                console.log((<SVGGraphicsElement>n).getBBox());
-            })
-
-            document.body.appendChild(musicElement);
-
-            document.querySelectorAll('.note').forEach((n) => {
-                console.log((<SVGGraphicsElement>n).getBBox());
-            })
+            document.body.appendChild(musicalElement);
         });
 }
 

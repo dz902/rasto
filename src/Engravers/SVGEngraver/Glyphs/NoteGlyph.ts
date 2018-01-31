@@ -1,7 +1,7 @@
-import { Glyph, CharGlyph } from '../Glyphs.js';
+import { Glyph, MarkGlyph, CharGlyph } from '../Glyphs.js';
 import { Note } from '../../../Schema/Music.js'
 
-export class NoteGlyph extends Glyph {
+export class NoteGlyph extends MarkGlyph {
     private noteHeadWidth: number;
 
     constructor(private note: Note) {
@@ -14,9 +14,9 @@ export class NoteGlyph extends Glyph {
         return this.noteHeadWidth;
     }
 
-    draw = (): void => {
+    protected draw = (): void => {
         this.drawNoteHead();
-    };
+    }
 
     private drawNoteHead(): void {
         // verifyNoteHeadType
@@ -52,5 +52,15 @@ export class NoteGlyph extends Glyph {
 class NoteHeadGlyph extends CharGlyph {
     constructor(noteId: string, protected charName: string) {
         super('note-head', noteId, charName);
+    }
+}
+
+class StemGlyph extends Glyph {
+    constructor(noteId: string, length: number) {
+        super('stem', noteId);
+    }
+
+    protected draw = (): void => {
+
     }
 }

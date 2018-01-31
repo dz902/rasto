@@ -1,4 +1,4 @@
-import { Score, Part, Measure, Note, Rest, Beam } from '../Schema/Music.js';
+import { Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music.js';
 export class MusicXMLParser {
     static parse(xmlString) {
         let parser = new MusicXMLParser(xmlString);
@@ -37,24 +37,28 @@ export class MusicXMLParser {
         });
     }
     extractMeasure($measure) {
-        let measureAttributes = $measure.collectAttributes();
-        let measure = new Measure(measureAttributes['divisions'], measureAttributes['time/beats'], measureAttributes['time/beat-type'], measureAttributes['clef/sign'], measureAttributes['clef/line']);
-        $measure.qq('note')
-            .each(($note) => {
-            let note;
-            if ($note.has('rest')) {
-                note = new Rest();
+        let measure = new Measure();
+        $measure.qq('attributes, note')
+            .each(($element) => {
+            if ($element.name === 'attributes') {
+                measure.addAttributes($measure.collectAttributes($element));
+                return;
+            }
+            let $note = $element;
+            let markIsRest = $note.has('rest');
+            if (markIsRest) {
+                measure.addMark(new Rest(measure.currentAttributes));
             }
             else {
-                note = new Note($note.q('type').value, $note.q('pitch octave').value, $note.q('pitch step').value, $note.q('duration').value, $note.has('chord'));
-                $note.has('beam', ($beams) => {
-                    $beams.each(($beam) => {
-                        let beam = new Beam($beam.attributes['number'], $beam.value);
-                        note.addBeam(beam);
-                    });
-                });
+                let markIsNotChordNote = !$note.has('chord');
+                let lastMark = measure.marks[measure.marks.length - 1];
+                let lastMarkIsNotChord = !(lastMark instanceof Chord);
+                if (markIsNotChordNote || lastMarkIsNotChord) {
+                    lastMark = new Chord($note.q('type').value, measure.currentAttributes);
+                    measure.addMark(lastMark);
+                }
+                lastMark.notes.push(new Note($note.q('type').value, $note.q('pitch octave').value, $note.q('pitch step').value, $note.q('duration').value));
             }
-            measure.addNote(note);
         });
         return measure;
     }
@@ -142,21 +146,26 @@ class DOM {
         DOMCollection.wrap(this.currentNode.children)
             .each(callback);
     }
-    collectAttributes() {
-        let attrs = {};
+    collectAttributes($attributes) {
         let collectNestedAttributes = ($a, prefix = '') => {
+            let attrs = {};
             $a.eachChild(($nestedA) => {
-                console.log($nestedA.element);
+                let prefixedName = prefix + ' ' + $nestedA.name;
                 if ($nestedA.element.children.length > 0) {
-                    Object.assign(attrs, collectNestedAttributes($nestedA, $nestedA.name + '/'));
+                    attrs = Object.assign({}, attrs, collectNestedAttributes($nestedA, prefixedName));
                 }
                 else {
-                    attrs[prefix + $nestedA.name] = $nestedA.value;
+                    prefixedName = prefixedName.trim()
+                        .split(/[\-\s\/]/)
+                        .map(v => v[0].toUpperCase() + v.substr(1).toLowerCase())
+                        .join('');
+                    prefixedName = prefixedName[0].toLowerCase() + prefixedName.substr(1);
+                    attrs[prefixedName] = $nestedA.value;
                 }
             });
+            return attrs;
         };
-        collectNestedAttributes(this.q('attributes'));
-        return attrs;
+        return collectNestedAttributes($attributes);
     }
 }
 class DOMCollection {

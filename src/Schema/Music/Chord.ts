@@ -1,6 +1,6 @@
-import { Note, Rest, NoteRest, ensureNote, MusicalElement, ensure } from '../Music.js';
+import { Note, Rest, Mark, MusicalElement, ensure } from '../Music.js';
 
-export class Chord extends NoteRest {
+export class Chord extends Mark {
     readonly notes: Note[] = [];
 
     get lowestNote(): Note {

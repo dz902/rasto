@@ -1,4 +1,9 @@
 export class SVG {
+    static wrapElement(element) {
+        let wrapper = SVG.createElement('svg');
+        wrapper.appendChild(element);
+        return wrapper;
+    }
     static createElement(name) {
         let element = document.createElementNS('http://www.w3.org/2000/svg', name);
         // addElementToInvisibleSVG

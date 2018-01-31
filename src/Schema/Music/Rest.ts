@@ -1,7 +1,7 @@
-import { NoteRest } from '../Music.js';
+import { Mark, MeasureAttributes } from '../Music.js';
 
-export class Rest extends NoteRest {
-    constructor() {
-        super("rest");
+export class Rest extends Mark {
+    constructor(context: MeasureAttributes) {
+        super("rest", context);
     }
 }

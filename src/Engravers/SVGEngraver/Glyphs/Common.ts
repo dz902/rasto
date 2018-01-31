@@ -2,6 +2,14 @@ export class SVG {
     protected static invisibleSVG: SVGSVGElement;
     protected rawElement: SVGSVGElement;
 
+    static wrapElement(element: SVGGraphicsElement): SVGSVGElement {
+        let wrapper = <SVGSVGElement> SVG.createElement('svg');
+
+        wrapper.appendChild(element);
+
+        return wrapper;
+    }
+
     static createElement(name: string): SVGGraphicsElement {
         let element = document.createElementNS('http://www.w3.org/2000/svg', name);
 

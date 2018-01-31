@@ -9,7 +9,7 @@ export class SVGEngraver {
     static engrave(score: Score): SVGSVGElement {
         let scoreGlyph = new ScoreGlyph(score);
 
-        return scoreGlyph.element;
+        return ScoreGlyph.wrapElement(scoreGlyph.element);
     }
 }
 

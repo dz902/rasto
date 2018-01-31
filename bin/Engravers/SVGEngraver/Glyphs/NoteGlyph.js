@@ -1,5 +1,5 @@
-import { Glyph, CharGlyph } from '../Glyphs.js';
-export class NoteGlyph extends Glyph {
+import { Glyph, MarkGlyph, CharGlyph } from '../Glyphs.js';
+export class NoteGlyph extends MarkGlyph {
     constructor(note) {
         super('note', note.id);
         this.note = note;
@@ -37,6 +37,13 @@ class NoteHeadGlyph extends CharGlyph {
     constructor(noteId, charName) {
         super('note-head', noteId, charName);
         this.charName = charName;
+    }
+}
+class StemGlyph extends Glyph {
+    constructor(noteId, length) {
+        super('stem', noteId);
+        this.draw = () => {
+        };
     }
 }
 //# sourceMappingURL=NoteGlyph.js.map
