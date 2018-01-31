@@ -11,12 +11,20 @@ export class MeasureGlyph extends Glyph {
     draw = (): void => {
         this.measure.marks.forEach((mark) => {
             if (mark instanceof Chord) {
-                this.append(new ChordGlyph(mark));
+                this.drawChord(mark);
             } else if (mark instanceof Rest) {
                 this.append(new RestGlyph(mark));
             } else {
                 throw new Error();
             }
         });
+    }
+
+    drawChord(chord: Chord): void {
+        let chordGlyph = new ChordGlyph(chord);
+
+        chordGlyph.advance(10);
+
+        this.append(chordGlyph);
     }
 }

@@ -7,7 +7,7 @@ export class MeasureGlyph extends Glyph {
         this.draw = () => {
             this.measure.marks.forEach((mark) => {
                 if (mark instanceof Chord) {
-                    this.append(new ChordGlyph(mark));
+                    this.drawChord(mark);
                 }
                 else if (mark instanceof Rest) {
                     this.append(new RestGlyph(mark));
@@ -18,6 +18,11 @@ export class MeasureGlyph extends Glyph {
             });
         };
         this.draw();
+    }
+    drawChord(chord) {
+        let chordGlyph = new ChordGlyph(chord);
+        chordGlyph.advance(10);
+        this.append(chordGlyph);
     }
 }
 //# sourceMappingURL=MeasureGlyph.js.map

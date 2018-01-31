@@ -8,7 +8,11 @@ export class NoteGlyph extends Glyph {
         };
         this.draw();
     }
+    get width() {
+        return this.noteHeadWidth;
+    }
     drawNoteHead() {
+        // verifyNoteHeadType
         let noteheadGlyphNames = {
             'whole': 'noteWhole',
             'half': 'noteheadHalf',
@@ -24,6 +28,9 @@ export class NoteGlyph extends Glyph {
         }
         let textGlyph = new NoteHeadGlyph(this.note.id, noteheadGlyphName);
         this.append(textGlyph);
+        // getNoteHeadWidth
+        let bbox = Glyph.meta.glyphBBoxes[noteheadGlyphName];
+        this.noteHeadWidth = bbox.bBoxNE[0] - bbox.bBoxSW[0];
     }
 }
 class NoteHeadGlyph extends CharGlyph {

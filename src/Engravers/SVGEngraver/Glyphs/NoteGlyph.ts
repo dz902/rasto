@@ -2,10 +2,16 @@ import { Glyph, CharGlyph } from '../Glyphs.js';
 import { Note } from '../../../Schema/Music.js'
 
 export class NoteGlyph extends Glyph {
+    private noteHeadWidth: number;
+
     constructor(private note: Note) {
         super('note', note.id);
 
         this.draw();
+    }
+
+    get width(): number {
+        return this.noteHeadWidth;
     }
 
     draw = (): void => {
@@ -13,6 +19,8 @@ export class NoteGlyph extends Glyph {
     };
 
     private drawNoteHead(): void {
+        // verifyNoteHeadType
+
         let noteheadGlyphNames: { [k: string]: string } = {
             'whole': 'noteWhole',
             'half': 'noteheadHalf',
@@ -32,6 +40,12 @@ export class NoteGlyph extends Glyph {
         let textGlyph = new NoteHeadGlyph(this.note.id, noteheadGlyphName);
 
         this.append(textGlyph);
+
+        // getNoteHeadWidth
+
+        let bbox = Glyph.meta.glyphBBoxes[noteheadGlyphName];
+
+        this.noteHeadWidth = bbox.bBoxNE[0] - bbox.bBoxSW[0];
     }
 }
 
