@@ -18,6 +18,9 @@ export class Chord extends Mark {
             return 0;
         }
     }
+    get spanStaffPlace() {
+        return this.highestNote.staffPlace - this.lowestNote.staffPlace;
+    }
     addNote(note) {
         this.notes.push(note);
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);

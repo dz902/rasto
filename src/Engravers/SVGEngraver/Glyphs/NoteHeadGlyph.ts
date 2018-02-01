@@ -9,16 +9,4 @@ export class NoteHeadGlyph extends CharGlyph {
 
         this.draw();
     }
-
-    get width(): number {
-        return this.noteHeadWidth;
-    }
-
-    protected draw = (): void => {
-        // calculateNoteHeadWidth
-
-        let bbox = Glyph.meta.getGlyphBBox(this.type, this.note.type);
-
-        this.noteHeadWidth = bbox.bBoxNE[0] - bbox.bBoxSW[0];
-    }
 }
