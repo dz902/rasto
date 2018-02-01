@@ -1,7 +1,7 @@
 import { Glyph, CharGlyph } from './index.js';
 export class NoteHeadGlyph extends CharGlyph {
     constructor(note) {
-        super('note-head', note.id);
+        super(note.type, 'note-head', note.id);
         this.note = note;
         this.draw = () => {
             // calculateNoteHeadWidth

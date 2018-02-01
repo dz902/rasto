@@ -15,7 +15,7 @@ export class Note extends MusicalElement {
     configureStem(stem) {
     }
     get staffPlace() {
-        return this.pitchOctave * 8 + 'CDEFGAB'.indexOf(this.pitchStep);
+        return this.pitchOctave * 7 + 'CDEFGAB'.indexOf(this.pitchStep);
     }
     getIntervalTo(note) {
         return Math.abs(this.staffPlace - note.staffPlace) + 1;

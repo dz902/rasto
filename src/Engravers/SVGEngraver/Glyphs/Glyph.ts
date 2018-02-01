@@ -61,6 +61,12 @@ export class Glyph extends SVG {
     }
 
     shift(y: number) {
+        Glyph.headPosition.y = -y/2; // 4 = line 1, 3 = line 2, etc.
+
+        this.move(undefined, Glyph.headPosition.y);
+    }
+
+    shiftFromStaffBottom(y: number) {
         Glyph.headPosition.y = 4 - y/2; // 4 = line 1, 3 = line 2, etc.
 
         this.move(undefined, Glyph.headPosition.y);

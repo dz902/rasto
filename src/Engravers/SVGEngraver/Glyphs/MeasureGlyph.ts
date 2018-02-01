@@ -37,15 +37,13 @@ export class MeasureGlyph extends Glyph {
     private drawChord(chord: Chord): void {
         let chordGlyph = new ChordGlyph(chord);
 
-        chordGlyph.advance(10);
+        chordGlyph.advance(5);
 
         this.append(chordGlyph);
     }
 
     private drawClef(clefSign: string, clefLine: number): void {
         let clefGlyph = new ClefGlyph(clefSign, clefLine);
-
-        clefGlyph.shift(clefLine);
 
         this.append(clefGlyph);
     }

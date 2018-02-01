@@ -5,7 +5,7 @@ export class NoteHeadGlyph extends CharGlyph {
     private noteHeadWidth: number;
 
     constructor(private note: Note) {
-        super('note-head', note.id);
+        super(note.type, 'note-head', note.id);
 
         this.draw();
     }

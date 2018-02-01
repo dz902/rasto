@@ -14,7 +14,8 @@ export class ChordGlyph extends Glyph {
                 let prevNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
                 this.drawNote(note, prevNote);
             });
-            this.shift(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
+            console.log(this.chord.lowestNote.staffPlace, this.baseStaffPlace);
+            this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
         };
         this.draw();
     }
@@ -29,13 +30,13 @@ export class ChordGlyph extends Glyph {
             noteGlyph.translate(noteGlyph.width);
         }
         // moveNoteToStaffPlace
-        let offsetStaffPlace = intervalToLowestNote;
-        noteGlyph.shift(offsetStaffPlace - 1);
+        let offsetStaffPlace = intervalToLowestNote - 1; // intervals starts with unison = 1
+        noteGlyph.shift(offsetStaffPlace);
         this.append(noteGlyph);
     }
     get baseStaffPlace() {
         if (this.chord.context.clefSign === 'G') {
-            return 3 * 8 + 2; // 3 octaves + 1 third
+            return 4 * 7 - 1 + 3; // 4 octaves + 1 third
         }
         else {
             return 0;

@@ -30,7 +30,7 @@ export class Note extends MusicalElement {
     }
 
     get staffPlace(): number {
-       return this.pitchOctave*8 + 'CDEFGAB'.indexOf(this.pitchStep);
+       return this.pitchOctave*7 + 'CDEFGAB'.indexOf(this.pitchStep);
     }
 
     getIntervalTo(note: Note): number {

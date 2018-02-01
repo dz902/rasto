@@ -29,12 +29,11 @@ export class MeasureGlyph extends Glyph {
     }
     drawChord(chord) {
         let chordGlyph = new ChordGlyph(chord);
-        chordGlyph.advance(10);
+        chordGlyph.advance(5);
         this.append(chordGlyph);
     }
     drawClef(clefSign, clefLine) {
         let clefGlyph = new ClefGlyph(clefSign, clefLine);
-        clefGlyph.shift(clefLine);
         this.append(clefGlyph);
     }
     drawTime(timeBeats, timeBeatType) {
