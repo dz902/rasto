@@ -32,9 +32,9 @@ export class Measure extends MusicalElement {
 }
 
 export interface MeasureAttributes extends Attributes {
-    divisions?: NumericValue;
-    timeBeats?: NumericValue;
-    timeBeatType?: NumericValue;
+    divisions?: number;
+    timeBeats?: number;
+    timeBeatType?: number;
     clefSign?: string;
-    clefLine?: NumericValue;
+    clefLine?: number;
 };

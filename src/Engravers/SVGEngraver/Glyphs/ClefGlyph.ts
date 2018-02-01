@@ -1,7 +1,7 @@
-import { CharGlyph, MarkGlyph } from './index.js';
+import { Glyph, CharGlyph, MarkGlyph } from './index.js';
 
-class ClefGlyph extends CharGlyph {
+export class ClefGlyph extends CharGlyph {
     constructor(clefType: string, line?: number) {
-        super(clefType, `clef clef-${clefType}`);
+        super(Glyph.getGlyphName('clef', clefType), `clef clef-${clefType}`);
     }
 }

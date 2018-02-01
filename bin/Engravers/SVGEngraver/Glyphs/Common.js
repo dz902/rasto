@@ -85,7 +85,9 @@ export class SVG {
         return this;
     }
     addClass(className) {
-        this.rawElement.classList.add(className);
+        className.split(' ').forEach((c) => {
+            this.rawElement.classList.add(c);
+        });
         return this;
     }
     setAttribute(k, v) {

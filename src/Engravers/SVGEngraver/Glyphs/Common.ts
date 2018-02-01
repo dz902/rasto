@@ -121,7 +121,9 @@ export class SVG {
     }
 
     addClass(className: string): SVG {
-        this.rawElement.classList.add(className);
+        className.split(' ').forEach((c: string) => {
+            this.rawElement.classList.add(c);
+        })
 
         return this;
     }

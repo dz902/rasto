@@ -10,4 +10,5 @@ export * from './NoteGlyph.js';
 export * from './ScoreGlyph.js';
 export * from './RestGlyph.js';
 export * from './MeasureGlyph.js';
+export * from './ClefGlyph.js';
 //# sourceMappingURL=index.js.map

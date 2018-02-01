@@ -35,7 +35,7 @@ export class ChordGlyph extends MarkGlyph {
     }
     get baseStaffPlace() {
         if (this.chord.context.clefSign === 'G') {
-            return 4 * 8 + 3 + 7; // add an octave because staff lines are drawn top-down
+            return 3 * 8 + 2; // 3 octaves + 1 third
         }
         else {
             return 0;

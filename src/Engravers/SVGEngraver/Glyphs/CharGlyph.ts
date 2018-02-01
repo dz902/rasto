@@ -17,8 +17,8 @@ export class CharGlyph extends Glyph {
 
         let codePoints = Glyph.meta.glyphnames[this.charName];
 
-        if (!codePoints.codepoint) {
-            throw new Error();
+        if (!codePoints || !codePoints.codepoint) {
+            throw new Error(`code point not exist for ${this.charName}`);
         }
 
         this.textSVG.addClass('glyph');
