@@ -1,4 +1,4 @@
-import { Attributes, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { ensureNumber, Attributes, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -79,10 +79,14 @@ export class MusicXMLParser {
                             measure.addMark(lastMark);
                         }
 
-                        (<Chord> lastMark).notes.push(new Note($note.q('type').value,
-                                                               $note.q('pitch octave').value,
-                                                               $note.q('pitch step').value,
-                                                               $note.q('duration').value));
+                        (<Chord> lastMark).addNote(
+                            new Note(
+                                $note.q('type').value,
+                                ensureNumber($note.q('pitch octave').value),
+                                $note.q('pitch step').value,
+                                ensureNumber($note.q('duration').value)
+                            )
+                        );
                     }
                 });
 

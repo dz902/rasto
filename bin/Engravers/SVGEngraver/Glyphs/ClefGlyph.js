@@ -4,7 +4,7 @@ export class ClefGlyph extends CharGlyph {
         super(clefType, 'clef');
         this.clefLine = clefLine;
         this.draw = () => {
-            this.shiftFromStaffBottom(this.clefLine);
+            this.shiftFromStaffBottom(this.clefLine / 2);
         };
         this.draw();
     }

@@ -9,15 +9,15 @@ export class Note extends MusicalElement {
     readonly stem: Stem;
 
     constructor(type: string,
-                pitchOctave: NumericValue,
+                pitchOctave: number,
                 pitchStep: string,
-                duration: NumericValue) {
+                duration: number) {
         super();
 
         this.type = ensureMarkType(type);
-        this.pitchOctave = ensurePitchOctave(Number(pitchOctave));
+        this.pitchOctave = ensurePitchOctave(pitchOctave);
         this.pitchStep = ensurePitchStep(pitchStep);
-        this.duration = ensureNumber(duration);
+        this.duration = duration;
 
         this.stem = new Stem("up");
     }

@@ -97,16 +97,25 @@ export class SVG {
 
         // getTransformer
 
-        let transformerG: SVGGElement | null = this.rawElement.querySelector('g.transformer');
-        let notTransformed = transformerG === null;
+        let transformerG: SVGGElement | undefined;
+
+        this.rawElement
+            .querySelectorAll('g.transformer')
+            .forEach((el) => {
+                if (el.parentNode === this.rawElement) {
+                    transformerG = <SVGGElement> el;
+                }
+            });
+
+        let notTransformed = (transformerG === undefined);
 
         if (notTransformed) {
             transformerG = (new SVG('g')).rawElement;
 
             transformerG.classList.add('transformer');
 
-            for (let i = 0; i < this.rawElement.children.length; ++i) {
-                transformerG.appendChild(this.rawElement.children[i]);
+            while(this.rawElement.children.length > 0) { // length updates in real time...
+                transformerG.appendChild(this.rawElement.children[0]);
             }
 
             this.rawElement.appendChild(transformerG);

@@ -42,11 +42,11 @@ export class Glyph extends SVG {
         return this;
     }
     shift(y) {
-        Glyph.headPosition.y = -y / 2; // 4 = line 1, 3 = line 2, etc.
+        Glyph.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
         this.move(undefined, Glyph.headPosition.y);
     }
     shiftFromStaffBottom(y) {
-        Glyph.headPosition.y = 4 - y / 2; // 4 = line 1, 3 = line 2, etc.
+        Glyph.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
         this.move(undefined, Glyph.headPosition.y);
     }
     // OVERRIDE WITH NEW UNITS

@@ -1,5 +1,5 @@
 import { Glyph, RectGlyph } from './index.js';
-export class StemGlyph extends RectGlyph {
+export class StemFlagGlyph extends RectGlyph {
     constructor(chord) {
         super(undefined, chord.id);
         this.chord = chord;
@@ -12,7 +12,7 @@ export class StemGlyph extends RectGlyph {
             this.size(this.stemWidth, this.stemHeight);
         };
         this.stemHeight = (this.chord.highestNote.staffPlace - this.chord.lowestNote.staffPlace) / 2 + 3.5; // +1 octave
-        this.midStaffPlace = chord.baseStaffPlace + 4;
+        this.midStaffPlace = chord.contextStaffPlace + 4;
         this.draw();
     }
     checkDirection() {
@@ -39,10 +39,10 @@ export class StemGlyph extends RectGlyph {
     }
     checkLoneLedgerNotes() {
         let chord = this.chord;
-        let onlyUpperLedgeredNotes = (chord.highestNote.staffPlace > (chord.baseStaffPlace + 8) &&
-            chord.lowestNote.staffPlace > (chord.baseStaffPlace + 8));
-        let onlyLowerLedgeredNotes = (chord.highestNote.staffPlace < chord.baseStaffPlace &&
-            chord.lowestNote.staffPlace < chord.baseStaffPlace);
+        let onlyUpperLedgeredNotes = (chord.highestNote.staffPlace > (chord.contextStaffPlace + 8) &&
+            chord.lowestNote.staffPlace > (chord.contextStaffPlace + 8));
+        let onlyLowerLedgeredNotes = (chord.highestNote.staffPlace < chord.contextStaffPlace &&
+            chord.lowestNote.staffPlace < chord.contextStaffPlace);
         let heightCompensation = 0;
         if (onlyLowerLedgeredNotes) {
             if (this.direction === StemDirection.Up) {
@@ -71,11 +71,15 @@ export class StemGlyph extends RectGlyph {
         else {
             offset = { x: noteAnchors['stemDownNW'][0], y: -noteAnchors['stemDownNW'][1] };
             this.stemHeight -= offset.y;
+            this.alignWithTopNote();
         }
         this.translate(offset.x, offset.y);
     }
     invert() {
         this.translate(undefined, -this.stemHeight);
+    }
+    alignWithTopNote() {
+        this.shift((this.chord.highestNote.staffPlace - this.chord.lowestNote.staffPlace) / 2);
     }
 }
 var StemDirection;

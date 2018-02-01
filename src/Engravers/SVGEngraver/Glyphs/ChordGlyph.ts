@@ -1,14 +1,13 @@
-import { NoteHeadGlyph, Glyph, StemGlyph } from './index.js';
+import { NoteHeadGlyph, Glyph, StemFlagGlyph } from './index.js';
 import { Chord, Note } from '../../../Schema/Music/index.js';
 
 export class ChordGlyph extends Glyph {
+    private chordHasAdjacentNotes: boolean = false;
+    private noteHeadGlyph: NoteHeadGlyph;
+
     constructor(private chord: Chord) {
         super('chord', chord.id);
 
-        this.draw();
-    }
-
-    protected draw = (): void => {
         // ensureNonEmptyChord
 
         let chordHasNoNotes: boolean = this.chord.notes.length === 0;
@@ -16,7 +15,11 @@ export class ChordGlyph extends Glyph {
             throw new Error('empty chord');
         }
 
-        // drawNoteRest
+        this.draw();
+    }
+
+    protected draw = (): void => {
+        // drawNotes
 
         this.chord.notes.forEach((note: Note, i: number) => {
             let prevNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
@@ -24,17 +27,13 @@ export class ChordGlyph extends Glyph {
             this.drawNote(note, prevNote);
         });
 
-        this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.chord.baseStaffPlace);
-
-        // checkStem
-
-        if (this.chord.type !== 'whole') {
-            this.drawStem();
-        }
+        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace)/2);
+        this.offsetNoteClusters();
+        this.checkStemFlag();
     };
 
     private drawNote(note: Note, prevNote: Note): void {
-        let noteGlyph = new NoteHeadGlyph(note);
+        let noteHeadGlyph = new NoteHeadGlyph(note);
 
         // checkAdjacentNotes
 
@@ -44,27 +43,35 @@ export class ChordGlyph extends Glyph {
         let isAdjacent = isNotThirds && isSecond;
 
         if (isAdjacent) {
-            noteGlyph.translate(noteGlyph.width);
+            this.chordHasAdjacentNotes = true;
+
+            noteHeadGlyph.translate(noteHeadGlyph.width);
         }
+
+        this.noteHeadGlyph = noteHeadGlyph;
 
         // moveNoteToStaffPlace
 
         let offsetStaffPlace = intervalToLowestNote - 1;  // intervals starts with unison = 1
 
-        noteGlyph.shift(offsetStaffPlace);
+        noteHeadGlyph.translate(undefined, -offsetStaffPlace/2);
 
-        this.append(noteGlyph);
+        this.append(noteHeadGlyph);
     }
 
-    private drawStem(): void {
-        let stemGlyph = new StemGlyph(this.chord);
-
-        this.append(stemGlyph);
-
-        // checkFlag
+    private offsetNoteClusters(): void {
+        if (this.chordHasAdjacentNotes) {
+            this.translate(-this.noteHeadGlyph.width);
+        }
     }
 
-    private drawFlag(): void {
+    private checkStemFlag(): void {
+        if (this.chord.type === 'whole') {
+            return;
+        }
 
+        let stemFlagGlyph = new StemFlagGlyph(this.chord);
+
+        this.append(stemFlagGlyph);
     }
 }

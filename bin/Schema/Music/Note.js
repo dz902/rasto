@@ -4,9 +4,9 @@ export class Note extends MusicalElement {
         super();
         this.beams = [];
         this.type = ensureMarkType(type);
-        this.pitchOctave = ensurePitchOctave(Number(pitchOctave));
+        this.pitchOctave = ensurePitchOctave(pitchOctave);
         this.pitchStep = ensurePitchStep(pitchStep);
-        this.duration = ensureNumber(duration);
+        this.duration = duration;
         this.stem = new Stem("up");
     }
     addBeam(beam) {

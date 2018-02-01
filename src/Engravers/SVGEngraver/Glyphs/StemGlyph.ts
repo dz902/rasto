@@ -1,7 +1,7 @@
 import { Glyph, RectGlyph } from './index.js';
 import { Chord } from '../../../Schema/Music/index.js';
 
-export class StemGlyph extends RectGlyph {
+export class StemFlagGlyph extends RectGlyph {
     private direction: StemDirection = StemDirection.Down;
     private stemWidth: number = Glyph.meta.defaults.stemThickness;
     private stemHeight: number;
@@ -11,7 +11,7 @@ export class StemGlyph extends RectGlyph {
         super(undefined, chord.id);
 
         this.stemHeight = (this.chord.highestNote.staffPlace-this.chord.lowestNote.staffPlace)/2 + 3.5;  // +1 octave
-        this.midStaffPlace = chord.baseStaffPlace + 4;
+        this.midStaffPlace = chord.contextStaffPlace + 4;
 
         this.draw();
     }
@@ -49,12 +49,12 @@ export class StemGlyph extends RectGlyph {
         let chord = this.chord;
 
         let onlyUpperLedgeredNotes = (
-            chord.highestNote.staffPlace > (chord.baseStaffPlace + 8) &&
-            chord.lowestNote.staffPlace > (chord.baseStaffPlace + 8)
+            chord.highestNote.staffPlace > (chord.contextStaffPlace + 8) &&
+            chord.lowestNote.staffPlace > (chord.contextStaffPlace + 8)
         );
         let onlyLowerLedgeredNotes = (
-            chord.highestNote.staffPlace < chord.baseStaffPlace &&
-            chord.lowestNote.staffPlace < chord.baseStaffPlace
+            chord.highestNote.staffPlace < chord.contextStaffPlace &&
+            chord.lowestNote.staffPlace < chord.contextStaffPlace
         );
 
         let heightCompensation = 0;
@@ -88,6 +88,7 @@ export class StemGlyph extends RectGlyph {
         } else {
             offset = { x: noteAnchors['stemDownNW'][0], y: -noteAnchors['stemDownNW'][1] };
             this.stemHeight -= offset.y;
+            this.alignWithTopNote();
         }
 
         this.translate(offset.x, offset.y);
@@ -95,6 +96,10 @@ export class StemGlyph extends RectGlyph {
 
     private invert(): void {
         this.translate(undefined, -this.stemHeight);
+    }
+
+    private alignWithTopNote(): void {
+        this.shift((this.chord.highestNote.staffPlace-this.chord.lowestNote.staffPlace)/2);
     }
 }
 
