@@ -22,7 +22,10 @@ export class Glyph extends SVG {
             this.type = type;
         }
         else {
-            this.type = this.constructor.name;
+            this.type = this.constructor.name.match(/([a-z]+|[A-Z][a-z]+)/g)
+                .splice(0, -1) // remove "glyph"
+                .join('-')
+                .toLowerCase();
         }
         if (id !== undefined) {
             this.id = id;

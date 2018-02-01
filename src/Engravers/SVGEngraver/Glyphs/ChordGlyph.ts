@@ -111,7 +111,8 @@ export class ChordGlyph extends Glyph {
             return;
         }
 
-        this.stemFlagGlyph = new StemFlagGlyph(this.chord.spanStaffPlace/2 + 3.5);  // +1 octave
+        this.stemFlagGlyph = new StemFlagGlyph();
+        this.stemFlagGlyph.height = this.chord.spanStaffPlace/2 + 3.5;  // +1 octave
         this.append(this.stemFlagGlyph);
 
         // checkStemAlignment

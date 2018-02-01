@@ -83,7 +83,8 @@ export class ChordGlyph extends Glyph {
         if (this.chord.type === 'whole') {
             return;
         }
-        this.stemFlagGlyph = new StemFlagGlyph(this.chord.spanStaffPlace / 2 + 3.5); // +1 octave
+        this.stemFlagGlyph = new StemFlagGlyph();
+        this.stemFlagGlyph.height = this.chord.spanStaffPlace / 2 + 3.5; // +1 octave
         this.append(this.stemFlagGlyph);
         // checkStemAlignment
         if (this.direction === StemDirection.Down) {

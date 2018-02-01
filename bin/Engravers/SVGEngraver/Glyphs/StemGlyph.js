@@ -1,9 +1,8 @@
 import { Glyph, RectGlyph } from './index.js';
 export class StemFlagGlyph extends RectGlyph {
-    constructor(height) {
-        super();
+    constructor() {
+        super(...arguments);
         this.stemWidth = Glyph.meta.defaults.stemThickness;
-        this.height = height;
     }
     get width() {
         return this.stemWidth;
