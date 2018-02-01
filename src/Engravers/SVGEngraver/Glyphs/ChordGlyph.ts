@@ -1,7 +1,7 @@
-import { MarkGlyph, NoteGlyph, Glyph } from './index.js';
+import { NoteHeadGlyph, Glyph } from './index.js';
 import { Chord, Note } from '../../../Schema/Music/index.js';
 
-export class ChordGlyph extends MarkGlyph {
+export class ChordGlyph extends Glyph {
     constructor(private chord: Chord) {
         super('chord', chord.id);
 
@@ -28,7 +28,7 @@ export class ChordGlyph extends MarkGlyph {
     };
 
     private drawNote(note: Note, prevNote: Note): void {
-        let noteGlyph = new NoteGlyph(note);
+        let noteGlyph = new NoteHeadGlyph(note);
 
         // checkAdjacentNotes
 

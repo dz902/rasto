@@ -1,7 +1,7 @@
 import { Glyph, LineGlyph } from './index.js';
 export class StaffGlyph extends Glyph {
     constructor() {
-        super('staff');
+        super('staff', undefined);
         this.draw = () => {
             this.drawLine();
         };

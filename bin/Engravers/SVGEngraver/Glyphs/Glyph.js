@@ -2,36 +2,32 @@ import { SVG } from './index.js';
 import * as SMuFL from '../../../Schema/SMuFL.js';
 export class Glyph extends SVG {
     // INSTANCE
-    constructor(type, id = 'none') {
+    constructor(type, id) {
         super('svg');
-        this.type = type;
-        this.id = id;
         // DRAW
         this.draw = () => {
             // has to keep strange syntax to get correct this.draw()
             // there are no other way to automatically call the right draw()
             // keeping explicit draw() calls make code more readable
             // so do not refactor
-            this.addClass(`id-${this.id}`);
-            this.addClass(this.type);
+            if (this.id) {
+                this.addClass(`id-${this.id}`);
+            }
+            if (this.type) {
+                this.addClass(this.type ? this.type : this.constructor.name);
+            }
             Glyph.refs[this.id] = this.rawElement;
         };
-        Glyph.meta = SMuFL.load('Bravura');
-        this.draw();
-    }
-    // META OPS
-    static getGlyphName(type, key) {
-        let table;
-        switch (type) {
-            case 'clef':
-                table = {
-                    'G': 'gClef'
-                };
-                break;
-            default:
-                return '';
+        if (id !== undefined) {
+            this.id = id;
         }
-        return table[key];
+        if (type !== undefined) {
+            this.type = type;
+        }
+        else {
+            this.type = this.constructor.name;
+        }
+        this.draw();
     }
     // GLYPH OPS
     advance(x) {
@@ -56,6 +52,7 @@ export class Glyph extends SVG {
 // STATIC
 Glyph.EM = 32;
 Glyph.STAFF_SPACE = Glyph.EM * 0.25;
+Glyph.meta = SMuFL.Meta.load();
 Glyph.refs = {};
 Glyph.headPosition = { x: 0, y: 0 };
 //# sourceMappingURL=Glyph.js.map

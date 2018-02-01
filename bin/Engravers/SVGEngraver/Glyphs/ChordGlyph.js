@@ -1,5 +1,5 @@
-import { MarkGlyph, NoteGlyph } from './index.js';
-export class ChordGlyph extends MarkGlyph {
+import { NoteHeadGlyph, Glyph } from './index.js';
+export class ChordGlyph extends Glyph {
     constructor(chord) {
         super('chord', chord.id);
         this.chord = chord;
@@ -19,7 +19,7 @@ export class ChordGlyph extends MarkGlyph {
         this.draw();
     }
     drawNote(note, prevNote) {
-        let noteGlyph = new NoteGlyph(note);
+        let noteGlyph = new NoteHeadGlyph(note);
         // checkAdjacentNotes
         let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
         let isNotThirds = intervalToLowestNote % 3 !== 0; // thirds always stay in place
