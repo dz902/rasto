@@ -10,6 +10,9 @@ export class Meta {
     static load() {
         return new Meta(metadata.engravingDefaults, metadata.glyphBBoxes, metadata.glyphsWithAnchors, formatCodePoints(glyphnames));
     }
+    get defaults() {
+        return this.engravingDefaults;
+    }
     // QUERY
     getGlyphName(type, key) {
         let table;
@@ -53,6 +56,14 @@ export class Meta {
             throw new Error(`no code points for glyph ${type}-${key}`);
         }
         return glyphCodePoints;
+    }
+    getGlyphAnchors(type, key) {
+        let glyphName = this.getGlyphName(type, key);
+        let glyphAnchors = this.glyphWithAnchors[glyphName];
+        if (glyphAnchors === undefined) {
+            throw new Error(`no anchors for glyph ${type}-${key}`);
+        }
+        return glyphAnchors;
     }
 }
 function formatCodePoints(codePoints) {

@@ -8,7 +8,15 @@ export class Chord extends Mark {
         return this.notes[0];
     }
     get highestNote() {
-        return this.notes[this.notes.length];
+        return this.notes[this.notes.length - 1];
+    }
+    get baseStaffPlace() {
+        if (this.context.clefSign === 'G') {
+            return 4 * 7 - 1 + 3; // 4 octaves + 1 third
+        }
+        else {
+            return 0;
+        }
     }
 }
 export function ensureChord(chord) {

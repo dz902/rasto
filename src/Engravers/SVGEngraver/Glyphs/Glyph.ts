@@ -18,14 +18,14 @@ export class Glyph extends SVG {
     constructor(type?: string, id?: string) {
         super('svg');
 
-        if (id !== undefined) {
-            this.id = id;
-        }
-
         if (type !== undefined) {
             this.type = type;
         } else {
             this.type = this.constructor.name;
+        }
+
+        if (id !== undefined) {
+            this.id = id;
         }
 
         this.draw();
@@ -51,6 +51,14 @@ export class Glyph extends SVG {
     };
 
     // GLYPH OPS
+
+    get width(): number {
+        return super.width / Glyph.STAFF_SPACE;
+    }
+
+    get height(): number {
+        return super.height / Glyph.STAFF_SPACE;
+    }
 
     advance(x: number): Glyph {
         Glyph.headPosition.x += x;

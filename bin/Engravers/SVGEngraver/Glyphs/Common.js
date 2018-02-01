@@ -28,6 +28,9 @@ export class SVG {
     get width() {
         return this.bbox.width;
     }
+    get height() {
+        return this.bbox.height;
+    }
     get bbox() {
         if (!document.body.contains(this.rawElement)) {
             throw Error('element must be rendered to have a bounding box.');

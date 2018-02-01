@@ -1,4 +1,4 @@
-import { NoteHeadGlyph, Glyph } from './index.js';
+import { NoteHeadGlyph, Glyph, StemGlyph } from './index.js';
 export class ChordGlyph extends Glyph {
     constructor(chord) {
         super('chord', chord.id);
@@ -14,8 +14,11 @@ export class ChordGlyph extends Glyph {
                 let prevNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
                 this.drawNote(note, prevNote);
             });
-            console.log(this.chord.lowestNote.staffPlace, this.baseStaffPlace);
-            this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
+            this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.chord.baseStaffPlace);
+            // checkStem
+            if (this.chord.type !== 'whole') {
+                this.drawStem();
+            }
         };
         this.draw();
     }
@@ -34,13 +37,12 @@ export class ChordGlyph extends Glyph {
         noteGlyph.shift(offsetStaffPlace);
         this.append(noteGlyph);
     }
-    get baseStaffPlace() {
-        if (this.chord.context.clefSign === 'G') {
-            return 4 * 7 - 1 + 3; // 4 octaves + 1 third
-        }
-        else {
-            return 0;
-        }
+    drawStem() {
+        let stemGlyph = new StemGlyph(this.chord);
+        this.append(stemGlyph);
+        // checkFlag
+    }
+    drawFlag() {
     }
 }
 //# sourceMappingURL=ChordGlyph.js.map

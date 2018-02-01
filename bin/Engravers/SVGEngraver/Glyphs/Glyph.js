@@ -18,18 +18,24 @@ export class Glyph extends SVG {
             }
             Glyph.refs[this.id] = this.rawElement;
         };
-        if (id !== undefined) {
-            this.id = id;
-        }
         if (type !== undefined) {
             this.type = type;
         }
         else {
             this.type = this.constructor.name;
         }
+        if (id !== undefined) {
+            this.id = id;
+        }
         this.draw();
     }
     // GLYPH OPS
+    get width() {
+        return super.width / Glyph.STAFF_SPACE;
+    }
+    get height() {
+        return super.height / Glyph.STAFF_SPACE;
+    }
     advance(x) {
         Glyph.headPosition.x += x;
         this.move(Glyph.headPosition.x);

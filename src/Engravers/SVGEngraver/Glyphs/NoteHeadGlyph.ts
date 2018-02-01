@@ -1,5 +1,5 @@
 import { Glyph, CharGlyph } from './index.js';
-import { Note, MarkType } from '../../../Schema/Music/index.js'
+import { Note } from '../../../Schema/Music/index.js'
 
 export class NoteHeadGlyph extends CharGlyph {
     private noteHeadWidth: number;

@@ -12,5 +12,8 @@ export class RectGlyph extends Glyph {
         this.rectSVG.size(width * Glyph.STAFF_SPACE, height * Glyph.STAFF_SPACE);
         return this;
     }
+    set attachPoints(attachPoints) {
+        this.translate(attachPoints.x, attachPoints.y);
+    }
 }
 //# sourceMappingURL=RectGlyph.js.map

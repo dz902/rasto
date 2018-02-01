@@ -3,7 +3,7 @@ import { SVG, Glyph } from './index.js';
 export class RectGlyph extends Glyph {
     protected rectSVG: SVG;
 
-    constructor(type: string, id?: string) {
+    constructor(type?: string, id?: string) {
         super(type, id);
 
         this.draw();
@@ -13,6 +13,10 @@ export class RectGlyph extends Glyph {
         this.rectSVG.size(width*Glyph.STAFF_SPACE, height*Glyph.STAFF_SPACE);
 
         return this;
+    }
+
+    protected set attachPoints(attachPoints: {x: number, y: number}) {
+        this.translate(attachPoints.x, attachPoints.y);
     }
 
     protected draw = (): void => {

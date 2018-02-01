@@ -13,10 +13,14 @@ export class Meta {
         );
     }
 
-    private constructor(readonly engravingDefaults: EngravingDefaults,
+    private constructor(private engravingDefaults: EngravingDefaults,
                 readonly glyphBBoxes: GlyphBBoxMap,
                 readonly glyphWithAnchors: GlyphAnchorsMap,
                 readonly glyphCodePointsMap: GlyphCodePointsMap) {
+    }
+
+    get defaults(): EngravingDefaults {
+        return this.engravingDefaults;
     }
 
     // QUERY
@@ -75,6 +79,17 @@ export class Meta {
         }
 
         return glyphCodePoints;
+    }
+
+    getGlyphAnchors(type: string, key: string): GlyphAnchors {
+        let glyphName = this.getGlyphName(type, key);
+        let glyphAnchors = this.glyphWithAnchors[glyphName];
+
+        if (glyphAnchors === undefined) {
+            throw new Error(`no anchors for glyph ${type}-${key}`);
+        }
+
+        return glyphAnchors;
     }
 }
 

@@ -1,4 +1,4 @@
-import { NoteHeadGlyph, Glyph } from './index.js';
+import { NoteHeadGlyph, Glyph, StemGlyph } from './index.js';
 import { Chord, Note } from '../../../Schema/Music/index.js';
 
 export class ChordGlyph extends Glyph {
@@ -24,8 +24,13 @@ export class ChordGlyph extends Glyph {
             this.drawNote(note, prevNote);
         });
 
-        console.log(this.chord.lowestNote.staffPlace, this.baseStaffPlace);
-        this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.baseStaffPlace);
+        this.shiftFromStaffBottom(this.chord.lowestNote.staffPlace - this.chord.baseStaffPlace);
+
+        // checkStem
+
+        if (this.chord.type !== 'whole') {
+            this.drawStem();
+        }
     };
 
     private drawNote(note: Note, prevNote: Note): void {
@@ -51,11 +56,15 @@ export class ChordGlyph extends Glyph {
         this.append(noteGlyph);
     }
 
-    private get baseStaffPlace(): number {
-        if (this.chord.context.clefSign === 'G') {
-            return 4*7-1 + 3; // 4 octaves + 1 third
-        } else {
-            return 0;
-        }
+    private drawStem(): void {
+        let stemGlyph = new StemGlyph(this.chord);
+
+        this.append(stemGlyph);
+
+        // checkFlag
+    }
+
+    private drawFlag(): void {
+
     }
 }
