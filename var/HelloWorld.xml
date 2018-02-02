@@ -34,11 +34,11 @@
             </note>
             <note>
                 <pitch>
-                    <step>F</step>
+                    <step>C</step>
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>16th</type>
+                <type>64th</type>
             </note>
             <note>
                 <chord />
@@ -47,16 +47,16 @@
                     <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>16th</type>
+                <type>64th</type>
             </note>
             <note>
                 <chord />
                 <pitch>
-                    <step>D</step>
+                    <step>G</step>
                     <octave>5</octave>
                 </pitch>
                 <duration>2</duration>
-                <type>16th</type>
+                <type>64th</type>
             </note>
             <note>
                 <pitch>

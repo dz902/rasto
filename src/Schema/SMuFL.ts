@@ -42,15 +42,27 @@ export class Meta {
                     'quarter': 'noteheadBlack',
                     'eighth': 'noteheadBlack',
                     '16th': 'noteheadBlack',
-                    '32nd': 'noteheadBlack'
+                    '32nd': 'noteheadBlack',
+                    '64th': 'noteheadBlack',
+                    '128th': 'noteheadBlack'
                 };
 
                 break;
-            case 'flag':
+            case 'flag-up':
                 table = {
                     'eighth': 'flag8thUp',
                     '16th': 'flag16thUp',
-                    '32th': 'flag32thUp'
+                    '32th': 'flag32thUp',
+                    '64th': 'flag64thUp'
+                };
+
+                break;
+            case 'flag-down':
+                table = {
+                    'eighth': 'flag8thDown',
+                    '16th': 'flag16thDown',
+                    '32th': 'flag32thDown',
+                    '64th': 'flag64thDown'
                 };
 
                 break;

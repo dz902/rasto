@@ -12,7 +12,7 @@ export class RectGlyph extends Glyph {
     // is removed from inheritance, which means you will have to do
     // something really stupid like the following, setters could be
     // replaced by methods and should work, but it closes doors to
-    // shortcuts like += / -=.
+    // shortcuts like += / -=
     get width() {
         return super.width;
     }

@@ -67,9 +67,9 @@ export class ChordGlyph extends Glyph {
             }
         } else {
             let intervalToHighestNote = note.getIntervalTo(this.chord.highestNote);
-            let isNotThirds = intervalToHighestNote % 3 !== 0; // thirds always stay in place
+            let isThirds = intervalToHighestNote % 3 === 0; // thirds always stay in place
             let isNotTopNote = intervalToHighestNote !== 1;
-            let needsDisplacement = isNotThirds && isNotTopNote;
+            let needsDisplacement = isThirds && isNotTopNote;
 
             offsets.x = this.noteHeadWidth;
 
@@ -132,28 +132,6 @@ export class ChordGlyph extends Glyph {
         this.checkStemOffsets();
     }
 
-    private checkFlag(): void {
-        let noFlagNeeded = (
-            this.chord.beams.length !== 0 ||
-            this.chord.type === 'whole' ||
-            this.chord.type === 'half' ||
-            this.chord.type === 'quarter'
-        );
-
-        if (noFlagNeeded) {
-            return;
-        }
-
-        this.flagGlyph = new CharGlyph('flag', this.chord.type);
-
-        let flagAnchors = Glyph.meta.getGlyphAnchors('flag', this.chord.type);
-
-        this.flagGlyph.translate(flagAnchors['stemUpNW'][0], -flagAnchors['stemUpNW'][1]);
-        this.flagGlyph.translate(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
-
-        this.append(this.flagGlyph);
-    }
-
     private checkLedgerNoteStems(): void {
         let chord = this.chord;
 
@@ -185,12 +163,22 @@ export class ChordGlyph extends Glyph {
 
     private checkStemOffsets(): void {
         let chord = this.chord;
-        let noteAnchors = Glyph.meta.getGlyphAnchors('note-head', chord.type);
-        let offset: { x: number, y: number };
+
+        // checkExtraSpaceForLigatures
+
+        let longLigatureNoteTypes = ['32th', '64th', '128th'];
+        let extraSpaces = longLigatureNoteTypes.indexOf(this.chord.type);
+
+        if (extraSpaces > 0) {
+            this.stemGlyph.height += extraSpaces;
+        }
 
         // the following is confusing mainly because SMuFL use SW-y and Web uses NW-y
         // also because there is no good way to really have an anchor point for rects
         // may need refactor in the future to improve readability
+
+        let offset: { x: number, y: number };
+        let noteAnchors = Glyph.meta.getGlyphAnchors('note-head', chord.type);
 
         if (this.direction === StemDirection.Up) {
             offset = {
@@ -212,15 +200,56 @@ export class ChordGlyph extends Glyph {
             // offseted to put stem on the left of note, so we compensate note
             // width to make sure stem in the middle
 
-            offset.x += this.noteHeadWidth;
             this.stemGlyph.height += noteAnchors['stemDownNW'][1]; // lengthen stem to keep tip aligned
+
+            offset.x += this.noteHeadWidth;
+            offset.y -= (this.chord.spanStaffPlace/2);
         }
 
         this.stemGlyph.translate(offset.x, offset.y);
     }
+
+    private checkFlag(): void {
+        let noFlagNeeded = (
+            this.chord.beams.length !== 0 ||
+            this.chord.type === 'whole' ||
+            this.chord.type === 'half' ||
+            this.chord.type === 'quarter'
+        );
+
+        if (noFlagNeeded) {
+            return;
+        }
+
+        this.flagGlyph = new CharGlyph(`flag-${this.direction}`, this.chord.type);
+
+        this.checkFlagOffsets();
+
+        this.append(this.flagGlyph);
+    }
+
+    private checkFlagOffsets(): void {
+        let flagAnchors = Glyph.meta.getGlyphAnchors(`flag-${this.direction}`, this.chord.type);
+        let offset: { x: number, y: number };
+
+        if (this.direction === StemDirection.Up) {
+            offset = {
+                x: flagAnchors['stemUpNW'][0],
+                y: flagAnchors['stemUpNW'][1]
+            };
+        } else {
+            offset = {
+                x: flagAnchors['stemDownSW'][0],
+                y: flagAnchors['stemDownSW'][1] + this.stemGlyph.height
+            };
+        }
+
+        this.flagGlyph.translate(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
+        this.flagGlyph.translate(offset.x, offset.y);
+    }
 }
 
 enum StemDirection {
-    Up,
-    Down
+    Up = 'up',
+    Down = 'down'
 }

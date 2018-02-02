@@ -15,5 +15,5 @@ export type MarkType = 'whole' | 'half' | 'quarter' | 'eighth' | '16th' | '32nd'
 
 export function ensureMarkType(type: string): MarkType {
     return ensure(type, `note type ${type} is not valid`,
-                  (t: string): t is MarkType => ['whole', 'half', 'quarter', 'eighth', '16th', '32nd'].indexOf(t) !== -1);
+                  (t: string): t is MarkType => ['whole', 'half', 'quarter', 'eighth', '16th', '32nd', '64th', '128th'].indexOf(t) !== -1);
 }
