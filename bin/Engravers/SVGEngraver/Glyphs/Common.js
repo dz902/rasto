@@ -70,7 +70,6 @@ export class SVG {
         });
     }
     rotate(angle, cx, cy) {
-        console.log(cx);
         this.transform((t) => {
             t.setRotate(angle, cx, cy);
         });

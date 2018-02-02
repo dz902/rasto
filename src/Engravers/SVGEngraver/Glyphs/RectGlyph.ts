@@ -15,6 +15,12 @@ export class RectGlyph extends Glyph {
         this.append(this.rectSVG);
     }
 
+    // pitfall here, when defining a setter, getter of the same name
+    // is removed from inheritance, which means you will have to do
+    // something really stupid like the following, setters could be
+    // replaced by methods and should work, but it closes doors to
+    // shortcuts like += / -=.
+
     get width() {
         return super.width;
     }

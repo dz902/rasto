@@ -98,7 +98,6 @@ export class SVG {
     }
 
     rotate(angle: number, cx: number, cy: number): void {
-        console.log(cx);
         this.transform((t) => {
             t.setRotate(angle, cx, cy);
         });
