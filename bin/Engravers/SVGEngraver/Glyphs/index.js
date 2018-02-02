@@ -3,6 +3,7 @@ export * from './Glyph.js'; // order is fucking important...
 export * from './RectGlyph.js';
 export * from './LineGlyph.js';
 export * from './CharGlyph.js';
+export * from './TimeGlyph.js';
 export * from './StaffGlyph.js';
 export * from './StemGlyph.js';
 export * from './ChordGlyph.js';

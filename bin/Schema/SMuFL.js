@@ -50,6 +50,15 @@ export class Meta {
                     '64th': 'flag64thDown'
                 };
                 break;
+            case 'time':
+                table = {
+                    '2': 'timeSig2',
+                    '3': 'timeSig3',
+                    '4': 'timeSig4',
+                    '6': 'timeSig6',
+                    '8': 'timeSig8'
+                };
+                break;
             default:
                 table = {};
         }

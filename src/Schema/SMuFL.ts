@@ -66,6 +66,16 @@ export class Meta {
                 };
 
                 break;
+            case 'time':
+                table = {
+                    '2': 'timeSig2',
+                    '3': 'timeSig3',
+                    '4': 'timeSig4',
+                    '6': 'timeSig6',
+                    '8': 'timeSig8'
+                };
+
+                break;
             default:
                 table = {};
         }

@@ -1,4 +1,4 @@
-import { Glyph, ChordGlyph, RestGlyph, ClefGlyph } from './index.js';
+import { Glyph, TimeGlyph, ChordGlyph, RestGlyph, ClefGlyph } from './index.js';
 import { Measure, Mark, Chord, Rest, MeasureAttributes, SimpleMap } from '../../../Schema/Music/index.js';
 
 export class MeasureGlyph extends Glyph {
@@ -49,7 +49,11 @@ export class MeasureGlyph extends Glyph {
     }
 
     private drawTime(timeBeats: number, timeBeatType: number): void {
+        let timeGlyph = new TimeGlyph(timeBeats, timeBeatType);
+        
+        timeGlyph.advance(5);
 
+        this.append(timeGlyph);
     }
 
     private applyContextChange(newContext: MeasureAttributes, oldContext?: MeasureAttributes): void {
