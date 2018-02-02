@@ -29,7 +29,7 @@ export class ScoreGlyph extends Glyph {
             }
             
             svg.staff-line line {
-                stroke-width: ${Glyph.meta.engravingDefaults.staffLineThickness*Glyph.STAFF_SPACE}px;
+                stroke-width: ${Glyph.meta.defaults.staffLineThickness*Glyph.STAFF_SPACE}px;
                 stroke: #000;
             }
             

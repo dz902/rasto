@@ -32,6 +32,13 @@ export class Meta {
                     '32nd': 'noteheadBlack'
                 };
                 break;
+            case 'flag':
+                table = {
+                    'eighth': 'flag8thUp',
+                    '16th': 'flag16thUp',
+                    '32th': 'flag32thUp'
+                };
+                break;
             default:
                 table = {};
         }

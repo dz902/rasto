@@ -1,4 +1,4 @@
-import { ensureNumber, Attributes, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { ensureNumber, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -79,7 +79,9 @@ export class MusicXMLParser {
                             measure.addMark(lastMark);
                         }
 
-                        (<Chord> lastMark).addNote(
+                        let chord = <Chord> lastMark;
+
+                        chord.addNote(
                             new Note(
                                 $note.q('type').value,
                                 ensureNumber($note.q('pitch octave').value),
@@ -87,6 +89,14 @@ export class MusicXMLParser {
                                 ensureNumber($note.q('duration').value)
                             )
                         );
+
+                        if ($note.has('beam')) {
+                            $note.qq('beam')
+                                 .each(($beam) => {
+                                     chord.addBeam(new Beam($beam.attributes['number'],
+                                                            $beam.value))
+                                 });
+                        }
                     }
                 });
 
@@ -96,7 +106,7 @@ export class MusicXMLParser {
 
 class DOM {
     private currentNode: Element | Document;
-    private rawAttributes: Attributes;
+    private rawAttributes: SimpleMap;
 
     static parse(dataString: string): DOM {
         return new DOM(dataString);
@@ -146,7 +156,7 @@ class DOM {
         return this.currentNode.nodeName.toLowerCase();
     }
 
-    get attributes(): Attributes {
+    get attributes(): SimpleMap {
         if (this.currentNode instanceof Document) {
             throw new Error('cannot get document attribute');
         }
@@ -202,9 +212,9 @@ class DOM {
                      .each(callback);
     }
 
-    collectAttributes($attributes: DOM): Attributes {
-        let collectNestedAttributes = ($a: DOM, prefix: string = ''): Attributes => {
-            let attrs: Attributes = {};
+    collectAttributes($attributes: DOM): SimpleMap {
+        let collectNestedAttributes = ($a: DOM, prefix: string = ''): SimpleMap => {
+            let attrs: SimpleMap = {};
 
             $a.eachChild(($nestedA) => {
                 let prefixedName = prefix + ' ' + $nestedA.name;

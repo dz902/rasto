@@ -45,7 +45,7 @@ export type Data = {
 
 export type NumericValue = string | number;
 
-export interface Attributes {
+export interface SimpleMap {
     [k: string]: any;
 }
 

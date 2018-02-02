@@ -4,7 +4,7 @@ export class CharGlyph extends Glyph {
     protected textSVG: SVG;
     protected glyphKey: string;
 
-    constructor(key: string, type?: string, id?: string) {
+    constructor(type: string, key: string, id?: string) {
         super(type, id);
 
         this.glyphKey = key;
@@ -17,7 +17,7 @@ export class CharGlyph extends Glyph {
 
         let codePoints = Glyph.meta.getGlyphCodePoints(this.type, this.glyphKey);
 
-        this.textSVG.addClass('glyph');
+        this.textSVG.addClass('glyph').addClass((this.type));
         this.textSVG.text(codePoints.codepoint);
 
         this.append(this.textSVG);

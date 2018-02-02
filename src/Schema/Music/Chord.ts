@@ -1,7 +1,8 @@
-import { Note, Mark, ensure } from './index.js';
+import { Beam, MeasureAttributes, Note, Mark, ensure } from './index.js';
 
 export class Chord extends Mark {
     readonly notes: Note[] = [];
+    readonly beams: Beam[] = [];
 
     get lowestNote(): Note {
         return this.notes[0];
@@ -23,9 +24,13 @@ export class Chord extends Mark {
         return this.highestNote.staffPlace - this.lowestNote.staffPlace;
     }
 
-    addNote(note: Note):void {
+    addNote(note: Note): void {
         this.notes.push(note);
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    }
+
+    addBeam(beam: Beam): void {
+        this.beams.push(beam);
     }
 }
 

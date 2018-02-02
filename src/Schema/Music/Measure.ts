@@ -1,4 +1,4 @@
-import { Note, Rest, MusicalElement, Attributes, Mark, Chord, maybe, ensureNumber, NumericValue } from './index.js';
+import { Note, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, ensureNumber, NumericValue } from './index.js';
 
 export class Measure extends MusicalElement {
     readonly attributesList: MeasureAttributes[] = [];
@@ -8,7 +8,7 @@ export class Measure extends MusicalElement {
         return this.attributesList[this.attributesList.length-1];
     }
 
-    addAttributes(a: Attributes) {
+    addAttributes(a: SimpleMap) {
         // ensureMeasureAttributes
 
         let attributes: MeasureAttributes = {};
@@ -31,7 +31,7 @@ export class Measure extends MusicalElement {
     }
 }
 
-export interface MeasureAttributes extends Attributes {
+export interface MeasureAttributes extends SimpleMap {
     divisions?: number;
     timeBeats?: number;
     timeBeatType?: number;

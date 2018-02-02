@@ -1,11 +1,11 @@
 import { SVG, Glyph } from './index.js';
 export class CharGlyph extends Glyph {
-    constructor(key, type, id) {
+    constructor(type, key, id) {
         super(type, id);
         this.draw = () => {
             this.textSVG = new SVG('text');
             let codePoints = Glyph.meta.getGlyphCodePoints(this.type, this.glyphKey);
-            this.textSVG.addClass('glyph');
+            this.textSVG.addClass('glyph').addClass((this.type));
             this.textSVG.text(codePoints.codepoint);
             this.append(this.textSVG);
         };

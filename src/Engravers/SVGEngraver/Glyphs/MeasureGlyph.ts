@@ -1,5 +1,5 @@
 import { Glyph, ChordGlyph, RestGlyph, ClefGlyph } from './index.js';
-import { Measure, Mark, Chord, Rest, MeasureAttributes, Attributes } from '../../../Schema/Music/index.js';
+import { Measure, Mark, Chord, Rest, MeasureAttributes, SimpleMap } from '../../../Schema/Music/index.js';
 
 export class MeasureGlyph extends Glyph {
     private context: MeasureAttributes;
@@ -78,9 +78,9 @@ export class MeasureGlyph extends Glyph {
 }
 
 
-function diff(keys: string[], a: MeasureAttributes, b: MeasureAttributes): Attributes | null {
+function diff(keys: string[], a: MeasureAttributes, b: MeasureAttributes): SimpleMap | null {
     let isDiff = false;
-    let result: Attributes = {};
+    let result: SimpleMap = {};
 
     for (let k of keys) {
         if (b[k] !== a[k]) {

@@ -3,6 +3,7 @@ export class Chord extends Mark {
     constructor() {
         super(...arguments);
         this.notes = [];
+        this.beams = [];
     }
     get lowestNote() {
         return this.notes[0];
@@ -24,6 +25,9 @@ export class Chord extends Mark {
     addNote(note) {
         this.notes.push(note);
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    }
+    addBeam(beam) {
+        this.beams.push(beam);
     }
 }
 export function ensureChord(chord) {

@@ -2,7 +2,7 @@ import { Glyph, CharGlyph } from './index.js';
 
 export class ClefGlyph extends CharGlyph {
     constructor(clefType: string, private clefLine: number) {
-        super(clefType, 'clef');
+        super('clef', clefType);
 
         this.draw();
     }

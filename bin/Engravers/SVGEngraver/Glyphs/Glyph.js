@@ -33,12 +33,11 @@ export class Glyph extends SVG {
         this.draw();
     }
     // GLYPH OPS
-    get width() {
-        return super.width / Glyph.STAFF_SPACE;
-    }
-    get height() {
-        return super.height / Glyph.STAFF_SPACE;
-    }
+    // here is a huge catch, using super.width would trigger this.bbox
+    // which instead of pointing to SVG.bbox, it uses child class bbox
+    // and leads to double conversion of units, this is extremely
+    // confusing, and no need to override width and height as they
+    // rely only on bbox, override bbox solves the whole problem
     advance(x) {
         Glyph.headPosition.x += x;
         this.move(Glyph.headPosition.x);
@@ -58,8 +57,27 @@ export class Glyph extends SVG {
         return this;
     }
     translate(x, y) {
-        super.translate(x ? x * Glyph.STAFF_SPACE : undefined, y ? y * Glyph.STAFF_SPACE : undefined);
+        super.translate(x ? x * Glyph.STAFF_SPACE : 0, y ? y * Glyph.STAFF_SPACE : 0);
         return this;
+    } // should remove translate, it is the same as move
+    rotate(angle, cx, cy) {
+        cx = cx !== undefined ? cx : 0;
+        cy = cy !== undefined ? cy : 0;
+        super.rotate(angle, cx * Glyph.STAFF_SPACE, cy * Glyph.STAFF_SPACE);
+        return this;
+    }
+    size(width, height) {
+        super.size(width * Glyph.STAFF_SPACE, height * Glyph.STAFF_SPACE);
+        return this;
+    }
+    get bbox() {
+        let bbox = super.bbox;
+        return {
+            x: bbox.x / Glyph.STAFF_SPACE,
+            y: bbox.y / Glyph.STAFF_SPACE,
+            width: bbox.width / Glyph.STAFF_SPACE,
+            height: bbox.height / Glyph.STAFF_SPACE
+        };
     }
 }
 // STATIC

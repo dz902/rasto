@@ -1,6 +1,6 @@
 import glyphnames from '../Schema/SMuFL/glyphnames.js';
 import metadata from '../Fonts/bravura/bravura_metadata.js';
-import { Attributes } from './Music/Common';
+import { SimpleMap } from './Music/Common';
 import { Glyph } from '../Engravers/SVGEngraver/Glyphs/index';
 
 export class Meta {
@@ -26,7 +26,7 @@ export class Meta {
     // QUERY
 
     getGlyphName(type: string, key: string): string {
-        let table: Attributes;
+        let table: SimpleMap;
 
         switch (type) {
             case 'clef':
@@ -43,6 +43,14 @@ export class Meta {
                     'eighth': 'noteheadBlack',
                     '16th': 'noteheadBlack',
                     '32nd': 'noteheadBlack'
+                };
+
+                break;
+            case 'flag':
+                table = {
+                    'eighth': 'flag8thUp',
+                    '16th': 'flag16thUp',
+                    '32th': 'flag32thUp'
                 };
 
                 break;

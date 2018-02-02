@@ -9,19 +9,25 @@ export class RectGlyph extends Glyph {
         this.draw();
     }
 
-    size(width: number, height: number): RectGlyph {
-        this.rectSVG.size(width*Glyph.STAFF_SPACE, height*Glyph.STAFF_SPACE);
-
-        return this;
-    }
-
-    protected set attachPoints(attachPoints: {x: number, y: number}) {
-        this.translate(attachPoints.x, attachPoints.y);
-    }
-
     protected draw = (): void => {
         this.rectSVG = new SVG('rect');
 
         this.append(this.rectSVG);
+    }
+
+    get width() {
+        return super.width;
+    }
+
+    set width(width: number) {
+        this.rectSVG.setAttribute('width', width*Glyph.STAFF_SPACE);
+    }
+
+    get height() {
+        return super.height;
+    }
+
+    set height(height: number) {
+        this.rectSVG.setAttribute('height', height*Glyph.STAFF_SPACE);
     }
 }

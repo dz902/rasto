@@ -8,12 +8,17 @@ export class RectGlyph extends Glyph {
         };
         this.draw();
     }
-    size(width, height) {
-        this.rectSVG.size(width * Glyph.STAFF_SPACE, height * Glyph.STAFF_SPACE);
-        return this;
+    get width() {
+        return super.width;
     }
-    set attachPoints(attachPoints) {
-        this.translate(attachPoints.x, attachPoints.y);
+    set width(width) {
+        this.rectSVG.setAttribute('width', width * Glyph.STAFF_SPACE);
+    }
+    get height() {
+        return super.height;
+    }
+    set height(height) {
+        this.rectSVG.setAttribute('height', height * Glyph.STAFF_SPACE);
     }
 }
 //# sourceMappingURL=RectGlyph.js.map
