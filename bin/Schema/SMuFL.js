@@ -52,17 +52,22 @@ export class Meta {
                 break;
             case 'time':
                 table = {
+                    '0': 'timeSig0',
+                    '1': 'timeSig1',
                     '2': 'timeSig2',
                     '3': 'timeSig3',
                     '4': 'timeSig4',
+                    '5': 'timeSig5',
                     '6': 'timeSig6',
-                    '8': 'timeSig8'
+                    '7': 'timeSig7',
+                    '8': 'timeSig8',
+                    '9': 'timeSig9'
                 };
                 break;
             default:
                 table = {};
         }
-        let glyphName = table[key];
+        let glyphName = table[String(key)];
         if (glyphName === undefined) {
             throw new Error(`unknown glyph ${type}-${key}`);
         }
@@ -91,6 +96,13 @@ export class Meta {
             throw new Error(`no anchors for glyph ${type}-${key}`);
         }
         return glyphAnchors;
+    }
+    getGlyphSize(type, key) {
+        let bbox = this.getGlyphBBox(type, key);
+        return {
+            width: bbox.bBoxNE[0] - bbox.bBoxSW[0],
+            height: bbox.bBoxNE[1] - bbox.bBoxSW[1]
+        };
     }
 }
 function formatCodePoints(codePoints) {

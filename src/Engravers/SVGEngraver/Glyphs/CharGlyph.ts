@@ -4,10 +4,10 @@ export class CharGlyph extends Glyph {
     protected textSVG: SVG;
     protected glyphKey: string;
 
-    constructor(type: string, key: string, id?: string) {
+    constructor(type: string, key: string | number, id?: string) {
         super(type, id);
 
-        this.glyphKey = key;
+        this.glyphKey = String(key);  // number is ok
 
         this.draw();
     }

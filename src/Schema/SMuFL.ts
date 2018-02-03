@@ -25,7 +25,7 @@ export class Meta {
 
     // QUERY
 
-    getGlyphName(type: string, key: string): string {
+    getGlyphName(type: string, key: string | number): string {
         let table: SimpleMap;
 
         switch (type) {
@@ -68,11 +68,16 @@ export class Meta {
                 break;
             case 'time':
                 table = {
+                    '0': 'timeSig0',
+                    '1': 'timeSig1',
                     '2': 'timeSig2',
                     '3': 'timeSig3',
                     '4': 'timeSig4',
+                    '5': 'timeSig5',
                     '6': 'timeSig6',
-                    '8': 'timeSig8'
+                    '7': 'timeSig7',
+                    '8': 'timeSig8',
+                    '9': 'timeSig9'
                 };
 
                 break;
@@ -80,7 +85,7 @@ export class Meta {
                 table = {};
         }
 
-        let glyphName = table[key];
+        let glyphName = table[String(key)];
 
         if (glyphName === undefined) {
             throw new Error(`unknown glyph ${type}-${key}`);
@@ -89,7 +94,7 @@ export class Meta {
         return glyphName;
     }
 
-    getGlyphBBox(type: string, key: string): GlyphBBox {
+    getGlyphBBox(type: string, key: string | number): GlyphBBox {
         let glyphName = this.getGlyphName(type, key);
         let glyphBBox = this.glyphBBoxes[glyphName];
 
@@ -100,7 +105,7 @@ export class Meta {
         return glyphBBox;
     }
 
-    getGlyphCodePoints(type: string, key: string): GlyphCodePoints {
+    getGlyphCodePoints(type: string, key: string | number): GlyphCodePoints {
         let glyphName = this.getGlyphName(type, key);
         let glyphCodePoints = this.glyphCodePointsMap[glyphName];
 
@@ -111,7 +116,7 @@ export class Meta {
         return glyphCodePoints;
     }
 
-    getGlyphAnchors(type: string, key: string): GlyphAnchors {
+    getGlyphAnchors(type: string, key: string | number): GlyphAnchors {
         let glyphName = this.getGlyphName(type, key);
         let glyphAnchors = this.glyphWithAnchors[glyphName];
 
@@ -121,7 +126,17 @@ export class Meta {
 
         return glyphAnchors;
     }
+
+    getGlyphSize(type: string, key: string | number): GlyphSize {
+        let bbox = this.getGlyphBBox(type, key);
+
+        return {
+            width: bbox.bBoxNE[0] - bbox.bBoxSW[0],
+            height: bbox.bBoxNE[1] - bbox.bBoxSW[1]
+        }
+    }
 }
+
 
 export interface EngravingDefaults {
     staffLineThickness: number;
@@ -130,6 +145,11 @@ export interface EngravingDefaults {
     legerLineExtension: number;
     beamThickness: number;
     beamSpacing: number;
+}
+
+export interface GlyphSize {
+    width: number;
+    height: number;
 }
 
 export interface GlyphBBox {

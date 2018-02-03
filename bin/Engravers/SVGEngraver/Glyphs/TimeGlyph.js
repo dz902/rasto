@@ -6,16 +6,48 @@ export class TimeGlyph extends Glyph {
         this.beatType = beatType;
         this.drawBeat();
         this.drawBeatType();
+        this.alignBeatDigits();
     }
     drawBeat() {
-        let beatGlyph = new CharGlyph('time', this.beat);
-        beatGlyph.translate(undefined, 3);
-        this.append(beatGlyph);
+        this.beatGlyph = new Glyph('time-beat');
+        this.append(this.beatGlyph);
+        // checkDoubleDigitBeat
+        let isDoubleDigit = this.beat >= 10;
+        if (isDoubleDigit) {
+            // drawBeatTen
+            let beatGlyphTen = new CharGlyph('time', 1);
+            beatGlyphTen.shiftFromStaffBottom(3);
+            this.beatGlyph.append(beatGlyphTen);
+        }
+        // drawBeatDigit
+        let digitBeat = this.beat % 10;
+        let beatGlyphDigit = new CharGlyph('time', digitBeat);
+        beatGlyphDigit.shiftFromStaffBottom(3);
+        this.beatGlyph
+            .append(beatGlyphDigit);
+        // checkDigitBeatOffset
+        let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
+        beatGlyphDigit.translate(beatGlyphOneWidth);
     }
     drawBeatType() {
-        let beatGlyph = new CharGlyph('time', `${this.beatType}`);
-        beatGlyph.translate(undefined, 1);
-        this.append(beatGlyph);
+        this.beatTypeGlyph = new CharGlyph('time', this.beatType);
+        this.beatTypeGlyph.shiftFromStaffBottom(1);
+        this.append(this.beatTypeGlyph);
+    }
+    alignBeatDigits() {
+        let longerGlyph;
+        let shorterGlyph;
+        if (this.beatGlyph.width > this.beatTypeGlyph.width) {
+            longerGlyph = this.beatGlyph;
+            shorterGlyph = this.beatTypeGlyph;
+        }
+        else {
+            shorterGlyph = this.beatGlyph;
+            longerGlyph = this.beatTypeGlyph;
+        }
+        let widthDiff = longerGlyph.width - shorterGlyph.width;
+        let offsetX = widthDiff / 2;
+        shorterGlyph.translate(offsetX);
     }
 }
 //# sourceMappingURL=TimeGlyph.js.map

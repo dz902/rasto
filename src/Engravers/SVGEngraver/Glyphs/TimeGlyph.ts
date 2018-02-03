@@ -1,26 +1,76 @@
 import { Glyph, CharGlyph } from './index.js';
 
 export class TimeGlyph extends Glyph {
+    private beatGlyph: Glyph;
+    private beatTypeGlyph: CharGlyph;
+
     constructor(private beat: number, private beatType: number) {
         super('time');
 
         this.drawBeat();
         this.drawBeatType();
+        this.alignBeatDigits();
     }
 
     private drawBeat(): void {
-        let beatGlyph = new CharGlyph('time', this.beat);
+        this.beatGlyph = new Glyph('time-beat');
 
-        beatGlyph.translate(undefined, 3);
+        this.append(this.beatGlyph);
 
-        this.append(beatGlyph);
+        // checkDoubleDigitBeat
+
+        let isDoubleDigit = this.beat >= 10;
+
+        if (isDoubleDigit) {
+            // drawBeatTen
+
+            let beatGlyphTen = new CharGlyph('time', 1);
+
+            beatGlyphTen.shiftFromStaffBottom(3);
+
+            this.beatGlyph.append(beatGlyphTen);
+        }
+
+        // drawBeatDigit
+
+        let digitBeat = this.beat % 10;
+        let beatGlyphDigit = new CharGlyph('time', digitBeat);
+
+        beatGlyphDigit.shiftFromStaffBottom(3);
+
+        this.beatGlyph
+            .append(beatGlyphDigit);
+
+        // checkDigitBeatOffset
+
+        let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
+
+        beatGlyphDigit.translate(beatGlyphOneWidth);
     }
 
     private drawBeatType(): void {
-        let beatGlyph = new CharGlyph('time', `${this.beatType}`);
+        this.beatTypeGlyph = new CharGlyph('time', this.beatType);
 
-        beatGlyph.translate(undefined, 1);
+        this.beatTypeGlyph.shiftFromStaffBottom(1);
 
-        this.append(beatGlyph);
+        this.append(this.beatTypeGlyph);
+    }
+
+    private alignBeatDigits(): void {
+        let longerGlyph: Glyph;
+        let shorterGlyph: Glyph;
+
+        if (this.beatGlyph.width > this.beatTypeGlyph.width) {
+            longerGlyph = this.beatGlyph;
+            shorterGlyph = this.beatTypeGlyph;
+        } else {
+            shorterGlyph = this.beatGlyph;
+            longerGlyph = this.beatTypeGlyph;
+        }
+
+        let widthDiff = longerGlyph.width - shorterGlyph.width;
+        let offsetX = widthDiff / 2;
+
+        shorterGlyph.translate(offsetX);
     }
 }

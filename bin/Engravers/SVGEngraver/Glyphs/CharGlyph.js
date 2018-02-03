@@ -9,7 +9,7 @@ export class CharGlyph extends Glyph {
             this.textSVG.text(codePoints.codepoint);
             this.append(this.textSVG);
         };
-        this.glyphKey = key;
+        this.glyphKey = String(key); // number is ok
         this.draw();
     }
 }
