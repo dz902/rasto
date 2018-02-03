@@ -30,9 +30,11 @@ export class TimeGlyph extends Glyph {
         beatGlyphDigit.translate(beatGlyphOneWidth);
     }
     drawBeatType() {
-        this.beatTypeGlyph = new CharGlyph('time', this.beatType);
-        this.beatTypeGlyph.shiftFromStaffBottom(1);
+        this.beatTypeGlyph = new Glyph('time-beat-type');
         this.append(this.beatTypeGlyph);
+        let beatTypeDigitGlyph = new CharGlyph('time', this.beatType);
+        beatTypeDigitGlyph.shiftFromStaffBottom(1);
+        this.beatTypeGlyph.append(beatTypeDigitGlyph);
     }
     alignBeatDigits() {
         let longerGlyph;

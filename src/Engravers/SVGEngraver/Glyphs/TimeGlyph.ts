@@ -2,7 +2,7 @@ import { Glyph, CharGlyph } from './index.js';
 
 export class TimeGlyph extends Glyph {
     private beatGlyph: Glyph;
-    private beatTypeGlyph: CharGlyph;
+    private beatTypeGlyph: Glyph;
 
     constructor(private beat: number, private beatType: number) {
         super('time');
@@ -49,11 +49,14 @@ export class TimeGlyph extends Glyph {
     }
 
     private drawBeatType(): void {
-        this.beatTypeGlyph = new CharGlyph('time', this.beatType);
-
-        this.beatTypeGlyph.shiftFromStaffBottom(1);
-
+        this.beatTypeGlyph = new Glyph('time-beat-type');
         this.append(this.beatTypeGlyph);
+
+        let beatTypeDigitGlyph = new CharGlyph('time', this.beatType);
+
+        beatTypeDigitGlyph.shiftFromStaffBottom(1);
+
+        this.beatTypeGlyph.append(beatTypeDigitGlyph);
     }
 
     private alignBeatDigits(): void {
