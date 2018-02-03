@@ -43,6 +43,15 @@
             <note>
                 <chord />
                 <pitch>
+                    <step>B</step>
+                    <octave>5</octave>
+                </pitch>
+                <duration>2</duration>
+                <type>64th</type>
+            </note>
+            <note>
+                <chord />
+                <pitch>
                     <step>G</step>
                     <octave>4</octave>
                 </pitch>
@@ -52,8 +61,8 @@
             <note>
                 <chord />
                 <pitch>
-                    <step>G</step>
-                    <octave>5</octave>
+                    <step>A</step>
+                    <octave>4</octave>
                 </pitch>
                 <duration>2</duration>
                 <type>64th</type>

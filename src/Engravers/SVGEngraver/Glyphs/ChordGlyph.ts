@@ -41,50 +41,49 @@ export class ChordGlyph extends Glyph {
     }
 
     private drawNotes(): void {
-        this.chord.notes.forEach((note: Note, i: number) => {
-            let prevNote = this.chord.notes[i - 1] ? this.chord.notes[i - 1] : note;
+        let drawNote = (note: Note, i: number, notes: Note[]) => {
+            let noteHeadGlyph = new NoteHeadGlyph(note);
 
-            this.drawNote(note, prevNote);
-        });
-    }
+            let offsets = { x: 0, y: 0 };
 
-    private drawNote(note: Note, prevNote: Note): void {
-        let noteHeadGlyph = new NoteHeadGlyph(note);
+            // checkAdjacentNotes
 
-        let offsets = { x: 0, y: 0 };
+            let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
 
-        // checkAdjacentNotes
+            if (this.direction === StemDirection.Up) {
+                let prevNote = notes[i - 1] ? notes[i - 1] : undefined;
+                let prevPrevNote = notes[i - 2] ? notes[i - 2] : undefined;
+                let isNotConsecutive = prevNote && prevPrevNote && prevNote.getIntervalTo(prevPrevNote) !== 2;
+                let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
+                let needsDisplacement = isNotConsecutive && isSecond;
 
-        let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
+                if (needsDisplacement) {
+                    offsets.x = this.noteHeadWidth;
+                }
+            } else {
+                let nextNote = notes[i + 1] ? notes[i + 1] : undefined;
+                let nextNextNote = notes[i + 2] ? notes[i + 2] : undefined;
+                let isNotConsective = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
+                let isSecond = nextNote && note.getIntervalTo(nextNote) === 2;
+                let needsDisplacement = isNotConsective && isSecond;
 
-        if (this.direction === StemDirection.Up) {
-            let isNotThirds = intervalToLowestNote % 3 !== 0; // thirds always stay in place
-            let isSecond = note.getIntervalTo(prevNote) === 2;
-            let isAdjacent = isNotThirds && isSecond;
-
-            if (isAdjacent) {
                 offsets.x = this.noteHeadWidth;
+
+                if (needsDisplacement) {
+                    offsets.x = 0;
+                }
             }
-        } else {
-            let intervalToHighestNote = note.getIntervalTo(this.chord.highestNote);
-            let isThirds = intervalToHighestNote % 3 === 0; // thirds always stay in place
-            let isNotTopNote = intervalToHighestNote !== 1;
-            let needsDisplacement = isThirds && isNotTopNote;
 
-            offsets.x = this.noteHeadWidth;
+            // moveNoteToStaffPlace
 
-            if (needsDisplacement) {
-                offsets.x = 0;
-            }
-        }
+            offsets.y = intervalToLowestNote - 1;  // intervals starts with unison = 1
 
-        // moveNoteToStaffPlace
+            noteHeadGlyph.translate(offsets.x, -offsets.y/2);
 
-        offsets.y = intervalToLowestNote - 1;  // intervals starts with unison = 1
+            this.append(noteHeadGlyph);
+        };
 
-        noteHeadGlyph.translate(offsets.x, -offsets.y/2);
-
-        this.append(noteHeadGlyph);
+        this.chord.notes.forEach(drawNote);
     }
 
     private checkDirection(): void {
