@@ -1,4 +1,4 @@
-import { Beam, MeasureAttributes, Note, Mark, ensure } from './index.js';
+import { Beam, Note, Mark, ensure } from './index.js';
 
 export class Chord extends Mark {
     readonly notes: Note[] = [];

@@ -1,6 +1,5 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
 import { Chord, Note } from '../../../Schema/Music/index.js';
-import {  } from './index';
 
 export class ChordGlyph extends Glyph {
     private direction: StemDirection = StemDirection.Down;
@@ -27,6 +26,7 @@ export class ChordGlyph extends Glyph {
         this.drawNotes();
         this.checkStem();
         this.checkFlag();
+        this.checkAccidentals();
         this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace)/2);
     }
 
@@ -63,9 +63,9 @@ export class ChordGlyph extends Glyph {
             } else {
                 let nextNote = notes[i + 1] ? notes[i + 1] : undefined;
                 let nextNextNote = notes[i + 2] ? notes[i + 2] : undefined;
-                let isNotConsective = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
+                let isNotConsecutive = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
                 let isSecond = nextNote && note.getIntervalTo(nextNote) === 2;
-                let needsDisplacement = isNotConsective && isSecond;
+                let needsDisplacement = isNotConsecutive && isSecond;
 
                 offsets.x = this.noteHeadWidth;
 
@@ -84,6 +84,16 @@ export class ChordGlyph extends Glyph {
         };
 
         this.chord.notes.forEach(drawNote);
+    }
+
+    private checkAccidentals(): void {
+        // extractAccidentals
+
+        let accidentals: { line: number, alter: number }[] = []; // pitch-alter or accidental element
+
+        this.chord.notes.forEach((note: Note) => {
+
+        });
     }
 
     private checkDirection(): void {

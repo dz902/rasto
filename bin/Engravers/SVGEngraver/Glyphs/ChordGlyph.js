@@ -15,6 +15,7 @@ export class ChordGlyph extends Glyph {
         this.drawNotes();
         this.checkStem();
         this.checkFlag();
+        this.checkAccidentals();
         this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace) / 2);
     }
     get noteHeadWidth() {
@@ -43,9 +44,9 @@ export class ChordGlyph extends Glyph {
             else {
                 let nextNote = notes[i + 1] ? notes[i + 1] : undefined;
                 let nextNextNote = notes[i + 2] ? notes[i + 2] : undefined;
-                let isNotConsective = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
+                let isNotConsecutive = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
                 let isSecond = nextNote && note.getIntervalTo(nextNote) === 2;
-                let needsDisplacement = isNotConsective && isSecond;
+                let needsDisplacement = isNotConsecutive && isSecond;
                 offsets.x = this.noteHeadWidth;
                 if (needsDisplacement) {
                     offsets.x = 0;
@@ -57,6 +58,12 @@ export class ChordGlyph extends Glyph {
             this.append(noteHeadGlyph);
         };
         this.chord.notes.forEach(drawNote);
+    }
+    checkAccidentals() {
+        // extractAccidentals
+        let accidentals = []; // pitch-alter or accidental element
+        this.chord.notes.forEach((note) => {
+        });
     }
     checkDirection() {
         let chord = this.chord;

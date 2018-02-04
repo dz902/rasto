@@ -7,6 +7,14 @@ export class MusicalElement {
         this.data[k] = value;
     }
 }
+export class StaffPlace {
+    static octave(i) {
+        return i * 7 - 1;
+    }
+    static third() {
+        return 3;
+    }
+}
 export function maybe(value, thenCallback) {
     if (value !== undefined) {
         if (thenCallback) {

@@ -11,6 +11,17 @@ export class MusicalElement {
     }
 }
 
+export abstract class StaffPlace {
+    static octave(i: number): number {
+        return i * 7 - 1;
+    }
+
+    static third(): number {
+        return 3;
+    }
+}
+
+
 export function maybe<T>(value: T, thenCallback?: (value: T) => any): T | undefined {
     if (value !== undefined) {
         if (thenCallback) {
