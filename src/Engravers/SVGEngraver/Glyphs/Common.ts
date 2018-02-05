@@ -6,6 +6,10 @@ export class SVG {
     private createElement(name: string): SVGGraphicsElement {
         let element = document.createElementNS('http://www.w3.org/2000/svg', name);
 
+        if (!(element instanceof SVGGraphicsElement)) {
+            throw new Error();
+        }
+
         // addElementToInvisibleSVG
 
         if (!SVG.invisibleSVG) {
@@ -111,14 +115,14 @@ export class SVG {
         // getTransformer
 
         if (this.transformerElement === undefined) {
+            let transformers = this.rawElement
+                                   .querySelectorAll('g.transformer');
 
-            this.rawElement
-                .querySelectorAll('g.transformer')
-                .forEach((el) => {
-                    if (el.parentNode === this.rawElement) {
-                        this.transformerElement = <SVGGElement> el;
-                    }
-                });
+            Array.from(transformers).forEach((el: Element) => {
+                if (el.parentNode === this.rawElement) {
+                    this.transformerElement = <SVGGElement> el;
+                }
+            });
 
             let notTransformed = (this.transformerElement === undefined);
 

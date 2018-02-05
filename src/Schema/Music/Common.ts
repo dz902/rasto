@@ -47,6 +47,22 @@ export function ensure<U, T>(value: U, errorMessage: string, predicate: (value: 
     }
 }
 
+export function diff<T extends SimpleMap, K extends keyof T>(keys: K[], a: T, b: T): Maybe<SimpleMap> {
+    let isDiff = false;
+    let result: SimpleMap = {};
+
+    for (let k of keys) {
+        if (b[k] !== a[k]) {
+            isDiff = true;
+            result[k] = b[k];
+        } else {
+            result[k] = a[k]; // still keep original key and value
+        }
+    }
+
+    return isDiff ? result : null;
+}
+
 export function ensureNumber(value: any): number {
     let numericValue = Number(value);
 

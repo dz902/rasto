@@ -1,4 +1,4 @@
-import { Note, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from './index.js';
+import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from './index.js';
 
 export class Measure extends MusicalElement {
     readonly attributesList: MeasureAttributes[] = [];
@@ -11,13 +11,13 @@ export class Measure extends MusicalElement {
     addAttributes(a: SimpleMap) {
         // ensureMeasureAttributes
 
-        let attributes: MeasureAttributes = {};
-
-        attributes.divisions = maybeThen(a.divisions, ensureNumber);
-        attributes.timeBeats = maybeThen(a.timeBeats, ensureNumber);
-        attributes.timeBeatType = maybeThen(a.timeBeatType, ensureNumber);
-        attributes.clefSign = maybe(a.clefSign);
-        attributes.clefLine = maybeThen(a.clefLine, ensureNumber);
+        let attributes: MeasureAttributes = {
+            divisions: maybeThen(a.divisions, ensureNumber),
+            timeBeats: maybeThen(a.timeBeats, ensureNumber),
+            timeBeatType: maybeThen(a.timeBeatType, ensureNumber),
+            clefSign: maybe(a.clefSign),
+            clefLine: maybeThen(a.clefLine, ensureNumber)
+        };
 
         if (this.attributesList.length > 0) {
             attributes = {...this.attributesList[this.attributesList.length-1], ...attributes}; // inherit and overwrite
@@ -32,9 +32,9 @@ export class Measure extends MusicalElement {
 }
 
 export interface MeasureAttributes extends SimpleMap {
-    divisions?: number;
-    timeBeats?: number;
-    timeBeatType?: number;
-    clefSign?: string;
-    clefLine?: number;
+    divisions: Maybe<number>;
+    timeBeats: Maybe<number>;
+    timeBeatType: Maybe<number>;
+    clefSign: Maybe<string>;
+    clefLine: Maybe<number>;
 };

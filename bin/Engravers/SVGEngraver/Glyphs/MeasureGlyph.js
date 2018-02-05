@@ -1,5 +1,5 @@
-import { Glyph, TimeGlyph, ChordGlyph, RestGlyph, ClefGlyph } from './index.js';
-import { Chord, Rest } from '../../../Schema/Music/index.js';
+import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './index.js';
+import { Chord, Rest, diff } from '../../../Schema/Music/index.js';
 export class MeasureGlyph extends Glyph {
     constructor(measure) {
         super('measure', measure.id);
@@ -62,20 +62,6 @@ export class MeasureGlyph extends Glyph {
             this.drawTime(timeDiff.timeBeats, timeDiff.timeBeatType);
         }
     }
-}
-function diff(keys, a, b) {
-    let isDiff = false;
-    let result = {};
-    for (let k of keys) {
-        if (b[k] !== a[k]) {
-            isDiff = true;
-            result[k] = b[k];
-        }
-        else {
-            result[k] = a[k]; // still keep original key and value
-        }
-    }
-    return isDiff ? result : null;
 }
 ;
 //# sourceMappingURL=MeasureGlyph.js.map

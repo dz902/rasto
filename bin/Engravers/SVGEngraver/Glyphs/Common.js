@@ -1,6 +1,9 @@
 export class SVG {
     createElement(name) {
         let element = document.createElementNS('http://www.w3.org/2000/svg', name);
+        if (!(element instanceof SVGGraphicsElement)) {
+            throw new Error();
+        }
         // addElementToInvisibleSVG
         if (!SVG.invisibleSVG) {
             // funny this won't work as style is not loaded into a blank svg, now we only use width in metadata
@@ -80,9 +83,9 @@ export class SVG {
         // so we use a G instead of SVG
         // getTransformer
         if (this.transformerElement === undefined) {
-            this.rawElement
-                .querySelectorAll('g.transformer')
-                .forEach((el) => {
+            let transformers = this.rawElement
+                .querySelectorAll('g.transformer');
+            Array.from(transformers).forEach((el) => {
                 if (el.parentNode === this.rawElement) {
                     this.transformerElement = el;
                 }

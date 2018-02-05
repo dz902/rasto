@@ -1,5 +1,5 @@
-import { Glyph, TimeGlyph, ChordGlyph, RestGlyph, ClefGlyph } from './index.js';
-import { Measure, Mark, Chord, Rest, MeasureAttributes, SimpleMap } from '../../../Schema/Music/index.js';
+import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './index.js';
+import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureAttributes, Rest, diff } from '../../../Schema/Music/index.js';
 
 export class MeasureGlyph extends Glyph {
     private context: MeasureAttributes;
@@ -59,8 +59,8 @@ export class MeasureGlyph extends Glyph {
     private applyContextChange(newContext: MeasureAttributes, oldContext?: MeasureAttributes): void {
         this.context = newContext;
 
-        let clefDiff: MeasureAttributes | null;
-        let timeDiff: MeasureAttributes | null;
+        let clefDiff: Maybe<SimpleMap>;
+        let timeDiff: Maybe<SimpleMap>;
         let isInitialContext = (oldContext === undefined);
 
         if (isInitialContext) {
@@ -82,18 +82,4 @@ export class MeasureGlyph extends Glyph {
 }
 
 
-function diff(keys: string[], a: MeasureAttributes, b: MeasureAttributes): SimpleMap | null {
-    let isDiff = false;
-    let result: SimpleMap = {};
-
-    for (let k of keys) {
-        if (b[k] !== a[k]) {
-            isDiff = true;
-            result[k] = b[k];
-        } else {
-            result[k] = a[k]; // still keep original key and value
-        }
-    }
-
-    return isDiff ? result : null;
-};
+;

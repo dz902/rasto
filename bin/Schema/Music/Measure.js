@@ -10,12 +10,13 @@ export class Measure extends MusicalElement {
     }
     addAttributes(a) {
         // ensureMeasureAttributes
-        let attributes = {};
-        attributes.divisions = maybeThen(a.divisions, ensureNumber);
-        attributes.timeBeats = maybeThen(a.timeBeats, ensureNumber);
-        attributes.timeBeatType = maybeThen(a.timeBeatType, ensureNumber);
-        attributes.clefSign = maybe(a.clefSign);
-        attributes.clefLine = maybeThen(a.clefLine, ensureNumber);
+        let attributes = {
+            divisions: maybeThen(a.divisions, ensureNumber),
+            timeBeats: maybeThen(a.timeBeats, ensureNumber),
+            timeBeatType: maybeThen(a.timeBeatType, ensureNumber),
+            clefSign: maybe(a.clefSign),
+            clefLine: maybeThen(a.clefLine, ensureNumber)
+        };
         if (this.attributesList.length > 0) {
             attributes = Object.assign({}, this.attributesList[this.attributesList.length - 1], attributes); // inherit and overwrite
         }

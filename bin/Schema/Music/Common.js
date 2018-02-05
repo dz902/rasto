@@ -39,6 +39,20 @@ export function ensure(value, errorMessage, predicate) {
         throw new Error(errorMessage);
     }
 }
+export function diff(keys, a, b) {
+    let isDiff = false;
+    let result = {};
+    for (let k of keys) {
+        if (b[k] !== a[k]) {
+            isDiff = true;
+            result[k] = b[k];
+        }
+        else {
+            result[k] = a[k]; // still keep original key and value
+        }
+    }
+    return isDiff ? result : null;
+}
 export function ensureNumber(value) {
     let numericValue = Number(value);
     return ensure(numericValue, `value ${value} is not a valid number`, (n) => !Number.isNaN(n));

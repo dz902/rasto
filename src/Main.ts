@@ -2,7 +2,7 @@ import { MusicXMLParser } from './Parsers/MusicXMLParser.js';
 import { SVGEngraver } from './Engravers/SVGEngraver.js';
 
 function Main() {
-    fetch('../var/Accidentals.xml')
+    fetch('../../var/Accidentals.xml')
         .then(response => response.text())
         .then((xmlString) => {
             let score = MusicXMLParser.parse(xmlString);

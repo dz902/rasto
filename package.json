@@ -1,0 +1,26 @@
+{
+  "name": "rasto",
+  "version": "0.0.1",
+  "description": "Rasto",
+  "main": "index.js",
+  "bin": {
+    "rasto": "Engraver.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "backstopjs": "^3.0.39"
+  },
+  "scripts": {
+    "backstopjs": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dz902/rasto.git"
+  },
+  "author": "dz902",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dz902/rasto/issues"
+  },
+  "homepage": "https://github.com/dz902/rasto#readme"
+}

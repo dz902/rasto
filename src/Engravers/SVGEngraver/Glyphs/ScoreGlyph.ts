@@ -15,7 +15,7 @@ export class ScoreGlyph extends Glyph {
         style.text(`
             @font-face {
                 font-family: "Bravura";
-                src: url(./Fonts/bravura/woff/Bravura.woff) format("woff");
+                src: url(../../Fonts/bravura/woff/Bravura.woff) format("woff");
             }
             svg.viewport {
                 overflow: hidden;
