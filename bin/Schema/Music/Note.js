@@ -1,16 +1,19 @@
 import { Stem, MusicalElement, ensure, ensureMarkType, ensureNumber } from './index.js';
 export class Note extends MusicalElement {
-    constructor(type, pitchOctave, pitchStep, duration) {
+    constructor(type, pitchOctave, pitchStep, pitchAlter, duration) {
         super();
         this.beams = [];
         this.type = ensureMarkType(type);
         this.pitchOctave = ensurePitchOctave(pitchOctave);
         this.pitchStep = ensurePitchStep(pitchStep);
+        this.pitchAlter = pitchAlter;
         this.duration = duration;
         this.stem = new Stem("up");
     }
     addBeam(beam) {
         this.beams.push(beam);
+    }
+    addAccidental(accidental) {
     }
     configureStem(stem) {
     }

@@ -15,17 +15,20 @@ export class StaffPlace {
         return 3;
     }
 }
-export function maybe(value, thenCallback) {
-    if (value !== undefined) {
-        if (thenCallback) {
-            return thenCallback(value);
-        }
-        else {
-            return value;
-        }
+export function maybeThen(value, thenCallback) {
+    if (value !== undefined && value !== null) {
+        return thenCallback(value);
     }
     else {
-        return undefined;
+        return null;
+    }
+}
+export function maybe(value) {
+    if (value !== undefined) {
+        return value;
+    }
+    else {
+        return null;
     }
 }
 export function ensure(value, errorMessage, predicate) {

@@ -8,6 +8,6 @@ export class ClefGlyph extends CharGlyph {
     }
 
     protected draw = (): void => {
-        this.shiftFromStaffBottom(this.clefLine/2);
+        this.shiftFromStaffBottom(this.clefLine-1);
     }
 }

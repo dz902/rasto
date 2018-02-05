@@ -21,16 +21,21 @@ export abstract class StaffPlace {
     }
 }
 
+export type Maybe<T> = T | null;
 
-export function maybe<T>(value: T, thenCallback?: (value: T) => any): T | undefined {
-    if (value !== undefined) {
-        if (thenCallback) {
-            return thenCallback(value);
-        } else {
-            return value;
-        }
+export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
+    if (value !== undefined && value !== null) {
+        return thenCallback(value);
     } else {
-        return undefined;
+        return null;
+    }
+}
+
+export function maybe<T>(value: T): Maybe<T> {
+    if (value !== undefined) {
+        return value;
+    } else {
+        return null;
     }
 }
 

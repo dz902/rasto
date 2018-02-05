@@ -31,8 +31,8 @@ export class ChordGlyph extends Glyph {
             let offsets = { x: 0, y: 0 };
             // checkAdjacentNotes
             let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
+            let prevNote = notes[i - 1] ? notes[i - 1] : undefined;
             if (this.direction === StemDirection.Up) {
-                let prevNote = notes[i - 1] ? notes[i - 1] : undefined;
                 let prevPrevNote = notes[i - 2] ? notes[i - 2] : undefined;
                 let isNotConsecutive = prevNote && prevPrevNote && prevNote.getIntervalTo(prevPrevNote) !== 2;
                 let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
@@ -43,8 +43,7 @@ export class ChordGlyph extends Glyph {
             }
             else {
                 let nextNote = notes[i + 1] ? notes[i + 1] : undefined;
-                let nextNextNote = notes[i + 2] ? notes[i + 2] : undefined;
-                let isNotConsecutive = nextNote && nextNextNote && nextNote.getIntervalTo(nextNextNote) !== 2;
+                let isNotConsecutive = prevNote === undefined || note.getIntervalTo(prevNote) !== 2;
                 let isSecond = nextNote && note.getIntervalTo(nextNote) === 2;
                 let needsDisplacement = isNotConsecutive && isSecond;
                 offsets.x = this.noteHeadWidth;

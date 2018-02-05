@@ -31,6 +31,7 @@ export class Meta {
         switch (type) {
             case 'clef':
                 table = {
+                    'F': 'fClef',
                     'G': 'gClef'
                 };
 

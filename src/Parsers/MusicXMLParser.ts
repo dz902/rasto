@@ -1,4 +1,4 @@
-import { ensureNumber, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -58,7 +58,7 @@ export class MusicXMLParser {
         $measure.qq('attributes, note')
                 .each(($element) => {
                     if ($element.name === 'attributes') {
-                        measure.addAttributes($measure.collectAttributes($element));
+                        measure.addAttributes($element.collectAttributeElements());
 
                         return;
                     }
@@ -79,24 +79,35 @@ export class MusicXMLParser {
                             measure.addMark(lastMark);
                         }
 
+                        // processNote
+
+                        let noteAttributes = $note.collectAttributeElements();
+                        let note = new Note(
+                            noteAttributes['type'],
+                            ensureNumber(noteAttributes['pitchOctave']),
+                            noteAttributes['pitchStep'],
+                            maybeThen(noteAttributes['pitchAlter'], ensureNumber),
+                            ensureNumber(noteAttributes['duration'])
+                        );
+
+                        $note.has('beam', ($beams) => {
+                            $beams.each(($beam) => {
+                                note.addBeam(new Beam($beam.attributes['number'],
+                                                       $beam.value))
+                            });
+                        });
+
+                        $note.hasOne('accidental', ($accidental) => {
+                            let accidental = new Accidental($accidental.value);
+
+                            note.addAccidental(accidental);
+                        });
+
                         let chord = <Chord> lastMark;
 
                         chord.addNote(
-                            new Note(
-                                $note.q('type').value,
-                                ensureNumber($note.q('pitch octave').value),
-                                $note.q('pitch step').value,
-                                ensureNumber($note.q('duration').value)
-                            )
+                            note
                         );
-
-                        if ($note.has('beam')) {
-                            $note.qq('beam')
-                                 .each(($beam) => {
-                                     chord.addBeam(new Beam($beam.attributes['number'],
-                                                            $beam.value))
-                                 });
-                        }
                     }
                 });
 
@@ -207,12 +218,30 @@ class DOM {
         return true;
     }
 
+    hasOne(childNodeName: string, callback?: (node: DOM) => void): boolean {
+        let hasExactlyOne: boolean = false;
+
+        this.has(childNodeName, ($nodes) => {
+            if ($nodes.length === 1) {
+                hasExactlyOne = true;
+
+                if (callback) {
+                    callback($nodes.item(0));
+                }
+            }
+        });
+
+        return hasExactlyOne;
+    }
+
     eachChild(callback: (node: DOM) => void): void {
         DOMCollection.wrap(this.currentNode.children)
                      .each(callback);
     }
 
-    collectAttributes($attributes: DOM): SimpleMap {
+    collectAttributeElements(): SimpleMap {
+        let $attributes = this;
+
         let collectNestedAttributes = ($a: DOM, prefix: string = ''): SimpleMap => {
             let attrs: SimpleMap = {};
 
@@ -242,6 +271,18 @@ class DOM {
 
 class DOMCollection {
     private currentElements: DOM[] = [];
+
+    static wrap(elements: HTMLCollection | NodeListOf<Element>): DOMCollection {
+        return new DOMCollection(elements);
+    }
+
+    static use(elements: DOM[]): DOMCollection {
+        return new DOMCollection(elements);
+    }
+
+    get length(): number {
+        return this.currentElements.length;
+    }
 
     item(id: number): DOM {
         return this.currentElements[id];
@@ -279,14 +320,6 @@ class DOMCollection {
         splitGroup();
 
         return groups;
-    }
-
-    static wrap(elements: HTMLCollection | NodeListOf<Element>): DOMCollection {
-        return new DOMCollection(elements);
-    }
-
-    static use(elements: DOM[]): DOMCollection {
-        return new DOMCollection(elements);
     }
 
     private constructor(elements: HTMLCollection | NodeListOf<Element> | DOM[]) {

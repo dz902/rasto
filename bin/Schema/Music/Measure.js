@@ -1,4 +1,4 @@
-import { MusicalElement, maybe, ensureNumber } from './index.js';
+import { MusicalElement, maybe, maybeThen, ensureNumber } from './index.js';
 export class Measure extends MusicalElement {
     constructor() {
         super(...arguments);
@@ -11,11 +11,11 @@ export class Measure extends MusicalElement {
     addAttributes(a) {
         // ensureMeasureAttributes
         let attributes = {};
-        attributes.divisions = maybe(a.divisions, ensureNumber);
-        attributes.timeBeats = maybe(a.timeBeats, ensureNumber);
-        attributes.timeBeatType = maybe(a.timeBeatType, ensureNumber);
+        attributes.divisions = maybeThen(a.divisions, ensureNumber);
+        attributes.timeBeats = maybeThen(a.timeBeats, ensureNumber);
+        attributes.timeBeatType = maybeThen(a.timeBeatType, ensureNumber);
         attributes.clefSign = maybe(a.clefSign);
-        attributes.clefLine = maybe(a.clefLine, ensureNumber);
+        attributes.clefLine = maybeThen(a.clefLine, ensureNumber);
         if (this.attributesList.length > 0) {
             attributes = Object.assign({}, this.attributesList[this.attributesList.length - 1], attributes); // inherit and overwrite
         }

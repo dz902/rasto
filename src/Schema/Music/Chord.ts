@@ -13,11 +13,18 @@ export class Chord extends Mark {
     }
 
     get contextStaffPlace(): number {
-        if (this.context.clefSign === 'G') {
-            return 4*7-1 + 3; // 4 octaves + 1 third
-        } else {
-            return 0;
+        let staffPlace = 0;
+
+        switch (this.context.clefSign) {
+            case 'F':
+                staffPlace = 2*7-1 + 5;
+                break;
+            case 'G':
+                staffPlace = 4*7-1 + 3; // 4 octaves + 1 third
+                break;
         }
+
+        return staffPlace;
     }
 
     get spanStaffPlace(): number {
@@ -27,10 +34,6 @@ export class Chord extends Mark {
     addNote(note: Note): void {
         this.notes.push(note);
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
-    }
-
-    addBeam(beam: Beam): void {
-        this.beams.push(beam);
     }
 }
 

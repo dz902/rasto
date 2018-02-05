@@ -1,4 +1,4 @@
-import { ensureNumber, Beam, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { maybeThen, ensureNumber, Accidental, Beam, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 export class MusicXMLParser {
     static parse(xmlString) {
         let parser = new MusicXMLParser(xmlString);
@@ -41,7 +41,7 @@ export class MusicXMLParser {
         $measure.qq('attributes, note')
             .each(($element) => {
             if ($element.name === 'attributes') {
-                measure.addAttributes($measure.collectAttributes($element));
+                measure.addAttributes($element.collectAttributeElements());
                 return;
             }
             let $note = $element;
@@ -57,14 +57,20 @@ export class MusicXMLParser {
                     lastMark = new Chord($note.q('type').value, measure.currentAttributes);
                     measure.addMark(lastMark);
                 }
-                let chord = lastMark;
-                chord.addNote(new Note($note.q('type').value, ensureNumber($note.q('pitch octave').value), $note.q('pitch step').value, ensureNumber($note.q('duration').value)));
-                if ($note.has('beam')) {
-                    $note.qq('beam')
-                        .each(($beam) => {
-                        chord.addBeam(new Beam($beam.attributes['number'], $beam.value));
+                // processNote
+                let noteAttributes = $note.collectAttributeElements();
+                let note = new Note(noteAttributes['type'], ensureNumber(noteAttributes['pitchOctave']), noteAttributes['pitchStep'], maybeThen(noteAttributes['pitchAlter'], ensureNumber), ensureNumber(noteAttributes['duration']));
+                $note.has('beam', ($beams) => {
+                    $beams.each(($beam) => {
+                        note.addBeam(new Beam($beam.attributes['number'], $beam.value));
                     });
-                }
+                });
+                $note.hasOne('accidental', ($accidental) => {
+                    let accidental = new Accidental($accidental.value);
+                    note.addAccidental(accidental);
+                });
+                let chord = lastMark;
+                chord.addNote(note);
             }
         });
         return measure;
@@ -149,11 +155,24 @@ class DOM {
         }
         return true;
     }
+    hasOne(childNodeName, callback) {
+        let hasExactlyOne = false;
+        this.has(childNodeName, ($nodes) => {
+            if ($nodes.length === 1) {
+                hasExactlyOne = true;
+                if (callback) {
+                    callback($nodes.item(0));
+                }
+            }
+        });
+        return hasExactlyOne;
+    }
     eachChild(callback) {
         DOMCollection.wrap(this.currentNode.children)
             .each(callback);
     }
-    collectAttributes($attributes) {
+    collectAttributeElements() {
+        let $attributes = this;
         let collectNestedAttributes = ($a, prefix = '') => {
             let attrs = {};
             $a.eachChild(($nestedA) => {
@@ -188,6 +207,15 @@ class DOMCollection {
             this.currentElements = elements;
         }
     }
+    static wrap(elements) {
+        return new DOMCollection(elements);
+    }
+    static use(elements) {
+        return new DOMCollection(elements);
+    }
+    get length() {
+        return this.currentElements.length;
+    }
     item(id) {
         return this.currentElements[id];
     }
@@ -215,12 +243,6 @@ class DOMCollection {
         });
         splitGroup();
         return groups;
-    }
-    static wrap(elements) {
-        return new DOMCollection(elements);
-    }
-    static use(elements) {
-        return new DOMCollection(elements);
     }
 }
 //# sourceMappingURL=MusicXMLParser.js.map

@@ -1,4 +1,5 @@
 export * from './Common.js';
+export * from './Accidental.js';
 export * from './Measure.js';
 export * from './Mark.js';
 export * from './Note.js';
