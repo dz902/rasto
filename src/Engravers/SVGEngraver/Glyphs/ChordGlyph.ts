@@ -1,5 +1,5 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
-import { Chord, Note } from '../../../Schema/Music/index.js';
+import { Chord, Note, maybeThen } from '../../../Schema/Music/index.js';
 
 export class ChordGlyph extends Glyph {
     private direction: StemDirection = StemDirection.Down;
@@ -41,48 +41,59 @@ export class ChordGlyph extends Glyph {
     }
 
     private drawNotes(): void {
+        let isOffsetting = false;
+
         let drawNote = (note: Note, i: number, notes: Note[]) => {
             let noteHeadGlyph = new NoteHeadGlyph(note);
-
-            let offsets = { x: 0, y: 0 };
+            let offsetX: number = 0;
 
             // checkAdjacentNotes
 
             let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
             let prevNote = notes[i - 1] ? notes[i - 1] : undefined;
+            let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
+            let needsDisplacement = !isOffsetting && isSecond;
 
             if (this.direction === StemDirection.Up) {
-                let prevPrevNote = notes[i - 2] ? notes[i - 2] : undefined;
-                let isNotConsecutive = prevNote && prevPrevNote && prevNote.getIntervalTo(prevPrevNote) !== 2;
-                let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
-                let needsDisplacement = isNotConsecutive && isSecond;
-
                 if (needsDisplacement) {
-                    offsets.x = this.noteHeadWidth;
+                    offsetX = this.noteHeadWidth;
+                    isOffsetting = true;
+                } else {
+                    isOffsetting = false;
                 }
             } else {
-                let nextNote = notes[i + 1] ? notes[i + 1] : undefined;
-                let isNotConsecutive = prevNote === undefined || note.getIntervalTo(prevNote) !== 2;
-                let isSecond = nextNote && note.getIntervalTo(nextNote) === 2;
-                let needsDisplacement = isNotConsecutive && isSecond;
-
-                offsets.x = this.noteHeadWidth;
-
                 if (needsDisplacement) {
-                    offsets.x = 0;
+                    offsetX = 0;
+                    isOffsetting = true;
+                } else {
+                    offsetX = this.noteHeadWidth;
+                    isOffsetting = false;
                 }
             }
 
+            // checkAccidental
+
+            maybeThen(note.accidental, (accidental) => {
+                let accidentalGlyph = new CharGlyph('accidental', accidental!.type);
+
+                //accidentalGlyph.shiftFromStaffBottom(note.staffPlace);
+
+                this.append(accidentalGlyph);
+            });
+
             // moveNoteToStaffPlace
 
-            offsets.y = intervalToLowestNote - 1;  // intervals starts with unison = 1
-
-            noteHeadGlyph.move(offsets.x, -offsets.y/2);
+            noteHeadGlyph.move(offsetX);
+            noteHeadGlyph.shift((intervalToLowestNote-1)/2);  // intervals starts with unison = 1
 
             this.append(noteHeadGlyph);
         };
 
-        this.chord.notes.forEach(drawNote);
+        if (this.direction === StemDirection.Up) {
+            this.chord.notes.forEach(drawNote);
+        } else {
+            this.chord.notes.concat([]).reverse().forEach(drawNote); // non-destructive
+        }
     }
 
     private checkAccidentals(): void {
@@ -94,9 +105,6 @@ export class ChordGlyph extends Glyph {
             .filter(note => note.accidental !== null)
             .reverse()
             .forEach((note: Note) => {
-            let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
-
-            this.append(accidentalGlyph);
         });
     }
 
@@ -132,12 +140,6 @@ export class ChordGlyph extends Glyph {
 
         this.append(this.stemGlyph);
 
-        // alignStem
-
-
-        if (this.direction === StemDirection.Down) {
-        } else {
-        }
 
         // checkLedgerNoteStems
 

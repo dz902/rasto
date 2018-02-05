@@ -39,7 +39,7 @@ export class Meta {
                 let k = String(key);
 
                 table = {
-                    [k]: 'accidental'+k.substr(0, 1).toUpperCase() + k.substr(1);
+                    [k]: 'accidental'+k.substr(0, 1).toUpperCase() + k.substr(1)
                 };
 
                 break;
