@@ -1,4 +1,4 @@
-import { maybeThen, ensureNumber, Accidental, Beam, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { toCamelCase, maybeThen, ensureNumber, Accidental, Beam, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 export class MusicXMLParser {
     static parse(xmlString) {
         let parser = new MusicXMLParser(xmlString);
@@ -66,7 +66,8 @@ export class MusicXMLParser {
                     });
                 });
                 $note.hasOne('accidental', ($accidental) => {
-                    let accidental = new Accidental($accidental.value);
+                    let accidentalType = $accidental.value.split(/-/).map(toCamelCase).join('');
+                    let accidental = new Accidental(accidentalType);
                     note.addAccidental(accidental);
                 });
                 let chord = lastMark;

@@ -61,7 +61,12 @@ export class ChordGlyph extends Glyph {
     checkAccidentals() {
         // extractAccidentals
         let accidentals = []; // pitch-alter or accidental element
-        this.chord.notes.forEach((note) => {
+        this.chord.notes
+            .filter(note => note.accidental !== null)
+            .reverse()
+            .forEach((note) => {
+            let accidentalGlyph = new CharGlyph('accidental', note.accidental.type);
+            this.append(accidentalGlyph);
         });
     }
     checkDirection() {

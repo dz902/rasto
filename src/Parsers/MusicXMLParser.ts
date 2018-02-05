@@ -1,4 +1,4 @@
-import { maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -98,7 +98,8 @@ export class MusicXMLParser {
                         });
 
                         $note.hasOne('accidental', ($accidental) => {
-                            let accidental = new Accidental($accidental.value);
+                            let accidentalType = $accidental.value.split(/-/).map(toCamelCase).join('');
+                            let accidental = new Accidental(accidentalType);
 
                             note.addAccidental(accidental);
                         });

@@ -90,8 +90,13 @@ export class ChordGlyph extends Glyph {
 
         let accidentals: { line: number, alter: number }[] = []; // pitch-alter or accidental element
 
-        this.chord.notes.forEach((note: Note) => {
+        this.chord.notes
+            .filter(note => note.accidental !== null)
+            .reverse()
+            .forEach((note: Note) => {
+            let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
 
+            this.append(accidentalGlyph);
         });
     }
 

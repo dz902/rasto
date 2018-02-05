@@ -81,6 +81,16 @@ export interface SimpleMap {
     [k: string]: any;
 }
 
+// HELPERS, to be moved later
+
+export function toNameCase(s: string): string {
+    return s.substr(0, 1).toUpperCase() + s.substr(1).toLowerCase();
+}
+
+export function toCamelCase(ss: string, i: number): string {
+    return i === 0 ? ss.toLowerCase() : toNameCase(ss);
+}
+
 // PRIVATE
 
 function uniq(): string {

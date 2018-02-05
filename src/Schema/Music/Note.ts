@@ -4,11 +4,12 @@ export class Note extends MusicalElement {
     readonly type: MarkType;
     readonly pitchOctave: PitchOctave;
     readonly pitchStep: PitchStep;
-    readonly pitchAlter: Maybe<number>;
+    readonly pitchAlter: Maybe<number> = null;
     readonly duration: number;
     readonly beams: Beam[] = [];
-    readonly accidental: Accidental;
     readonly stem: Stem;
+
+    private noteAccidental: Maybe<Accidental> = null;
 
     constructor(type: string,
                 pitchOctave: number,
@@ -26,19 +27,23 @@ export class Note extends MusicalElement {
         this.stem = new Stem("up");
     }
 
+    get accidental(): Maybe<Accidental> {
+        return this.noteAccidental;
+    }
+
+    get staffPlace(): number {
+        return this.pitchOctave*7 + 'CDEFGAB'.indexOf(this.pitchStep);
+    }
+
     addBeam(beam: Beam) {
         this.beams.push(beam);
     }
 
     addAccidental(accidental: Accidental) {
-
+        this.noteAccidental = accidental;
     }
 
     configureStem(stem: Stem) {
-    }
-
-    get staffPlace(): number {
-       return this.pitchOctave*7 + 'CDEFGAB'.indexOf(this.pitchStep);
     }
 
     getIntervalTo(note: Note): number {

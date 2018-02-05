@@ -1,7 +1,6 @@
 import glyphnames from '../Schema/SMuFL/glyphnames.js';
 import metadata from '../Fonts/bravura/bravura_metadata.js';
-import { SimpleMap } from './Music/Common';
-import { Glyph } from '../Engravers/SVGEngraver/Glyphs/index';
+import { SimpleMap, toNameCase } from './Music/index.js';
 
 export class Meta {
     static load(): Meta {
@@ -33,6 +32,14 @@ export class Meta {
                 table = {
                     'F': 'fClef',
                     'G': 'gClef'
+                };
+
+                break;
+            case 'accidental':
+                let k = String(key);
+
+                table = {
+                    [k]: 'accidental'+k.substr(0, 1).toUpperCase() + k.substr(1);
                 };
 
                 break;

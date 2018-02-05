@@ -57,6 +57,13 @@ export function ensureNumber(value) {
     let numericValue = Number(value);
     return ensure(numericValue, `value ${value} is not a valid number`, (n) => !Number.isNaN(n));
 }
+// HELPERS, to be moved later
+export function toNameCase(s) {
+    return s.substr(0, 1).toUpperCase() + s.substr(1).toLowerCase();
+}
+export function toCamelCase(ss, i) {
+    return i === 0 ? ss.toLowerCase() : toNameCase(ss);
+}
 // PRIVATE
 function uniq() {
     return String(performance.now()).split('.').join('');

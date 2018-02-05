@@ -23,6 +23,12 @@ export class Meta {
                     'G': 'gClef'
                 };
                 break;
+            case 'accidental':
+                let k = String(key);
+                table = {
+                    [k]: 'accidental' + k.substr(0, 1).toUpperCase() + k.substr(1)
+                };
+                break;
             case 'note-head':
                 table = {
                     'whole': 'noteWhole',
