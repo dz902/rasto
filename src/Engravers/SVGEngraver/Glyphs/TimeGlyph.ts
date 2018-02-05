@@ -45,7 +45,7 @@ export class TimeGlyph extends Glyph {
 
         let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
 
-        beatGlyphDigit.translate(beatGlyphOneWidth);
+        beatGlyphDigit.move(beatGlyphOneWidth);
     }
 
     private drawBeatType(): void {
@@ -74,6 +74,6 @@ export class TimeGlyph extends Glyph {
         let widthDiff = longerGlyph.width - shorterGlyph.width;
         let offsetX = widthDiff / 2;
 
-        shorterGlyph.translate(offsetX);
+        shorterGlyph.move(offsetX);
     }
 }

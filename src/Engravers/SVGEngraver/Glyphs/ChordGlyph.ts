@@ -77,7 +77,7 @@ export class ChordGlyph extends Glyph {
 
             offsets.y = intervalToLowestNote - 1;  // intervals starts with unison = 1
 
-            noteHeadGlyph.translate(offsets.x, -offsets.y/2);
+            noteHeadGlyph.move(offsets.x, -offsets.y/2);
 
             this.append(noteHeadGlyph);
         };
@@ -214,7 +214,7 @@ export class ChordGlyph extends Glyph {
             offset.y -= (this.chord.spanStaffPlace/2);
         }
 
-        this.stemGlyph.translate(offset.x, offset.y);
+        this.stemGlyph.move(offset.x, offset.y);
     }
 
     private checkFlag(): void {
@@ -252,8 +252,8 @@ export class ChordGlyph extends Glyph {
             };
         }
 
-        this.flagGlyph.translate(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
-        this.flagGlyph.translate(offset.x, offset.y);
+        this.flagGlyph.move(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
+        this.flagGlyph.move(offset.x, offset.y);
     }
 }
 

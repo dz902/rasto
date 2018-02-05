@@ -56,10 +56,6 @@ export class Glyph extends SVG {
         super.move(x ? x * Glyph.STAFF_SPACE : undefined, y ? y * Glyph.STAFF_SPACE : undefined);
         return this;
     }
-    translate(x, y) {
-        super.translate(x ? x * Glyph.STAFF_SPACE : 0, y ? y * Glyph.STAFF_SPACE : 0);
-        return this;
-    } // should remove translate, it is the same as move
     rotate(angle, cx, cy) {
         cx = cx !== undefined ? cx : 0;
         cy = cy !== undefined ? cy : 0;

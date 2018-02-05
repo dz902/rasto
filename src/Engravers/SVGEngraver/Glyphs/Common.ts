@@ -1,21 +1,19 @@
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+
 export class SVG {
     protected static invisibleSVG: SVGSVGElement;
-    protected rawElement: SVGGraphicsElement;
+    protected rawElement: SVGElement;
     private transformerElement: SVGGElement;
 
-    private createElement(name: string): SVGGraphicsElement {
-        let element = document.createElementNS('http://www.w3.org/2000/svg', name);
-
-        if (!(element instanceof SVGGraphicsElement)) {
-            throw new Error();
-        }
+    private createElement(name: string): SVGElement {
+        let element = document.createElementNS(SVG_NAMESPACE, name);
 
         // addElementToInvisibleSVG
 
         if (!SVG.invisibleSVG) {
             // funny this won't work as style is not loaded into a blank svg, now we only use width in metadata
             // FIX: to be removed
-            let temporaryViewport = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            let temporaryViewport = document.createElementNS(SVG_NAMESPACE, 'svg');
             temporaryViewport.setAttribute('style', 'position: absolute; z-index: -100000; visibility: hidden;');
 
             SVG.invisibleSVG = <SVGSVGElement> temporaryViewport;
@@ -38,7 +36,7 @@ export class SVG {
 
     // PROPS
 
-    get element(): SVGGraphicsElement {
+    get element(): SVGElement {
         return this.rawElement;
     }
 
@@ -63,14 +61,16 @@ export class SVG {
     }
 
     get x(): number {
-        return numberOrDefault(this.element.getAttribute('x'), 0);
+        return numberOrDefault(this.bbox.x, 0);
     }
 
     get y(): number {
-        return numberOrDefault(this.element.getAttribute('y'), 0);
+        return numberOrDefault(this.bbox.y, 0);
     }
 
     // HELPERS
+
+    // these are only for graphics elements, should be made clear in the future
 
     size(width: number, height: number): SVG {
         this.setAttribute('width', width);
@@ -86,18 +86,16 @@ export class SVG {
     }
 
     move(x?: number, y?: number): void {
-        if (x) {
-            this.setAttribute('x', x);
-        }
-
-        if (y) {
-            this.setAttribute('y', y);
-        }
-    }
-
-    translate(x: number, y: number): void {
         this.transform((t) => {
-            t.setTranslate(x, y);
+            if (x !== undefined) {
+                t.setTranslate(x, 0);
+            }
+        });
+
+        this.transform((t) => {
+            if (y !== undefined) {
+                t.setTranslate(0, y);
+            }
         });
     }
 
@@ -127,7 +125,7 @@ export class SVG {
             let notTransformed = (this.transformerElement === undefined);
 
             if (notTransformed) {
-                this.transformerElement = (new SVG('g')).rawElement;
+                this.transformerElement = <SVGGElement> (new SVG('g')).rawElement;
 
                 this.transformerElement.classList.add('transformer');
 

@@ -27,7 +27,7 @@ export class TimeGlyph extends Glyph {
             .append(beatGlyphDigit);
         // checkDigitBeatOffset
         let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
-        beatGlyphDigit.translate(beatGlyphOneWidth);
+        beatGlyphDigit.move(beatGlyphOneWidth);
     }
     drawBeatType() {
         this.beatTypeGlyph = new Glyph('time-beat-type');
@@ -49,7 +49,7 @@ export class TimeGlyph extends Glyph {
         }
         let widthDiff = longerGlyph.width - shorterGlyph.width;
         let offsetX = widthDiff / 2;
-        shorterGlyph.translate(offsetX);
+        shorterGlyph.move(offsetX);
     }
 }
 //# sourceMappingURL=TimeGlyph.js.map

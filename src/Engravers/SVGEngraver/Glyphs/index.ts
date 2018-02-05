@@ -14,4 +14,3 @@ export * from './ScoreGlyph.js';
 export * from './RestGlyph.js';
 export * from './MeasureGlyph.js';
 export * from './ClefGlyph.js';
-export { diff } from '../../../Schema/Music/Common';
