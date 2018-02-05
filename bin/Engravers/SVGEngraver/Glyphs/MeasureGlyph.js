@@ -29,7 +29,7 @@ export class MeasureGlyph extends Glyph {
     }
     drawChord(chord) {
         let chordGlyph = new ChordGlyph(chord);
-        chordGlyph.advance(5);
+        this.advance(chordGlyph, 5);
         this.append(chordGlyph);
     }
     drawClef(clefSign, clefLine) {
@@ -38,7 +38,7 @@ export class MeasureGlyph extends Glyph {
     }
     drawTime(timeBeats, timeBeatType) {
         let timeGlyph = new TimeGlyph(timeBeats, timeBeatType);
-        timeGlyph.advance(5);
+        this.advance(timeGlyph, 5);
         this.append(timeGlyph);
     }
     applyContextChange(newContext, oldContext) {

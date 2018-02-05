@@ -37,7 +37,7 @@ export class MeasureGlyph extends Glyph {
     private drawChord(chord: Chord): void {
         let chordGlyph = new ChordGlyph(chord);
 
-        chordGlyph.advance(5);
+        this.advance(chordGlyph,5);
 
         this.append(chordGlyph);
     }
@@ -51,7 +51,7 @@ export class MeasureGlyph extends Glyph {
     private drawTime(timeBeats: number, timeBeatType: number): void {
         let timeGlyph = new TimeGlyph(timeBeats, timeBeatType);
         
-        timeGlyph.advance(5);
+        this.advance(timeGlyph,5);
 
         this.append(timeGlyph);
     }

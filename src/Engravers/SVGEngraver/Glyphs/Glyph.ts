@@ -8,15 +8,18 @@ export class Glyph extends SVG {
     protected static readonly EM: number = 32;
     protected static readonly STAFF_SPACE: number = Glyph.EM * 0.25;
     protected static meta: SMuFL.Meta = SMuFL.Meta.load();
-    protected static refs: { [id: string]: SVGElement } = {};
-    protected static headPosition: { x: number, y: number} = { x: 0, y: 0 };
+    protected static refs: { [id: string]: Glyph } = {};
     protected id: string;
     protected type: string;
 
     // INSTANCE
 
-    constructor(type?: string, id?: string) {
+    constructor(type?: string,
+                id?: string,
+                protected headPosition: { x: number, y: number} = { x: 0, y: 0 }) { // this makes sure all subclasses gets its own copy
         super('svg');
+
+        // checkType
 
         if (type !== undefined) {
             this.type = type;
@@ -50,7 +53,7 @@ export class Glyph extends SVG {
             this.addClass(this.type ? this.type : this.constructor.name);
         }
 
-        Glyph.refs[this.id] = this.rawElement;
+        Glyph.refs[this.id] = this;
     };
 
     // GLYPH OPS
@@ -61,24 +64,22 @@ export class Glyph extends SVG {
     // confusing, and no need to override width and height as they
     // rely only on bbox, override bbox solves the whole problem
 
-    advance(x: number): Glyph {
-        Glyph.headPosition.x += x;
+    advance(childGlyph: Glyph, x: number) {
+        this.headPosition.x += x;
 
-        this.move(Glyph.headPosition.x);
-
-        return this;
+        childGlyph.move(this.headPosition.x);
     }
 
-    shift(y: number) {
-        Glyph.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
-
-        this.move(undefined, Glyph.headPosition.y);
-    }
+    // shift(y: number) {
+    //     this.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
+    //
+    //     this.move(undefined, this.headPosition.y);
+    // }
 
     shiftFromStaffBottom(y: number) {
-        Glyph.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
+        this.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
 
-        this.move(undefined, Glyph.headPosition.y);
+        this.move(undefined, this.headPosition.y);
     }
 
     // OVERRIDE WITH NEW UNITS

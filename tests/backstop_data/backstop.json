@@ -13,20 +13,8 @@
     {
       "label": "Basic",
       "cookiePath": "tests/backstop_data/engine_scripts/cookies.json",
-      "url": "tests/backstop_data/test.html",
-      "referenceUrl": "",
-      "readyEvent": "",
-      "readySelector": "",
-      "delay": 0,
-      "hideSelectors": [],
-      "removeSelectors": [],
-      "hoverSelector": "",
-      "clickSelector": "",
-      "postInteractionWait": "",
-      "selectors": [],
-      "selectorExpansion": true,
-      "misMatchThreshold" : 0.1,
-      "requireSameDimensions": true
+      "url": "http://localhost:63342/Rasto/tests/backstop_data/test.html",
+      "readySelector": "svg"
     }
   ],
   "paths": {
@@ -41,6 +29,6 @@
   "engineFlags": [],
   "asyncCaptureLimit": 5,
   "asyncCompareLimit": 50,
-  "debug": false,
-  "debugWindow": false
+  "debug": true,
+  "debugWindow": true
 }

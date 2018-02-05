@@ -2,8 +2,9 @@ import { SVG } from './index.js';
 import * as SMuFL from '../../../Schema/SMuFL.js';
 export class Glyph extends SVG {
     // INSTANCE
-    constructor(type, id) {
+    constructor(type, id, headPosition = { x: 0, y: 0 }) {
         super('svg');
+        this.headPosition = headPosition;
         // DRAW
         this.draw = () => {
             // has to keep strange syntax to get correct this.draw()
@@ -16,8 +17,9 @@ export class Glyph extends SVG {
             if (this.type) {
                 this.addClass(this.type ? this.type : this.constructor.name);
             }
-            Glyph.refs[this.id] = this.rawElement;
+            Glyph.refs[this.id] = this;
         };
+        // checkType
         if (type !== undefined) {
             this.type = type;
         }
@@ -38,18 +40,18 @@ export class Glyph extends SVG {
     // and leads to double conversion of units, this is extremely
     // confusing, and no need to override width and height as they
     // rely only on bbox, override bbox solves the whole problem
-    advance(x) {
-        Glyph.headPosition.x += x;
-        this.move(Glyph.headPosition.x);
-        return this;
+    advance(childGlyph, x) {
+        this.headPosition.x += x;
+        childGlyph.move(this.headPosition.x);
     }
-    shift(y) {
-        Glyph.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
-        this.move(undefined, Glyph.headPosition.y);
-    }
+    // shift(y: number) {
+    //     this.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
+    //
+    //     this.move(undefined, this.headPosition.y);
+    // }
     shiftFromStaffBottom(y) {
-        Glyph.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
-        this.move(undefined, Glyph.headPosition.y);
+        this.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
+        this.move(undefined, this.headPosition.y);
     }
     // OVERRIDE WITH NEW UNITS
     move(x, y) {
@@ -81,5 +83,4 @@ Glyph.EM = 32;
 Glyph.STAFF_SPACE = Glyph.EM * 0.25;
 Glyph.meta = SMuFL.Meta.load();
 Glyph.refs = {};
-Glyph.headPosition = { x: 0, y: 0 };
 //# sourceMappingURL=Glyph.js.map

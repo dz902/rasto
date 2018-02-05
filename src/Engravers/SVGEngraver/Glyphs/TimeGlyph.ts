@@ -43,9 +43,11 @@ export class TimeGlyph extends Glyph {
 
         // checkDigitBeatOffset
 
-        let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
+        if (isDoubleDigit) {
+            let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
 
-        beatGlyphDigit.move(beatGlyphOneWidth);
+            beatGlyphDigit.move(beatGlyphOneWidth);
+        }
     }
 
     private drawBeatType(): void {
