@@ -6,6 +6,7 @@ export class ChordGlyph extends Glyph {
     private midStaffPlace: number;
     private stemGlyph: StemGlyph;
     private flagGlyph: CharGlyph;
+    private accidentalGlyphs: CharGlyph[] = [];
     private rawNoteHeadWidth: number;
 
     constructor(private chord: Chord) {
@@ -27,7 +28,7 @@ export class ChordGlyph extends Glyph {
         this.checkStem();
         this.checkFlag();
         this.checkAccidentals();
-        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace)/2);
+        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace) / 2);
     }
 
     get noteHeadWidth(): number {
@@ -91,33 +92,72 @@ export class ChordGlyph extends Glyph {
             .filter(note => note.accidental !== null)
             .reverse()
             .forEach((note: Note, i: number, notes: Note[]) => {
-                let prevNote = i-1 >= 0 ? notes[i-1] : undefined;
+                let prevNote = i - 1 >= 0 ? notes[i - 1] : null;
                 let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
-
-                this.append(accidentalGlyph);
-
-                // addBasicOffset
-
-                let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
-
-                accidentalGlyph.move(-accidentalWidth);
-
-                // checkDisplacement
-
-                let offsetX = -accidentalWidth;
-
-                let isNotHighestNote = (i !== 0);
-                let needsDisplacement = isNotHighestNote;
-
-                if (needsDisplacement) {
-                    accidentalGlyph.move(offsetX);
-                }
 
                 // moveAccidentalToStaffPlace
 
                 let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
 
                 accidentalGlyph.shiftInterval(intervalToLowestNote);
+
+                // checkDisplacement
+
+                let offsetX = -Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
+                let isNotHighestNote = (i !== 0);
+
+                if (prevNote !== null) {
+                    // addBasicOffset
+
+                    let prevAccidentalWidth = Glyph.meta.getGlyphSize('accidental', prevNote.accidental!.type).width;
+
+                    offsetX += -prevAccidentalWidth;
+
+                    // detectCutOuts
+
+                    let anchors = Glyph.meta.getGlyphAnchors('accidental', note.accidental!.type);
+                    let prevAnchors = Glyph.meta.getGlyphAnchors('accidental', prevNote.accidental!.type);
+                    let hasCommonCutOutAnchors = anchors['cutOutNE'] && prevAnchors['cutOutSW'];
+
+                    if (hasCommonCutOutAnchors) {
+                        let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
+                        let prevBBox = prevGlyph.bbox;
+                        let bBox = accidentalGlyph.bbox;
+
+                        let prevGlyphCutOutBottomIsHigherThanGlyphTop = (
+                            prevBBox.y + prevAnchors['cutOutSW'][1] < bBox.y
+                        );
+                        let glyphCutOutTopIsLowerThanPrevGlyphBottom = (
+                            bBox.y + anchors['cutOutNE'][1] > prevBBox.y + prevBBox.height
+                        );
+                        let kerningNeeded = (
+                            prevGlyphCutOutBottomIsHigherThanGlyphTop &&
+                            glyphCutOutTopIsLowerThanPrevGlyphBottom
+                        );
+
+                        if (kerningNeeded) {
+                            let kerningOffsetX = Math.min(
+                                bBox.width - anchors['cutOutNE'][0],
+                                prevAnchors['cutOutNE'][0]);
+
+                            offsetX += kerningOffsetX;
+                            console.log(kerningOffsetX);
+                        }
+                    }
+                }
+
+                let needsDisplacement = isNotHighestNote;
+
+                if (needsDisplacement) {
+                }
+
+                accidentalGlyph.move(offsetX);
+
+                // appendAccidentalGlyph
+
+                this.append(accidentalGlyph);
+
+                this.accidentalGlyphs.push(accidentalGlyph);
             });
     }
 
@@ -149,10 +189,9 @@ export class ChordGlyph extends Glyph {
         }
 
         this.stemGlyph = new StemGlyph();
-        this.stemGlyph.height = this.chord.spanStaffPlace/2 + 3.5;  // +1 octave
+        this.stemGlyph.height = this.chord.spanStaffPlace / 2 + 3.5;  // +1 octave
 
         this.append(this.stemGlyph);
-
 
         // checkLedgerNoteStems
 
@@ -210,11 +249,11 @@ export class ChordGlyph extends Glyph {
 
         if (this.direction === StemDirection.Up) {
             offset = {
-                x: noteAnchors['stemUpSE'][0]-this.stemGlyph.width,  // move left and make stem inside
+                x: noteAnchors['stemUpSE'][0] - this.stemGlyph.width,  // move left and make stem inside
                 y: -noteAnchors['stemUpSE'][1]                       // move opposite direction
             };
 
-            this.stemGlyph.height -= noteAnchors['stemUpSE'][1]  ;   // shorten stem to keep tip aligned
+            this.stemGlyph.height -= noteAnchors['stemUpSE'][1];   // shorten stem to keep tip aligned
 
             offset.y -= this.stemGlyph.height;
         } else {
@@ -231,7 +270,7 @@ export class ChordGlyph extends Glyph {
             this.stemGlyph.height += noteAnchors['stemDownNW'][1]; // lengthen stem to keep tip aligned
 
             offset.x += this.noteHeadWidth;
-            offset.y -= (this.chord.spanStaffPlace/2);
+            offset.y -= (this.chord.spanStaffPlace / 2);
         }
 
         this.stemGlyph.move(offset.x, offset.y);
