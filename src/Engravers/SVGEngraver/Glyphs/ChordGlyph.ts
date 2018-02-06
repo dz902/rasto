@@ -95,24 +95,38 @@ export class ChordGlyph extends Glyph {
                 let prevNote = i - 1 >= 0 ? notes[i - 1] : null;
                 let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
 
+                this.append(accidentalGlyph);
+
                 // moveAccidentalToStaffPlace
 
                 let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
 
                 accidentalGlyph.shiftInterval(intervalToLowestNote);
 
+                // moveAccidentalToLeftOfNoteHead
+
+                let accidentalWidth = accidentalGlyph.width;
+
+                accidentalGlyph.move(-accidentalWidth - 0.2);  // no meta for this spacing
+
                 // checkDisplacement
 
-                let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
-                let offsetX = -accidentalWidth - 0.2; // no meta for this spacing
+                let offsetX = 0;
                 let isNotHighestNote = (prevNote !== null);
 
                 if (isNotHighestNote) {
-                    // addBasicOffset
+                    // detectFitStaffSpace
 
-                    let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
-
-                    offsetX += prevGlyph.bbox.x;
+                    this.accidentalGlyphs.forEach((ag) => {
+                        if (ag.overlapsWith(accidentalGlyph)) {
+                            // continue here, needs to tweak direction for cut outs too
+                            accidentalGlyph.move(-ag.width);
+                        } else {
+                        }
+                    });
+                    //
+                    //
+                    // offsetX += prevGlyph.bbox.x;
 
                     // detectCutOuts
 
@@ -121,6 +135,7 @@ export class ChordGlyph extends Glyph {
                     let hasCommonCutOutAnchors = anchors['cutOutNE'] && prevAnchors['cutOutSW'];
 
                     if (hasCommonCutOutAnchors) {
+                        let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
                         let prevBBox = prevGlyph.bbox;
                         let bBox = accidentalGlyph.bbox;
 
@@ -149,8 +164,6 @@ export class ChordGlyph extends Glyph {
                 accidentalGlyph.move(offsetX);
 
                 // appendAccidentalGlyph
-
-                this.append(accidentalGlyph);
 
                 this.accidentalGlyphs.push(accidentalGlyph);
             });

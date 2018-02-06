@@ -105,6 +105,15 @@ export class Glyph extends SVG {
         return this;
     }
 
+    overlapsWith(targetGlyph: Glyph): boolean {
+        return (
+            this.bbox.x < (targetGlyph.bbox.x + targetGlyph.width) &&
+            targetGlyph.bbox.x < (this.bbox.x + this.bbox.width) &&
+            this.bbox.y < (targetGlyph.bbox.y + targetGlyph.height) &&
+            targetGlyph.bbox.y < (this.bbox.y + this.height)
+        );
+    }
+
     get bbox(): SVGRect {
         let bbox = super.bbox;
 

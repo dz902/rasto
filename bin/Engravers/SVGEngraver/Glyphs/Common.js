@@ -7,7 +7,7 @@ export class SVG {
             // funny this won't work as style is not loaded into a blank svg, now we only use width in metadata
             // FIX: to be removed
             let temporaryViewport = document.createElementNS(SVG_NAMESPACE, 'svg');
-            temporaryViewport.setAttribute('style', 'position: absolute; z-index: -100000; visibility: hidden;');
+            temporaryViewport.setAttribute('style', 'position: absolute; z-index: -100000; left: -1000000; background: red;');
             SVG.invisibleSVG = temporaryViewport;
             document.body.appendChild(SVG.invisibleSVG);
         }

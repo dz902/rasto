@@ -7,7 +7,7 @@
   <identification>
     <encoding>
       <software>MuseScore 2.1.0</software>
-      <encoding-date>2018-02-05</encoding-date>
+      <encoding-date>2018-02-06</encoding-date>
       <supports element="accidental" type="yes"/>
       <supports element="beam" type="yes"/>
       <supports element="print" attribute="new-page" type="yes" value="yes"/>
@@ -83,10 +83,10 @@
           <line>4</line>
           </clef>
         </attributes>
-      <note default-x="83.62" default-y="-35.00">
+      <note default-x="86.00" default-y="-40.00">
         <pitch>
           <step>G</step>
-          <alter>1</alter>
+          <alter>-1</alter>
           <octave>2</octave>
           </pitch>
         <duration>1</duration>
@@ -95,11 +95,10 @@
         <accidental>flat</accidental>
         <stem>up</stem>
         </note>
-      <note default-x="83.62" default-y="-10.00">
+      <note default-x="86.00" default-y="-15.00">
         <chord/>
         <pitch>
           <step>E</step>
-          <alter>-1</alter>
           <octave>3</octave>
           </pitch>
         <duration>1</duration>
@@ -108,19 +107,71 @@
         <accidental>natural</accidental>
         <stem>up</stem>
         </note>
-      <note default-x="329.44" default-y="-25.00">
+      <note default-x="331.22" default-y="-35.00">
+        <pitch>
+          <step>A</step>
+          <alter>1</alter>
+          <octave>2</octave>
+          </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <accidental>sharp</accidental>
+        <stem>down</stem>
+        </note>
+      <note default-x="331.22" default-y="-25.00">
+        <chord/>
         <pitch>
           <step>C</step>
-          <alter>2</alter>
+          <alter>1</alter>
           <octave>3</octave>
           </pitch>
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental>double-sharp</accidental>
-        <stem>up</stem>
+        <accidental>sharp</accidental>
+        <stem>down</stem>
         </note>
-      <note default-x="563.28" default-y="-20.00">
+      <note default-x="331.22" default-y="-15.00">
+        <chord/>
+        <pitch>
+          <step>E</step>
+          <alter>1</alter>
+          <octave>3</octave>
+          </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <accidental>sharp</accidental>
+        <stem>down</stem>
+        </note>
+      <note default-x="331.22" default-y="-5.00">
+        <chord/>
+        <pitch>
+          <step>G</step>
+          <alter>1</alter>
+          <octave>3</octave>
+          </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <accidental>sharp</accidental>
+        <stem>down</stem>
+        </note>
+      <note default-x="331.22" default-y="10.00">
+        <chord/>
+        <pitch>
+          <step>C</step>
+          <alter>1</alter>
+          <octave>4</octave>
+          </pitch>
+        <duration>1</duration>
+        <voice>1</voice>
+        <type>quarter</type>
+        <accidental>sharp</accidental>
+        <stem>down</stem>
+        </note>
+      <note default-x="564.47" default-y="-20.00">
         <pitch>
           <step>D</step>
           <alter>-1</alter>
@@ -132,7 +183,7 @@
         <accidental>flat</accidental>
         <stem>down</stem>
         </note>
-      <note default-x="575.26" default-y="-15.00">
+      <note default-x="576.45" default-y="-15.00">
         <chord/>
         <pitch>
           <step>E</step>
@@ -144,7 +195,7 @@
         <accidental>natural</accidental>
         <stem>down</stem>
         </note>
-      <note default-x="809.10" default-y="-10.00">
+      <note default-x="809.69" default-y="-10.00">
         <pitch>
           <step>F</step>
           <octave>3</octave>
@@ -152,10 +203,9 @@
         <duration>1</duration>
         <voice>1</voice>
         <type>quarter</type>
-        <accidental>natural</accidental>
         <stem>down</stem>
         </note>
-      <note default-x="821.07" default-y="-5.00">
+      <note default-x="821.67" default-y="-5.00">
         <chord/>
         <pitch>
           <step>G</step>

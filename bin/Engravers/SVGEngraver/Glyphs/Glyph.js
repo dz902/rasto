@@ -68,6 +68,12 @@ export class Glyph extends SVG {
         super.size(width * Glyph.STAFF_SPACE, height * Glyph.STAFF_SPACE);
         return this;
     }
+    overlapsWith(targetGlyph) {
+        return (this.bbox.x < (targetGlyph.bbox.x + targetGlyph.width) &&
+            targetGlyph.bbox.x < (this.bbox.x + this.bbox.width) &&
+            this.bbox.y < (targetGlyph.bbox.y + targetGlyph.height) &&
+            targetGlyph.bbox.y < (this.bbox.y + this.height));
+    }
     get bbox() {
         let bbox = super.bbox;
         return {

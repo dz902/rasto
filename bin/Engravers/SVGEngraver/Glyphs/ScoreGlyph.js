@@ -11,7 +11,6 @@ export class ScoreGlyph extends Glyph {
                 this.append(measureGlyph);
             });
         };
-        this.draw();
         this.element.setAttribute('x', '50');
         this.element.setAttribute('y', '100');
         let style = new SVG('style');
@@ -50,7 +49,10 @@ export class ScoreGlyph extends Glyph {
             line.barLineSingle {
                 stroke-linecap: square;
         }`);
+        SVG.invisibleSVG.appendChild(style.element.cloneNode(true)); // FIX: only temporary, needed for get correct dimensions
         this.append(style);
+        // draw must come after styling
+        this.draw();
     }
 }
 //# sourceMappingURL=ScoreGlyph.js.map

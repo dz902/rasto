@@ -5,8 +5,6 @@ export class ScoreGlyph extends Glyph {
     constructor(private score: Score) {
         super('score', score.id);
 
-        this.draw();
-
         this.element.setAttribute('x', '50');
         this.element.setAttribute('y', '100');
 
@@ -48,7 +46,12 @@ export class ScoreGlyph extends Glyph {
                 stroke-linecap: square;
         }`);
 
+        SVG.invisibleSVG.appendChild(style.element.cloneNode(true)); // FIX: only temporary, needed for get correct dimensions
         this.append(style);
+
+        // draw must come after styling
+
+        this.draw();
     }
 
     protected draw = (): void => {
