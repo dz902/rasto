@@ -4,7 +4,6 @@ export class ChordGlyph extends Glyph {
         super('chord', chord.id);
         this.chord = chord;
         this.direction = StemDirection.Down;
-        this.processedNotes = {};
         // ensureNonEmptyChord
         let chordHasNoNotes = chord.notes.length === 0;
         if (chordHasNoNotes) {
@@ -71,15 +70,19 @@ export class ChordGlyph extends Glyph {
         this.chord.notes
             .filter(note => note.accidental !== null)
             .reverse()
-            .forEach((note, i) => {
+            .forEach((note, i, notes) => {
+            let prevNote = i - 1 >= 0 ? notes[i - 1] : undefined;
             let accidentalGlyph = new CharGlyph('accidental', note.accidental.type);
             this.append(accidentalGlyph);
-            // checkAccidentalOffset
+            // addBasicOffset
             let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental.type).width;
             accidentalGlyph.move(-accidentalWidth);
+            // checkDisplacement
+            let offsetX = -accidentalWidth;
             let isNotHighestNote = (i !== 0);
             let needsDisplacement = isNotHighestNote;
             if (needsDisplacement) {
+                accidentalGlyph.move(offsetX);
             }
             // moveAccidentalToStaffPlace
             let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
