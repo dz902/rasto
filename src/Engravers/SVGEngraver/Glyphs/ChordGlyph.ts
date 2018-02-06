@@ -1,5 +1,5 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
-import { Chord, Note, maybeThen } from '../../../Schema/Music/index.js';
+import { Chord, Note, maybeThen, SimpleMap } from '../../../Schema/Music/index.js';
 
 export class ChordGlyph extends Glyph {
     private direction: StemDirection = StemDirection.Down;
@@ -7,6 +7,7 @@ export class ChordGlyph extends Glyph {
     private stemGlyph: StemGlyph;
     private flagGlyph: CharGlyph;
     private rawNoteHeadWidth: number;
+    private processedNotes: SimpleMap = {};
 
     constructor(private chord: Chord) {
         super('chord', chord.id);
@@ -71,16 +72,6 @@ export class ChordGlyph extends Glyph {
                 }
             }
 
-            // checkAccidental
-
-            maybeThen(note.accidental, (accidental) => {
-                let accidentalGlyph = new CharGlyph('accidental', accidental!.type);
-
-                accidentalGlyph.shiftInterval(intervalToLowestNote);
-
-                this.append(accidentalGlyph);
-            });
-
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
@@ -97,15 +88,33 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkAccidentals(): void {
-        // extractAccidentals
-
-        let accidentals: { line: number, alter: number }[] = []; // pitch-alter or accidental element
-
         this.chord.notes
             .filter(note => note.accidental !== null)
             .reverse()
-            .forEach((note: Note) => {
-        });
+            .forEach((note: Note, i: number) => {
+                let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
+
+                this.append(accidentalGlyph);
+
+                // checkAccidentalOffset
+
+                let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
+
+                accidentalGlyph.move(-accidentalWidth);
+
+                let isNotHighestNote = (i !== 0);
+                let needsDisplacement = isNotHighestNote;
+
+                if (needsDisplacement) {
+
+                }
+
+                // moveAccidentalToStaffPlace
+
+                let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
+
+                accidentalGlyph.shiftInterval(intervalToLowestNote);
+            });
     }
 
     private checkDirection(): void {

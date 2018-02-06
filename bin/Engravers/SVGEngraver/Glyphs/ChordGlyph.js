@@ -1,10 +1,10 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
-import { maybeThen } from '../../../Schema/Music/index.js';
 export class ChordGlyph extends Glyph {
     constructor(chord) {
         super('chord', chord.id);
         this.chord = chord;
         this.direction = StemDirection.Down;
+        this.processedNotes = {};
         // ensureNonEmptyChord
         let chordHasNoNotes = chord.notes.length === 0;
         if (chordHasNoNotes) {
@@ -55,12 +55,6 @@ export class ChordGlyph extends Glyph {
                     isOffsetting = false;
                 }
             }
-            // checkAccidental
-            maybeThen(note.accidental, (accidental) => {
-                let accidentalGlyph = new CharGlyph('accidental', accidental.type);
-                accidentalGlyph.shiftInterval(intervalToLowestNote);
-                this.append(accidentalGlyph);
-            });
             // moveNoteToStaffPlace
             noteHeadGlyph.move(offsetX);
             noteHeadGlyph.shiftInterval(intervalToLowestNote);
@@ -74,12 +68,22 @@ export class ChordGlyph extends Glyph {
         }
     }
     checkAccidentals() {
-        // extractAccidentals
-        let accidentals = []; // pitch-alter or accidental element
         this.chord.notes
             .filter(note => note.accidental !== null)
             .reverse()
-            .forEach((note) => {
+            .forEach((note, i) => {
+            let accidentalGlyph = new CharGlyph('accidental', note.accidental.type);
+            this.append(accidentalGlyph);
+            // checkAccidentalOffset
+            let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental.type).width;
+            accidentalGlyph.move(-accidentalWidth);
+            let isNotHighestNote = (i !== 0);
+            let needsDisplacement = isNotHighestNote;
+            if (needsDisplacement) {
+            }
+            // moveAccidentalToStaffPlace
+            let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
+            accidentalGlyph.shiftInterval(intervalToLowestNote);
         });
     }
     checkDirection() {
