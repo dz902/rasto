@@ -97,7 +97,7 @@ export class ChordGlyph extends Glyph {
                     let kerningNeeded = (prevGlyphCutOutBottomIsHigherThanGlyphTop &&
                         glyphCutOutTopIsLowerThanPrevGlyphBottom);
                     if (kerningNeeded) {
-                        let kerningOffsetX = Math.min(bBox.width - anchors['cutOutNE'][0], prevAnchors['cutOutNE'][0]);
+                        let kerningOffsetX = Math.min(bBox.width - anchors['cutOutNE'][0], prevAnchors['cutOutSW'][0]);
                         offsetX += kerningOffsetX;
                         console.log(kerningOffsetX);
                     }
