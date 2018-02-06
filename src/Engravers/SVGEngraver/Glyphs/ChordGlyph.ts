@@ -103,24 +103,24 @@ export class ChordGlyph extends Glyph {
 
                 // checkDisplacement
 
-                let offsetX = -Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
-                let isNotHighestNote = (i !== 0);
+                let accidentalWidth = Glyph.meta.getGlyphSize('accidental', note.accidental!.type).width;
+                let offsetX = -accidentalWidth - 0.2; // no meta for this spacing
+                let isNotHighestNote = (prevNote !== null);
 
-                if (prevNote !== null) {
+                if (isNotHighestNote) {
                     // addBasicOffset
 
-                    let prevAccidentalWidth = Glyph.meta.getGlyphSize('accidental', prevNote.accidental!.type).width;
+                    let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
 
-                    offsetX += -prevAccidentalWidth;
+                    offsetX += prevGlyph.bbox.x;
 
                     // detectCutOuts
 
                     let anchors = Glyph.meta.getGlyphAnchors('accidental', note.accidental!.type);
-                    let prevAnchors = Glyph.meta.getGlyphAnchors('accidental', prevNote.accidental!.type);
+                    let prevAnchors = Glyph.meta.getGlyphAnchors('accidental', prevNote!.accidental!.type);
                     let hasCommonCutOutAnchors = anchors['cutOutNE'] && prevAnchors['cutOutSW'];
 
                     if (hasCommonCutOutAnchors) {
-                        let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
                         let prevBBox = prevGlyph.bbox;
                         let bBox = accidentalGlyph.bbox;
 
@@ -141,14 +141,9 @@ export class ChordGlyph extends Glyph {
                                 prevAnchors['cutOutSW'][0]);
 
                             offsetX += kerningOffsetX;
-                            console.log(kerningOffsetX);
                         }
                     }
-                }
-
-                let needsDisplacement = isNotHighestNote;
-
-                if (needsDisplacement) {
+                } else {
                 }
 
                 accidentalGlyph.move(offsetX);
