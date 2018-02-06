@@ -16,6 +16,7 @@ export class Note extends MusicalElement {
         return this.noteAccidental;
     }
     get staffPlace() {
+        // absoluteStaffPlace
         return this.pitchOctave * 7 + 'CDEFGAB'.indexOf(this.pitchStep);
     }
     addBeam(beam) {

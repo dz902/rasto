@@ -16,7 +16,7 @@ export class Glyph extends SVG {
 
     constructor(type?: string,
                 id?: string,
-                protected headPosition: { x: number, y: number} = { x: 0, y: 0 }) { // this makes sure all subclasses gets its own copy
+                private headPosition: { x: number, y: number} = { x: 0, y: 0 }) { // this makes sure all subclasses gets its own copy
         super('svg');
 
         // checkType
@@ -71,15 +71,15 @@ export class Glyph extends SVG {
     }
 
     shift(y: number) {
-        this.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
+        this.move(undefined, -y);
+    }
 
-        this.move(undefined, this.headPosition.y);
+    shiftInterval(interval: number) {
+        this.move(undefined, -(interval-1) / 2); // interval starts with unison (1)
     }
 
     shiftFromStaffBottom(y: number) {
-        this.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
-
-        this.move(undefined, this.headPosition.y);
+        this.move(undefined, 4 - y); // 4 = line 1, 3 = line 2, etc.
     }
 
     // OVERRIDE WITH NEW UNITS

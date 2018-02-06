@@ -76,7 +76,7 @@ export class ChordGlyph extends Glyph {
             maybeThen(note.accidental, (accidental) => {
                 let accidentalGlyph = new CharGlyph('accidental', accidental!.type);
 
-                //accidentalGlyph.shiftFromStaffBottom(note.staffPlace);
+                accidentalGlyph.shiftInterval(intervalToLowestNote);
 
                 this.append(accidentalGlyph);
             });
@@ -84,7 +84,7 @@ export class ChordGlyph extends Glyph {
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
-            noteHeadGlyph.shift((intervalToLowestNote-1)/2);  // intervals starts with unison = 1
+            noteHeadGlyph.shiftInterval(intervalToLowestNote);
 
             this.append(noteHeadGlyph);
         };

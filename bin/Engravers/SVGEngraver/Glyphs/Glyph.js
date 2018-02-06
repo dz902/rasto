@@ -45,12 +45,13 @@ export class Glyph extends SVG {
         childGlyph.move(this.headPosition.x);
     }
     shift(y) {
-        this.headPosition.y = -y; // 4 = line 1, 3 = line 2, etc.
-        this.move(undefined, this.headPosition.y);
+        this.move(undefined, -y);
+    }
+    shiftInterval(interval) {
+        this.move(undefined, -(interval - 1) / 2); // interval starts with unison (1)
     }
     shiftFromStaffBottom(y) {
-        this.headPosition.y = 4 - y; // 4 = line 1, 3 = line 2, etc.
-        this.move(undefined, this.headPosition.y);
+        this.move(undefined, 4 - y); // 4 = line 1, 3 = line 2, etc.
     }
     // OVERRIDE WITH NEW UNITS
     move(x, y) {

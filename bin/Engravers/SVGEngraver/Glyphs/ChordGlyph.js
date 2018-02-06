@@ -58,12 +58,12 @@ export class ChordGlyph extends Glyph {
             // checkAccidental
             maybeThen(note.accidental, (accidental) => {
                 let accidentalGlyph = new CharGlyph('accidental', accidental.type);
-                //accidentalGlyph.shiftFromStaffBottom(note.staffPlace);
+                accidentalGlyph.shiftInterval(intervalToLowestNote);
                 this.append(accidentalGlyph);
             });
             // moveNoteToStaffPlace
             noteHeadGlyph.move(offsetX);
-            noteHeadGlyph.shift((intervalToLowestNote - 1) / 2); // intervals starts with unison = 1
+            noteHeadGlyph.shiftInterval(intervalToLowestNote);
             this.append(noteHeadGlyph);
         };
         if (this.direction === StemDirection.Up) {

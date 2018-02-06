@@ -32,6 +32,8 @@ export class Note extends MusicalElement {
     }
 
     get staffPlace(): number {
+        // absoluteStaffPlace
+
         return this.pitchOctave*7 + 'CDEFGAB'.indexOf(this.pitchStep);
     }
 
