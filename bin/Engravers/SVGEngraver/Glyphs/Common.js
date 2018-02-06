@@ -27,10 +27,30 @@ export class SVG {
         return this.rawElement;
     }
     get width() {
-        return this.bbox.width;
+        let nominalWidth = this.rawElement.getAttribute('width');
+        if (nominalWidth) {
+            return Number(nominalWidth);
+        }
+        else {
+            console.warn('using bbox width, which may be incorrect for text elements');
+            return this.bbox.width;
+        }
+    }
+    set width(width) {
+        this.size(width);
+    }
+    set height(height) {
+        this.size(undefined, height);
     }
     get height() {
-        return this.bbox.height;
+        let nominalHeight = this.rawElement.getAttribute('height');
+        if (nominalHeight) {
+            return Number(nominalHeight);
+        }
+        else {
+            console.warn('using bbox height, which may be incorrect for text elements');
+            return this.bbox.height;
+        }
     }
     get bbox() {
         if (!document.body.contains(this.rawElement)) {
@@ -50,8 +70,12 @@ export class SVG {
     // HELPERS
     // these are only for graphics elements, should be made clear in the future
     size(width, height) {
-        this.setAttribute('width', width);
-        this.setAttribute('height', height);
+        if (width) {
+            this.setAttribute('width', width);
+        }
+        if (height) {
+            this.setAttribute('height', height);
+        }
         return this;
     }
     append(child) {

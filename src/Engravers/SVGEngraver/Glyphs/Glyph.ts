@@ -99,8 +99,11 @@ export class Glyph extends SVG {
         return this;
     }
 
-    size(width: number, height: number): Glyph {
-        super.size(width*Glyph.STAFF_SPACE, height*Glyph.STAFF_SPACE);
+    size(width?: number, height?: number): Glyph {
+        super.size(
+            width ? width*Glyph.STAFF_SPACE : undefined,
+            height? height*Glyph.STAFF_SPACE : undefined
+        );
 
         return this;
     }
@@ -112,6 +115,22 @@ export class Glyph extends SVG {
             this.bbox.y < (targetGlyph.bbox.y + targetGlyph.height) &&
             targetGlyph.bbox.y < (this.bbox.y + this.height)
         );
+    }
+
+    get width(): number {
+        return super.width / Glyph.STAFF_SPACE;
+    }
+
+    set width(width: number) {
+        super.width = width * Glyph.STAFF_SPACE;
+    }
+
+    get height(): number {
+        return super.height / Glyph.STAFF_SPACE;
+    }
+
+    set height(height: number) {
+        super.height = height * Glyph.STAFF_SPACE;
     }
 
     get bbox(): SVGRect {

@@ -17,13 +17,15 @@ export class RectGlyph extends Glyph {
         return super.width;
     }
     set width(width) {
-        this.rectSVG.setAttribute('width', width * Glyph.STAFF_SPACE);
+        this.size(width);
+        this.rectSVG.width = Number(this.rawElement.getAttribute('width')); // UGLY
     }
     get height() {
         return super.height;
     }
     set height(height) {
-        this.rectSVG.setAttribute('height', height * Glyph.STAFF_SPACE);
+        this.size(undefined, height);
+        this.rectSVG.height = Number(this.rawElement.getAttribute('height')); // UGLY
     }
 }
 //# sourceMappingURL=RectGlyph.js.map

@@ -17,6 +17,8 @@ export class TimeGlyph extends Glyph {
 
         this.append(this.beatGlyph);
 
+        let beatGlyphSize = { width: 0, height: 0 };
+
         // checkDoubleDigitBeat
 
         let isDoubleDigit = this.beat >= 10;
@@ -29,6 +31,9 @@ export class TimeGlyph extends Glyph {
             beatGlyphTen.shiftFromStaffBottom(3);
 
             this.beatGlyph.append(beatGlyphTen);
+
+            beatGlyphSize.width += beatGlyphTen.width;
+            beatGlyphSize.height = beatGlyphTen.height;
         }
 
         // drawBeatDigit
@@ -43,11 +48,13 @@ export class TimeGlyph extends Glyph {
 
         // checkDigitBeatOffset
 
-        if (isDoubleDigit) {
-            let beatGlyphOneWidth = Glyph.meta.getGlyphSize('time', 1).width;
+        console.log(beatGlyphSize.width);
+        beatGlyphDigit.move(beatGlyphSize.width);
 
-            beatGlyphDigit.move(beatGlyphOneWidth);
-        }
+        beatGlyphSize.width += beatGlyphDigit.width;
+        beatGlyphSize.height = Math.max(beatGlyphSize.height, beatGlyphDigit.height);
+
+        this.beatGlyph.size(beatGlyphSize.width, beatGlyphSize.height);
     }
 
     private drawBeatType(): void {
@@ -58,6 +65,7 @@ export class TimeGlyph extends Glyph {
 
         beatTypeDigitGlyph.shiftFromStaffBottom(1);
 
+        this.beatTypeGlyph.size(beatTypeDigitGlyph.width, beatTypeDigitGlyph.height);
         this.beatTypeGlyph.append(beatTypeDigitGlyph);
     }
 

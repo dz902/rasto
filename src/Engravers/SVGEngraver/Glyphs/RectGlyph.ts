@@ -13,7 +13,7 @@ export class RectGlyph extends Glyph {
         this.rectSVG = new SVG('rect');
 
         this.append(this.rectSVG);
-    }
+    };
 
     // pitfall here, when defining a setter, getter of the same name
     // is removed from inheritance, which means you will have to do
@@ -26,7 +26,8 @@ export class RectGlyph extends Glyph {
     }
 
     set width(width: number) {
-        this.rectSVG.setAttribute('width', width*Glyph.STAFF_SPACE);
+        this.size(width);
+        this.rectSVG.width = Number(this.rawElement.getAttribute('width'));  // UGLY
     }
 
     get height() {
@@ -34,6 +35,7 @@ export class RectGlyph extends Glyph {
     }
 
     set height(height: number) {
-        this.rectSVG.setAttribute('height', height*Glyph.STAFF_SPACE);
+        this.size(undefined, height);
+        this.rectSVG.height = Number(this.rawElement.getAttribute('height'));  // UGLY
     }
 }

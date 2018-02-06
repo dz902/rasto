@@ -117,13 +117,15 @@ export class ChordGlyph extends Glyph {
                 if (isNotHighestNote) {
                     // detectFitStaffSpace
 
-                    this.accidentalGlyphs.forEach((ag) => {
-                        if (ag.overlapsWith(accidentalGlyph)) {
-                            // continue here, needs to tweak direction for cut outs too
-                            accidentalGlyph.move(-ag.width);
-                        } else {
-                        }
-                    });
+                    let alignableGlyph = this.accidentalGlyphs.filter(ag => !ag.overlapsWith(accidentalGlyph))[0];
+                    // continue here, needs to tweak direction for cut outs too
+
+                    if (alignableGlyph !== undefined) {
+                        offsetX = alignableGlyph.bbox.x;
+                    } else {
+                        //offsetX = prevGlyph.bbox.x - accidentalGlyph.width;
+                    }
+
                     //
                     //
                     // offsetX += prevGlyph.bbox.x;
@@ -163,7 +165,6 @@ export class ChordGlyph extends Glyph {
 
                 accidentalGlyph.move(offsetX);
 
-                // appendAccidentalGlyph
 
                 this.accidentalGlyphs.push(accidentalGlyph);
             });

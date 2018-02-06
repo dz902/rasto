@@ -41,11 +41,35 @@ export class SVG {
     }
 
     get width(): number {
-        return this.bbox.width;
+        let nominalWidth = this.rawElement.getAttribute('width');
+
+        if (nominalWidth) {
+            return Number(nominalWidth);
+        } else {
+            console.warn('using bbox width, which may be incorrect for text elements');
+
+            return this.bbox.width;
+        }
+    }
+
+    set width(width: number) {
+        this.size(width);
+    }
+
+    set height(height: number) {
+        this.size(undefined, height);
     }
 
     get height(): number {
-        return this.bbox.height;
+        let nominalHeight = this.rawElement.getAttribute('height');
+
+        if (nominalHeight) {
+            return Number(nominalHeight);
+        } else {
+            console.warn('using bbox height, which may be incorrect for text elements');
+
+            return this.bbox.height;
+        }
     }
 
     get bbox(): SVGRect {
@@ -72,9 +96,14 @@ export class SVG {
 
     // these are only for graphics elements, should be made clear in the future
 
-    size(width: number, height: number): SVG {
-        this.setAttribute('width', width);
-        this.setAttribute('height', height);
+    size(width?: number, height?: number): SVG {
+        if (width) {
+            this.setAttribute('width', width);
+        }
+
+        if (height) {
+            this.setAttribute('height', height);
+        }
 
         return this;
     }

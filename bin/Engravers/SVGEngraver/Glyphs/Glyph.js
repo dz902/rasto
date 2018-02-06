@@ -65,7 +65,7 @@ export class Glyph extends SVG {
         return this;
     }
     size(width, height) {
-        super.size(width * Glyph.STAFF_SPACE, height * Glyph.STAFF_SPACE);
+        super.size(width ? width * Glyph.STAFF_SPACE : undefined, height ? height * Glyph.STAFF_SPACE : undefined);
         return this;
     }
     overlapsWith(targetGlyph) {
@@ -73,6 +73,18 @@ export class Glyph extends SVG {
             targetGlyph.bbox.x < (this.bbox.x + this.bbox.width) &&
             this.bbox.y < (targetGlyph.bbox.y + targetGlyph.height) &&
             targetGlyph.bbox.y < (this.bbox.y + this.height));
+    }
+    get width() {
+        return super.width / Glyph.STAFF_SPACE;
+    }
+    set width(width) {
+        super.width = width * Glyph.STAFF_SPACE;
+    }
+    get height() {
+        return super.height / Glyph.STAFF_SPACE;
+    }
+    set height(height) {
+        super.height = height * Glyph.STAFF_SPACE;
     }
     get bbox() {
         let bbox = super.bbox;

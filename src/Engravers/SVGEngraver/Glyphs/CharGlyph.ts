@@ -9,6 +9,11 @@ export class CharGlyph extends Glyph {
 
         this.glyphKey = String(key);  // number is ok
 
+        // setNominalSize
+
+        let nominalSize = Glyph.meta.getGlyphSize(type, key);
+        this.size(nominalSize.width, nominalSize.height);
+
         this.draw();
     }
 
