@@ -1,4 +1,4 @@
-import { SVG, Glyph } from './index.js';
+import { SVG, Glyph } from '.';
 
 export class RectGlyph extends Glyph {
     protected rectSVG: SVG;
@@ -6,14 +6,10 @@ export class RectGlyph extends Glyph {
     constructor(type?: string, id?: string) {
         super(type, id);
 
-        this.draw();
-    }
-
-    protected draw = (): void => {
         this.rectSVG = new SVG('rect');
 
         this.append(this.rectSVG);
-    };
+    }
 
     // pitfall here, when defining a setter, getter of the same name
     // is removed from inheritance, which means you will have to do

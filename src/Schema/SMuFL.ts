@@ -1,6 +1,6 @@
-import glyphnames from '../Schema/SMuFL/glyphnames.js';
-import metadata from '../Fonts/bravura/bravura_metadata.js';
-import { SimpleMap, toNameCase } from './Music/index.js';
+import glyphnames from 'Schema/SMuFL/glyphnames';
+import metadata from 'Fonts/bravura/bravura_metadata';
+import { SimpleMap, toNameCase } from 'Schema/Music';
 
 export class Meta {
     static load(): Meta {

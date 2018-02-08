@@ -8,11 +8,20 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "backstopjs": "^3.0.39"
+    "@types/jest": "^22.1.1",
+    "backstopjs": "^3.0.39",
+    "jest": "^22.2.1",
+    "ts-jest": "^22.0.3",
+    "ts-loader": "^3.5.0",
+    "tsconfig-paths-webpack-plugin": "^2.0.0",
+    "typescript": "^2.7.1",
+    "webpack": "^3.10.0"
   },
   "scripts": {
-    "vtest-approve": "backstop approve --config=tests/backstop_data/backstop.json",
-    "vtest": "backstop test --config=tests/backstop_data/backstop.json"
+    "build": "webpack",
+    "vtest-approve": "backstop approve --config=tests/backstop/backstop.json",
+    "vtest": "backstop test --config=tests/backstop/backstop.json",
+    "test": "jest --no-cache"
   },
   "repository": {
     "type": "git",
@@ -23,5 +32,19 @@
   "bugs": {
     "url": "https://github.com/dz902/rasto/issues"
   },
-  "homepage": "https://github.com/dz902/rasto#readme"
+  "homepage": "https://github.com/dz902/rasto#readme",
+  "jest": {
+    "transform": {
+      "^.+\\.(j|t)sx?$": "ts-jest"
+    },
+    "testRegex": "(/tests/jest/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }

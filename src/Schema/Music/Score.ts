@@ -1,4 +1,4 @@
-import { MusicalElement, Measure } from './index.js';
+import { MusicalElement, Measure } from './';
 
 export class Score extends MusicalElement {
     readonly parts: Part[] = [];

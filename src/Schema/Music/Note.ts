@@ -1,4 +1,4 @@
-import { Accidental, Maybe, Stem, Beam, MusicalElement, NumericValue, MarkType, ensure, ensureMarkType, ensureNumber } from './index.js';
+import { Accidental, Maybe, Stem, Beam, MusicalElement, NumericValue, MarkType, ensure, ensureMarkType, ensureNumber } from '.';
 
 export class Note extends MusicalElement {
     readonly type: MarkType;

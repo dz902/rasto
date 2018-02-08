@@ -1,5 +1,5 @@
-import { MusicXMLParser } from './Parsers/MusicXMLParser.js';
-import { SVGEngraver } from './Engravers/SVGEngraver.js';
+import { MusicXMLParser } from './Parsers/MusicXMLParser';
+import { SVGEngraver } from './Engravers/SVGEngraver';
 
 function Main() {
     fetch('../../var/Accidentals.xml')

@@ -1,5 +1,5 @@
-import { SVG, Glyph, MeasureGlyph, StaffGlyph } from './index.js';
-import { Score } from '../../../Schema/Music/index.js';
+import { SVG, Glyph, MeasureGlyph, StaffGlyph } from '.';
+import { Score } from '../../../Schema/Music';
 
 export class ScoreGlyph extends Glyph {
     constructor(private score: Score) {

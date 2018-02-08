@@ -1,5 +1,5 @@
-import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs/index.js';
-import { Score } from '../Schema/Music/index.js'; // FIX
+import { SVG, ScoreGlyph } from './SVGEngraver/Glyphs';
+import { Score } from '../Schema/Music'; // FIX
 
 const EM = 32;
 const STAFF_SPACE = 0.25 * EM;

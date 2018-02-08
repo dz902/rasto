@@ -1,18 +1,21 @@
 {
   "compilerOptions": {
-    "module": "es2015",
+    "baseUrl": "./src",
+    "module": "commonjs",
     "target": "es2015",
-    "sourceMap": true,
+    "inlineSourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "rootDir": "./src",
-    "outDir": "./bin",
+    "strictPropertyInitialization": false,
+    "rootDir": "src",
+    "outDir": "bin",
     "lib": [
       "es2015",
       "dom"
     ]
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tests"
   ]
 }

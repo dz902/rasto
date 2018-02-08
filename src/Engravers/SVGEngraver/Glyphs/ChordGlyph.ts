@@ -1,5 +1,5 @@
-import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
-import { Chord, Note, maybeThen, SimpleMap } from '../../../Schema/Music/index.js';
+import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from '.';
+import { Chord, Note, maybeThen, SimpleMap } from '../../../Schema/Music';
 
 export class ChordGlyph extends Glyph {
     private direction: StemDirection = StemDirection.Down;

@@ -1,4 +1,4 @@
-import { Glyph, LineGlyph } from './index.js';
+import { Glyph, LineGlyph } from '.';
 
 export class StaffGlyph extends Glyph {
     constructor() {

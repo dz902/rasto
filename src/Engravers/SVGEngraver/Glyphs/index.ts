@@ -1,16 +1,16 @@
-export * from './Common.js';
+export * from './Common';
 
-export * from './Glyph.js'; // order is fucking important...
-export * from './RectGlyph.js';
-export * from './LineGlyph.js';
-export * from './CharGlyph.js';
+export * from './Glyph'; // order is fucking important...
+export * from './RectGlyph';
+export * from './LineGlyph';
+export * from './CharGlyph';
 
-export * from './TimeGlyph.js';
-export * from './StaffGlyph.js';
-export * from './StemGlyph.js';
-export * from './ChordGlyph.js';
-export * from './NoteHeadGlyph.js';
-export * from './ScoreGlyph.js';
-export * from './RestGlyph.js';
-export * from './MeasureGlyph.js';
-export * from './ClefGlyph.js';
+export * from './TimeGlyph';
+export * from './StaffGlyph';
+export * from './StemGlyph';
+export * from './ChordGlyph';
+export * from './NoteHeadGlyph';
+export * from './ScoreGlyph';
+export * from './RestGlyph';
+export * from './MeasureGlyph';
+export * from './ClefGlyph';

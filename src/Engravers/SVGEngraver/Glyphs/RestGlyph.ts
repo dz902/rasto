@@ -1,5 +1,5 @@
-import { Glyph } from './index.js';
-import { Rest } from '../../../Schema/Music/index.js';
+import { Glyph } from '.';
+import { Rest } from '../../../Schema/Music';
 
 export class RestGlyph extends Glyph {
     constructor(private rest: Rest) {

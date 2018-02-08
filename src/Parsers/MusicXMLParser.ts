@@ -1,4 +1,4 @@
-import { toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music/index.js';
+import { toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -118,7 +118,7 @@ export class MusicXMLParser {
 
 class DOM {
     private currentNode: Element | Document;
-    private rawAttributes: SimpleMap;
+    private rawAttributes: SimpleMap = {};
 
     static parse(dataString: string): DOM {
         return new DOM(dataString);

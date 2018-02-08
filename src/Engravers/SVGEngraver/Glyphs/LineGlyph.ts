@@ -1,4 +1,4 @@
-import { SVG, Glyph } from './index.js';
+import { SVG, Glyph } from '.';
 
 export class LineGlyph extends Glyph {
     protected lineSVG: SVG;
@@ -6,11 +6,13 @@ export class LineGlyph extends Glyph {
     constructor(type: string, id?: string) {
         super(type, id);
 
-        this.draw();
+        this.lineSVG = new SVG('line');
+
+        this.append(this.lineSVG);
     }
 
     size(length: number): LineGlyph {
-        this.lineSVG
+        this.lineSVG!
             .setAttribute('x1',0)
             .setAttribute('y1', 0)
             .setAttribute('x2', length*Glyph.STAFF_SPACE)
@@ -20,8 +22,5 @@ export class LineGlyph extends Glyph {
     }
 
     protected draw = (): void => {
-        this.lineSVG = new SVG('line');
-
-        this.append(this.lineSVG);
     }
 }

@@ -1,4 +1,4 @@
-import { Glyph, CharGlyph } from './index.js';
+import { Glyph, CharGlyph } from '.';
 
 export class TimeGlyph extends Glyph {
     private beatGlyph: Glyph;

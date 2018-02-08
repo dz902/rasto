@@ -1,4 +1,4 @@
-import { SVG, Glyph } from './index.js';
+import { SVG, Glyph } from './';
 
 export class CharGlyph extends Glyph {
     protected textSVG: SVG;

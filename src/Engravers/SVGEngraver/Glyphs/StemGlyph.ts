@@ -1,4 +1,4 @@
-import { Glyph, RectGlyph } from './index.js';
+import { Glyph, RectGlyph } from '.';
 
 export class StemGlyph extends RectGlyph {
     constructor() {

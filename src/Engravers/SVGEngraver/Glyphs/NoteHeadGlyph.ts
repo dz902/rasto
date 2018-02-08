@@ -1,5 +1,5 @@
-import { Glyph, CharGlyph } from './index.js';
-import { Note } from '../../../Schema/Music/index.js'
+import { Glyph, CharGlyph } from '.';
+import { Note } from '../../../Schema/Music'
 
 export class NoteHeadGlyph extends CharGlyph {
     constructor(private note: Note) {

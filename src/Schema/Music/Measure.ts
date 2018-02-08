@@ -1,4 +1,4 @@
-import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from './index.js';
+import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
 
 export class Measure extends MusicalElement {
     readonly attributesList: MeasureAttributes[] = [];

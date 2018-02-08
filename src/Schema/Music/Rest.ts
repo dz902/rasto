@@ -1,4 +1,4 @@
-import { Mark, MeasureAttributes } from './index.js';
+import { Mark, MeasureAttributes } from '.';
 
 export class Rest extends Mark {
     constructor(context: MeasureAttributes) {

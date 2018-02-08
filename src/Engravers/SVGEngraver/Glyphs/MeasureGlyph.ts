@@ -1,5 +1,5 @@
-import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './index.js';
-import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureAttributes, Rest, diff } from '../../../Schema/Music/index.js';
+import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './';
+import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureAttributes, Rest, diff } from '../../../Schema/Music';
 
 export class MeasureGlyph extends Glyph {
     private context: MeasureAttributes;

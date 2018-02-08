@@ -1,4 +1,4 @@
-import { MusicalElement } from './index.js';
+import { MusicalElement } from '.';
 
 export class Stem extends MusicalElement {
     constructor(readonly type: string) {

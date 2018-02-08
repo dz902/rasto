@@ -1,6 +1,6 @@
-import { SVG } from './index.js';
+import { SVG } from 'Engravers/SVGEngraver/Glyphs';
 
-import * as SMuFL from '../../../Schema/SMuFL.js';
+import * as SMuFL from 'Schema/SMuFL';
 
 export class Glyph extends SVG {
     // STATIC
@@ -9,7 +9,7 @@ export class Glyph extends SVG {
     protected static readonly STAFF_SPACE: number = Glyph.EM * 0.25;
     protected static meta: SMuFL.Meta = SMuFL.Meta.load();
     protected static refs: { [id: string]: Glyph } = {};
-    protected id: string;
+    protected id: string | undefined;
     protected type: string;
 
     // INSTANCE
@@ -47,13 +47,14 @@ export class Glyph extends SVG {
 
         if (this.id) {
             this.addClass(`id-${this.id}`);
+
+            Glyph.refs[this.id] = this;
         }
 
         if (this.type) {
             this.addClass(this.type ? this.type : this.constructor.name);
         }
 
-        Glyph.refs[this.id] = this;
     };
 
     // GLYPH OPS
