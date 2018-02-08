@@ -78,48 +78,46 @@ export class ChordGlyph extends Glyph {
             // moveAccidentalToStaffPlace
             let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
             accidentalGlyph.shiftInterval(intervalToLowestNote);
-            // moveAccidentalToLeftOfNoteHead
-            let accidentalWidth = accidentalGlyph.width;
-            accidentalGlyph.move(-accidentalWidth - 0.2); // no meta for this spacing
             // checkDisplacement
             let offsetX = 0;
-            let isNotHighestNote = (prevNote !== null);
-            if (isNotHighestNote) {
+            let isNotHighestAccidental = (prevNote !== null);
+            if (isNotHighestAccidental) {
                 // detectFitStaffSpace
                 let alignableGlyph = this.accidentalGlyphs.filter(ag => !ag.overlapsWith(accidentalGlyph))[0];
                 // continue here, needs to tweak direction for cut outs too
                 if (alignableGlyph !== undefined) {
-                    offsetX = alignableGlyph.bbox.x;
+                    console.log(999);
+                    offsetX += alignableGlyph.bbox.x;
                 }
                 else {
-                    //offsetX = prevGlyph.bbox.x - accidentalGlyph.width;
-                }
-                //
-                //
-                // offsetX += prevGlyph.bbox.x;
-                // detectCutOuts
-                let anchors = Glyph.meta.getGlyphAnchors('accidental', note.accidental.type);
-                let prevAnchors = Glyph.meta.getGlyphAnchors('accidental', prevNote.accidental.type);
-                let hasCommonCutOutAnchors = anchors['cutOutNE'] && prevAnchors['cutOutSW'];
-                if (hasCommonCutOutAnchors) {
-                    let prevGlyph = this.accidentalGlyphs[this.accidentalGlyphs.length - 1];
-                    let prevBBox = prevGlyph.bbox;
-                    let bBox = accidentalGlyph.bbox;
-                    let prevGlyphCutOutBottomIsHigherThanGlyphTop = (prevBBox.y + prevAnchors['cutOutSW'][1] < bBox.y);
-                    let glyphCutOutTopIsLowerThanPrevGlyphBottom = (bBox.y + anchors['cutOutNE'][1] > prevBBox.y + prevBBox.height);
-                    let kerningNeeded = (prevGlyphCutOutBottomIsHigherThanGlyphTop &&
-                        glyphCutOutTopIsLowerThanPrevGlyphBottom);
-                    if (kerningNeeded) {
-                        let kerningOffsetX = Math.min(bBox.width - anchors['cutOutNE'][0], prevAnchors['cutOutSW'][0]);
-                        offsetX += kerningOffsetX;
+                    let prevAccidentalGlyph = this.accidentalGlyphs[i - 1];
+                    offsetX += prevAccidentalGlyph.bbox.x;
+                    // detectCutOuts
+                    let anchors = Glyph.meta.getGlyphAnchors('accidental', note.accidental.type);
+                    let prevAnchors = Glyph.meta.getGlyphAnchors('accidental', prevNote.accidental.type);
+                    let hasCommonCutOutAnchors = anchors['cutOutNE'] && prevAnchors['cutOutSW'];
+                    if (hasCommonCutOutAnchors) {
+                        let prevBBox = prevAccidentalGlyph.bbox;
+                        let bBox = accidentalGlyph.bbox;
+                        let prevGlyphCutOutBottomIsHigherThanGlyphTop = (prevBBox.y + prevAnchors['cutOutSW'][1] < bBox.y);
+                        let glyphCutOutTopIsLowerThanPrevGlyphBottom = (bBox.y + anchors['cutOutNE'][1] > prevBBox.y + prevBBox.height);
+                        let kerningNeeded = (prevGlyphCutOutBottomIsHigherThanGlyphTop &&
+                            glyphCutOutTopIsLowerThanPrevGlyphBottom);
+                        if (kerningNeeded) {
+                            let kerningOffsetX = Math.min(bBox.width - anchors['cutOutNE'][0], prevAnchors['cutOutSW'][0]);
+                            offsetX += kerningOffsetX;
+                        }
                     }
+                    offsetX += -prevAccidentalGlyph.width;
                 }
-            }
-            else {
             }
             accidentalGlyph.move(offsetX);
             this.accidentalGlyphs.push(accidentalGlyph);
         });
+        // checkStemDirectionDisplacement
+        if (this.direction === StemDirection.Up) {
+            this.accidentalGlyphs.forEach(a => a.move(-this.noteHeadWidth));
+        }
     }
     checkDirection() {
         let chord = this.chord;

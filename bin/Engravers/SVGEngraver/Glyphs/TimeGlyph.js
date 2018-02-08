@@ -29,7 +29,6 @@ export class TimeGlyph extends Glyph {
         this.beatGlyph
             .append(beatGlyphDigit);
         // checkDigitBeatOffset
-        console.log(beatGlyphSize.width);
         beatGlyphDigit.move(beatGlyphSize.width);
         beatGlyphSize.width += beatGlyphDigit.width;
         beatGlyphSize.height = Math.max(beatGlyphSize.height, beatGlyphDigit.height);
