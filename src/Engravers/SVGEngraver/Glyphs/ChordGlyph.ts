@@ -114,23 +114,21 @@ export class ChordGlyph extends Glyph {
                 if (isHighestAccidental) {
                     baseAccidentalGlyph = accidentalGlyph;
                 } else {
-                    let alignableGlyph = undefined;
+                    let isNewBaseAccidental = !accidentalGlyph.overlapsWith(baseAccidentalGlyph);
 
-                    // detectFitStaffSpace
+                    if (isNewBaseAccidental) {
+                        // detectNewBaseAccidental
 
-                    if (!accidentalGlyph.overlapsWith(baseAccidentalGlyph)) {
-                        alignableGlyph = baseAccidentalGlyph;
                         baseAccidentalGlyph = accidentalGlyph;
-                    }
-
-                    // continue here, needs to tweak direction for cut outs too
-
-                    if (alignableGlyph !== undefined) {
-                        offsetX += alignableGlyph.bbox.x;
                     } else {
+                        // moveToLeftOfPrevAccidental
+
                         let prevAccidentalGlyph = this.accidentalGlyphs[i - 1];
 
                         offsetX += prevAccidentalGlyph.bbox.x;
+
+                        accidentalGlyph.move(offsetX);
+                        accidentalGlyph.move(-accidentalGlyph.width);
 
                         // detectCutOuts
 
@@ -141,9 +139,9 @@ export class ChordGlyph extends Glyph {
                         if (hasCommonCutOutAnchors) {
                             let prevBBox = prevAccidentalGlyph.bbox;
                             let bBox = accidentalGlyph.bbox;
-
+debugger;
                             let prevGlyphCutOutBottomIsHigherThanGlyphTop = (
-                                prevBBox.y + prevAnchors['cutOutSW'][1] <= bBox.y
+                                prevBBox.y + prevAccidentalGlyph.height - prevAnchors['cutOutSW'][1] <= bBox.y
                             );
                             let glyphCutOutTopIsLowerThanPrevGlyphBottom = (
                                 bBox.y - (accidentalGlyph.height - anchors['cutOutNE'][1]) <= prevBBox.y + prevAccidentalGlyph.height
@@ -157,16 +155,13 @@ export class ChordGlyph extends Glyph {
                                 let kerningOffsetX = Math.min(
                                     accidentalGlyph.width - anchors['cutOutNE'][0],
                                     prevAnchors['cutOutSW'][0]);
-
-                                offsetX += kerningOffsetX;
+console.log('XXX', prevBBox, prevAnchors, bBox, anchors);
+                                accidentalGlyph.move(kerningOffsetX);
                             }
                         }
 
-                        offsetX += -accidentalGlyph.width;
                     }
                 }
-
-                accidentalGlyph.move(offsetX);
 
                 this.accidentalGlyphs.push(accidentalGlyph);
             });
