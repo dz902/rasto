@@ -2,13 +2,14 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "module": "commonjs",
+    "moduleResolution": "node",
     "target": "es2015",
     "inlineSourceMap": true,
     "strict": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
-    "rootDir": "src",
-    "outDir": "bin",
+    "rootDir": "./src",
+    "outDir": "./bin",
     "lib": [
       "es2015",
       "dom"

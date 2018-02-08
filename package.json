@@ -32,19 +32,5 @@
   "bugs": {
     "url": "https://github.com/dz902/rasto/issues"
   },
-  "homepage": "https://github.com/dz902/rasto#readme",
-  "jest": {
-    "transform": {
-      "^.+\\.(j|t)sx?$": "ts-jest"
-    },
-    "testRegex": "(/tests/jest/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
-  }
+  "homepage": "https://github.com/dz902/rasto#readme"
 }
