@@ -89,11 +89,13 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkAccidentals(): void {
+        let baseAccidentalGlyph: CharGlyph;
+
         this.chord.notes
             .filter(note => note.accidental !== null)
             .reverse()
             .forEach((note: Note, i: number, notes: Note[]) => {
-                let prevNote = i - 1 >= 0 ? notes[i - 1] : null;
+                let prevNote = i - 1 >= 0 ? notes[i - 1] : undefined;
                 let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
 
                 this.append(accidentalGlyph);
@@ -107,16 +109,23 @@ export class ChordGlyph extends Glyph {
                 // checkDisplacement
 
                 let offsetX = 0;
-                let isNotHighestAccidental = (prevNote !== null);
+                let isHighestAccidental = (i === 0);
 
-                if (isNotHighestAccidental) {
+                if (isHighestAccidental) {
+                    baseAccidentalGlyph = accidentalGlyph;
+                } else {
+                    let alignableGlyph = undefined;
+
                     // detectFitStaffSpace
 
-                    let alignableGlyph = this.accidentalGlyphs.filter(ag => !ag.overlapsWith(accidentalGlyph))[0];
+                    if (!accidentalGlyph.overlapsWith(baseAccidentalGlyph)) {
+                        alignableGlyph = baseAccidentalGlyph;
+                        baseAccidentalGlyph = accidentalGlyph;
+                    }
+
                     // continue here, needs to tweak direction for cut outs too
 
                     if (alignableGlyph !== undefined) {
-                        console.log(999);
                         offsetX += alignableGlyph.bbox.x;
                     } else {
                         let prevAccidentalGlyph = this.accidentalGlyphs[i - 1];
@@ -134,10 +143,10 @@ export class ChordGlyph extends Glyph {
                             let bBox = accidentalGlyph.bbox;
 
                             let prevGlyphCutOutBottomIsHigherThanGlyphTop = (
-                                prevBBox.y + prevAnchors['cutOutSW'][1] < bBox.y
+                                prevBBox.y + prevAnchors['cutOutSW'][1] <= bBox.y
                             );
                             let glyphCutOutTopIsLowerThanPrevGlyphBottom = (
-                                bBox.y + anchors['cutOutNE'][1] > prevBBox.y + prevBBox.height
+                                bBox.y - (accidentalGlyph.height - anchors['cutOutNE'][1]) <= prevBBox.y + prevAccidentalGlyph.height
                             );
                             let kerningNeeded = (
                                 prevGlyphCutOutBottomIsHigherThanGlyphTop &&
@@ -146,14 +155,14 @@ export class ChordGlyph extends Glyph {
 
                             if (kerningNeeded) {
                                 let kerningOffsetX = Math.min(
-                                    bBox.width - anchors['cutOutNE'][0],
+                                    accidentalGlyph.width - anchors['cutOutNE'][0],
                                     prevAnchors['cutOutSW'][0]);
 
                                 offsetX += kerningOffsetX;
                             }
                         }
 
-                        offsetX += -prevAccidentalGlyph.width;
+                        offsetX += -accidentalGlyph.width;
                     }
                 }
 
@@ -165,7 +174,11 @@ export class ChordGlyph extends Glyph {
         // checkStemDirectionDisplacement
 
         if (this.direction === StemDirection.Up) {
-            this.accidentalGlyphs.forEach(a => a.move(-this.noteHeadWidth));
+            let highestAccidentalGlyph = this.accidentalGlyphs[0];
+
+            if (highestAccidentalGlyph) {
+                this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
+            }
         }
     }
 
