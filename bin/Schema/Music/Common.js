@@ -3,9 +3,6 @@ export class MusicalElement {
         this.data = {};
         this.id = id ? id : uniq();
     }
-    addData(k, value) {
-        this.data[k] = value;
-    }
 }
 export class StaffPlace {
     static octave(i) {

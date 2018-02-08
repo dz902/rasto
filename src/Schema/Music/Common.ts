@@ -1,13 +1,9 @@
 export class MusicalElement {
     readonly id: string;
-    readonly data: Data = {};
+    readonly data: SimpleMap = {};
 
     constructor(id?:string) {
         this.id = id ? id : uniq();
-    }
-
-    addData(k: string, value: any) {
-        this.data[k] = value;
     }
 }
 
@@ -70,10 +66,6 @@ export function ensureNumber(value: any): number {
                   `value ${value} is not a valid number`,
                   (n: any): n is number => !Number.isNaN(n))
 }
-
-export type Data = {
-    [k: string]: any;
-};
 
 export type NumericValue = string | number;
 

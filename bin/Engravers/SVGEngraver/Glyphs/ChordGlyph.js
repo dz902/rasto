@@ -4,6 +4,7 @@ export class ChordGlyph extends Glyph {
         super('chord', chord.id);
         this.chord = chord;
         this.direction = StemDirection.Down;
+        this.hasAdjacentNotes = false;
         this.accidentalGlyphs = [];
         // ensureNonEmptyChord
         let chordHasNoNotes = chord.notes.length === 0;
@@ -55,6 +56,9 @@ export class ChordGlyph extends Glyph {
                     isOffsetting = false;
                 }
             }
+            if (needsDisplacement) {
+                this.hasAdjacentNotes = true;
+            }
             // moveNoteToStaffPlace
             noteHeadGlyph.move(offsetX);
             noteHeadGlyph.shiftInterval(intervalToLowestNote);
@@ -104,14 +108,12 @@ export class ChordGlyph extends Glyph {
                     if (hasCommonCutOutAnchors) {
                         let prevBBox = prevAccidentalGlyph.bbox;
                         let bBox = accidentalGlyph.bbox;
-                        debugger;
                         let prevGlyphCutOutBottomIsHigherThanGlyphTop = (prevBBox.y + prevAccidentalGlyph.height - prevAnchors['cutOutSW'][1] <= bBox.y);
                         let glyphCutOutTopIsLowerThanPrevGlyphBottom = (bBox.y - (accidentalGlyph.height - anchors['cutOutNE'][1]) <= prevBBox.y + prevAccidentalGlyph.height);
                         let kerningNeeded = (prevGlyphCutOutBottomIsHigherThanGlyphTop &&
                             glyphCutOutTopIsLowerThanPrevGlyphBottom);
                         if (kerningNeeded) {
                             let kerningOffsetX = Math.min(accidentalGlyph.width - anchors['cutOutNE'][0], prevAnchors['cutOutSW'][0]);
-                            console.log('XXX', prevBBox, prevAnchors, bBox, anchors);
                             accidentalGlyph.move(kerningOffsetX);
                         }
                     }
@@ -120,9 +122,14 @@ export class ChordGlyph extends Glyph {
             this.accidentalGlyphs.push(accidentalGlyph);
         });
         // checkStemDirectionDisplacement
+        let highestAccidentalGlyph = this.accidentalGlyphs[0];
         if (this.direction === StemDirection.Up) {
-            let highestAccidentalGlyph = this.accidentalGlyphs[0];
             if (highestAccidentalGlyph) {
+                this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
+            }
+        }
+        else {
+            if (this.hasAdjacentNotes) {
                 this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
             }
         }

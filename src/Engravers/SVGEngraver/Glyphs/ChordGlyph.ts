@@ -1,10 +1,10 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from './index.js';
 import { Chord, Note, maybeThen, SimpleMap } from '../../../Schema/Music/index.js';
-import { Stem } from '../../../Schema/Music/Stem';
 
 export class ChordGlyph extends Glyph {
     private direction: StemDirection = StemDirection.Down;
     private midStaffPlace: number;
+    private hasAdjacentNotes: boolean = false;
     private stemGlyph: StemGlyph;
     private flagGlyph: CharGlyph;
     private accidentalGlyphs: CharGlyph[] = [];
@@ -73,6 +73,10 @@ export class ChordGlyph extends Glyph {
                 }
             }
 
+            if (needsDisplacement) {
+                this.hasAdjacentNotes = true;
+            }
+
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
@@ -139,7 +143,7 @@ export class ChordGlyph extends Glyph {
                         if (hasCommonCutOutAnchors) {
                             let prevBBox = prevAccidentalGlyph.bbox;
                             let bBox = accidentalGlyph.bbox;
-debugger;
+
                             let prevGlyphCutOutBottomIsHigherThanGlyphTop = (
                                 prevBBox.y + prevAccidentalGlyph.height - prevAnchors['cutOutSW'][1] <= bBox.y
                             );
@@ -155,7 +159,7 @@ debugger;
                                 let kerningOffsetX = Math.min(
                                     accidentalGlyph.width - anchors['cutOutNE'][0],
                                     prevAnchors['cutOutSW'][0]);
-console.log('XXX', prevBBox, prevAnchors, bBox, anchors);
+
                                 accidentalGlyph.move(kerningOffsetX);
                             }
                         }
@@ -168,10 +172,14 @@ console.log('XXX', prevBBox, prevAnchors, bBox, anchors);
 
         // checkStemDirectionDisplacement
 
-        if (this.direction === StemDirection.Up) {
-            let highestAccidentalGlyph = this.accidentalGlyphs[0];
+        let highestAccidentalGlyph = this.accidentalGlyphs[0];
 
+        if (this.direction === StemDirection.Up) {
             if (highestAccidentalGlyph) {
+                this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
+            }
+        } else {
+            if (this.hasAdjacentNotes) {
                 this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
             }
         }
