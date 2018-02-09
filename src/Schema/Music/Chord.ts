@@ -31,9 +31,11 @@ export class Chord extends Mark {
         return this.highestNote.staffPlace - this.lowestNote.staffPlace;
     }
 
-    addNote(note: Note): void {
+    addNote(note: Note): Chord {
         this.notes.push(note);
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+
+        return this;
     }
 }
 

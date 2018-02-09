@@ -17,13 +17,13 @@ export abstract class StaffPlace {
     }
 }
 
-export type Maybe<T> = T | null;
+export type Maybe<T> = T | undefined;
 
 export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
     if (value !== undefined && value !== null) {
         return thenCallback(value);
     } else {
-        return null;
+        return undefined;
     }
 }
 
@@ -31,7 +31,7 @@ export function maybe<T>(value: T): Maybe<T> {
     if (value !== undefined) {
         return value;
     } else {
-        return null;
+        return undefined;
     }
 }
 
@@ -56,7 +56,7 @@ export function diff<T extends SimpleMap, K extends keyof T>(keys: K[], a: T, b:
         }
     }
 
-    return isDiff ? result : null;
+    return isDiff ? result : undefined;
 }
 
 export function ensureNumber(value: any): number {
@@ -86,5 +86,6 @@ export function toCamelCase(ss: string, i: number): string {
 // PRIVATE
 
 function uniq(): string {
-    return String(performance.now()).split('.').join('');
+    let randomNumber = window.performance ? window.performance.now() : Math.random();
+    return String(randomNumber).split('.').join('');
 }

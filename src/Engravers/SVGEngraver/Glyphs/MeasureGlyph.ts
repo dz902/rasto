@@ -71,11 +71,11 @@ export class MeasureGlyph extends Glyph {
             timeDiff = diff(['timeBeats', 'timeBeatType'], oldContext!, newContext);
         };
 
-        if (clefDiff !== null) {
+        if (clefDiff) {
             this.drawClef(clefDiff.clefSign!, clefDiff.clefLine!);
         }
 
-        if (timeDiff !== null) {
+        if (timeDiff) {
             this.drawTime(timeDiff.timeBeats!, timeDiff.timeBeatType!);
         }
     }

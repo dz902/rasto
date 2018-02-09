@@ -1,9 +1,9 @@
 module.exports = {
-    "transform": {
+    transform: {
         "^.+\\.(j|t)sx?$": "ts-jest"
     },
-    "testRegex": "(/tests/jest/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "moduleFileExtensions": [
+    testRegex: "(/tests/jest/.+\\.(test|spec))\\.(jsx?|tsx?)$",
+    moduleFileExtensions: [
         "ts",
         "tsx",
         "js",
@@ -11,11 +11,14 @@ module.exports = {
         "json",
         "node"
     ],
-    "roots": [
+    roots: [
         "./src",
         "./tests/jest"
     ],
-    "modulePaths": [
+    modulePaths: [
         "<rootDir>/src"
-    ]
+    ],
+    globalSetup: "./tests/jest/setup.js",
+    globalTeardown: "./tests/jest/teardown.js",
+    testEnvironment: "./tests/jest/puppeteer_environment.js"
 };

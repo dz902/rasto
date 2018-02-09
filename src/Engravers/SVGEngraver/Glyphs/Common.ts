@@ -3,7 +3,7 @@ const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 export class SVG {
     protected static invisibleSVG: SVGSVGElement;
     protected rawElement: SVGElement;
-    private transformerElement: SVGGElement | undefined;
+    private transformerElement: SVGGElement;
 
     private createElement(name: string): SVGElement {
         let element = document.createElementNS(SVG_NAMESPACE, name);

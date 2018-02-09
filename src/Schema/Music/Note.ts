@@ -4,12 +4,12 @@ export class Note extends MusicalElement {
     readonly type: MarkType;
     readonly pitchOctave: PitchOctave;
     readonly pitchStep: PitchStep;
-    readonly pitchAlter: Maybe<number> = null;
+    readonly pitchAlter: Maybe<number>;
     readonly duration: number;
     readonly beams: Beam[] = [];
     readonly stem: Stem;
 
-    private noteAccidental: Maybe<Accidental> = null;
+    private noteAccidental: Maybe<Accidental>;
 
     constructor(type: string,
                 pitchOctave: number,
