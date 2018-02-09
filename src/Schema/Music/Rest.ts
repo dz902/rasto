@@ -1,7 +1,7 @@
-import { Mark, MeasureAttributes } from '.';
+import { Mark, MeasureContext } from 'Schema/Music';
 
 export class Rest extends Mark {
-    constructor(context: MeasureAttributes) {
+    constructor(context: MeasureContext) {
         super("rest", context);
     }
 }

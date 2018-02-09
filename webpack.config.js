@@ -18,7 +18,8 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'bin'),
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        library: 'rasto'
     },
     devtool: "inline-source-map"
 };

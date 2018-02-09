@@ -90,7 +90,7 @@ export class ChordGlyph extends Glyph {
         let baseAccidentalGlyph: CharGlyph;
 
         this.chord.notes
-            .filter(note => note.accidental !== null)
+            .filter(note => note.accidental !== undefined)
             .reverse()
             .forEach((note: Note, i: number, notes: Note[]) => {
                 let prevNote = i - 1 >= 0 ? notes[i - 1] : undefined;
@@ -230,7 +230,7 @@ export class ChordGlyph extends Glyph {
         // checkExtraSpaceForLigatures
 
         let longLigatureNoteTypes = ['32th', '64th', '128th'];
-        let extraSpaces = longLigatureNoteTypes.indexOf(this.chord.type);
+        let extraSpaces = longLigatureNoteTypes.indexOf(chord.type);
 
         if (extraSpaces > 0) {
             this.stemGlyph.height += extraSpaces;

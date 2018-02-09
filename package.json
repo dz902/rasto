@@ -23,10 +23,11 @@
   },
   "scripts": {
     "build": "webpack",
-    "vtest-approve": "backstop approve --config=tests/backstop/backstop.json",
-    "vtest": "backstop test --config=tests/backstop/backstop.json",
-    "test": "jest",
-    "server": "http-server -p 8888"
+    "vtest-approve": "backstop approve --config=tests/backstop/backstop.config.json",
+    "vtest": "backstop test --config=tests/backstop/backstop.config.json",
+    "test": "jest --config=tests/jest/jest.config.js",
+    "server": "http-server -p 8888",
+    "watch": "webpack -w"
   },
   "repository": {
     "type": "git",

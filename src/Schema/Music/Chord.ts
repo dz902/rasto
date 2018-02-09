@@ -1,6 +1,4 @@
-import { Beam, Note, Mark, Measure, ensure } from 'Schema/Music';
-import { MeasureContext } from './Measure';
-import { ensureMarkType } from './Mark';
+import { Beam, Note, Mark } from 'Schema/Music';
 
 export class Chord extends Mark {
     notes: Note[] = [];
@@ -60,10 +58,6 @@ export class Chord extends Mark {
     }
 }
 
-export function ensureChord(chord: any): Chord {
-    return ensure(chord, `${chord} is not a chord`,
-                  (c: any | Chord): c is Chord => c instanceof Chord);
-}
 
 export enum StemDirection {
     Up = 'up',

@@ -4,7 +4,7 @@ export class Measure extends MusicalElement {
     readonly contexts: MeasureContext[] = [];
     readonly marks: Mark[] = [];
 
-    get currentContext(): MeasureContext {
+    get currentContext(): Maybe<MeasureContext> {
         return this.contexts[this.contexts.length - 1];
     }
 

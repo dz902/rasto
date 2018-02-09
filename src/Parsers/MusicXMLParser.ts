@@ -1,4 +1,7 @@
-import { toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest } from '../Schema/Music';
+import {
+    toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest,
+    MeasureContext
+} from '../Schema/Music';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -43,39 +46,51 @@ export class MusicXMLParser {
         let $parts = this.$music.qq('score-partwise part');
 
         $parts.each(($part, i) => {
+            let currentContext: MeasureContext;
+
             $part.qq('measure')
                  .each(($measure) => {
-                     let measure = this.extractMeasure($measure);
+                     let measure;
+
+                     measure = this.extractMeasure($measure, currentContext);
 
                      this.rawScore.parts[i!].measures.push(measure);
+
+                     if (measure.currentContext !== undefined) {
+                         currentContext = measure.currentContext;
+                     }
                  });
         });
     }
 
-    private extractMeasure($measure: DOM): Measure {
+    private extractMeasure($measure: DOM, currentContext?: MeasureContext): Measure {
         let measure: Measure = new Measure();
 
         $measure.qq('attributes, note')
                 .each(($element) => {
                     if ($element.name === 'attributes') {
                         measure.setContext($element.collectAttributeElements());
+                        currentContext = measure.currentContext;
 
                         return;
                     }
 
-                    let $note: DOM = $element;
+                    if (currentContext === undefined) {
+                        throw new Error();
+                    }
 
+                    let $note: DOM = $element;
                     let markIsRest = $note.has('rest');
 
                     if (markIsRest) {
-                        measure.addMark(new Rest(measure.currentContext));
+                        measure.addMark(new Rest(currentContext));
                     } else {
                         let markIsNotChordNote = !$note.has('chord');
                         let lastMark = measure.marks[measure.marks.length - 1];
                         let lastMarkIsNotChord = !(lastMark instanceof Chord);
 
                         if (markIsNotChordNote || lastMarkIsNotChord) {
-                            lastMark = new Chord($note.q('type').value, measure.currentContext);
+                            lastMark = new Chord($note.q('type').value, currentContext);
                             measure.addMark(lastMark);
                         }
 
@@ -99,6 +114,11 @@ export class MusicXMLParser {
 
                         $note.hasOne('accidental', ($accidental) => {
                             let accidentalType = $accidental.value.split(/-/).map(toCamelCase).join('');
+
+                            if (accidentalType === 'flatFlat') {
+                                accidentalType = 'doubleFlat'; // bad naming taste for MusicXML
+                            }
+
                             let accidental = new Accidental(accidentalType);
 
                             note.addAccidental(accidental);

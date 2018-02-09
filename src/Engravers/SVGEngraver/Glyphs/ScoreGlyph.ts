@@ -59,10 +59,14 @@ export class ScoreGlyph extends Glyph {
 
         this.append(staff);
 
-        this.score.parts[0].measures.forEach((measure) => {
+        this.score.parts[0].measures.forEach((measure, i) => {
             let measureGlyph = new MeasureGlyph(measure);
 
             this.append(measureGlyph);
+
+            if (i !== 0) {
+                this.advance(measureGlyph, 20);
+            }
         });
     };
 }
