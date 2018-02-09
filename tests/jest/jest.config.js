@@ -15,10 +15,8 @@ module.exports = {
         "../../src",
         "../../tests/jest"
     ],
-    modulePaths: [
-        "<rootDir>/src"
-    ],
-    globalSetup: "./setup.js",
-    globalTeardown: "./teardown.js",
-    testEnvironment: ".//puppeteer_environment.js"
+    moduleDirectories: [
+        "node_modules",
+        "src"
+    ]
 };

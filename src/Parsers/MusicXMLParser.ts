@@ -1,6 +1,6 @@
 import {
     toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest,
-    MeasureContext
+    MeasureContext, Mark
 } from '../Schema/Music';
 
 export class MusicXMLParser {
@@ -65,6 +65,7 @@ export class MusicXMLParser {
 
     private extractMeasure($measure: DOM, currentContext?: MeasureContext): Measure {
         let measure: Measure = new Measure();
+        let lastNotes: Note[] = [];
 
         $measure.qq('attributes, note')
                 .each(($element) => {
@@ -80,24 +81,17 @@ export class MusicXMLParser {
                     }
 
                     let $note: DOM = $element;
+                    let mark: any;
                     let markIsRest = $note.has('rest');
 
                     if (markIsRest) {
-                        measure.addMark(new Rest(currentContext));
+                        mark = new Rest(currentContext);
                     } else {
-                        let markIsNotChordNote = !$note.has('chord');
-                        let lastMark = measure.marks[measure.marks.length - 1];
-                        let lastMarkIsNotChord = !(lastMark instanceof Chord);
-
-                        if (markIsNotChordNote || lastMarkIsNotChord) {
-                            lastMark = new Chord($note.q('type').value, currentContext);
-                            measure.addMark(lastMark);
-                        }
-
                         // processNote
 
                         let noteAttributes = $note.collectAttributeElements();
-                        let note = new Note(
+
+                        mark = new Note(
                             noteAttributes['type'],
                             ensureNumber(noteAttributes['pitchOctave']),
                             noteAttributes['pitchStep'],
@@ -107,7 +101,7 @@ export class MusicXMLParser {
 
                         $note.has('beam', ($beams) => {
                             $beams.each(($beam) => {
-                                note.addBeam(new Beam($beam.attributes['number'],
+                                mark.addBeam(new Beam($beam.attributes['number'],
                                                        $beam.value))
                             });
                         });
@@ -121,16 +115,25 @@ export class MusicXMLParser {
 
                             let accidental = new Accidental(accidentalType);
 
-                            note.addAccidental(accidental);
+                            mark.addAccidental(accidental);
                         });
 
-                        let chord = <Chord> lastMark;
+                        let markIsNotChordNote = !$note.has('chord');
 
-                        chord.addNote(
-                            note
-                        );
+                        if (markIsNotChordNote) {
+                            if (lastNotes.length > 0) {
+                                measure.addMark(new Chord(lastNotes, lastNotes[0].type, currentContext));
+                                lastNotes = [];
+                            }
+                        }
+
+                        lastNotes.push(mark);
                     }
                 });
+
+        if (lastNotes.length > 0) {
+            measure.addMark(new Chord(lastNotes, lastNotes[0].type, currentContext!));
+        }
 
         return measure;
     }

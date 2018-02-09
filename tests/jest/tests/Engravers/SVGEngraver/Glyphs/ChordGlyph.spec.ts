@@ -1,31 +1,32 @@
 import { ChordGlyph } from 'Engravers/SVGEngraver/Glyphs';
-import { Chord, Note, MeasureAttributes } from 'Schema/Music';
+import { Chord, Note, MeasureContext } from 'Schema/Music';
+
+let chord: Chord;
+
+beforeEach(() => {
+    let context = new MeasureContext(4, 4, 4, 'G', 2);
+
+    chord = new Chord([
+        new Note('whole', 4, 'F', undefined, 1),
+        new Note('whole', 4, 'G', undefined, 1),
+        new Note('whole', 4, 'A', undefined, 1),
+        new Note('whole', 5, 'C', undefined, 1),
+        new Note('whole', 5, 'D', undefined, 1),
+    ], 'whole', context);
+});
 
 describe('ChordGlyph', () => {
-    describe('#constructor', () => {
-        let context = {
-            divisions: 4,
-            timeBeats: 4,
-            timeBeatType: 4,
-            clefSign: 'G',
-            clefLine: 2
-        };
-
-        let chord = new Chord('whole', context);
-
-        chord.addNote(new Note('whole', 4, 'C', undefined, 1))
-             .addNote(new Note('whole', 4, 'E', undefined, 1))
-             .addNote(new Note('whole', 4, 'G', undefined, 1));
-
-        let glyph = new ChordGlyph(chord);
-
-        it('should create an SVGElement', () => {
-            expect(glyph.element).toBeInstanceOf(SVGSVGElement);
+    describe('#addNote()', () => {
+        it('should have five notes', () => {
+            expect(chord.notes.length).toBe(5);
         });
 
-        it('should have type and ID ', () => {
-            expect(glyph.element.getAttribute('class')).toMatch(/id\-.+/);
-            expect(glyph.element.getAttribute('class')).toMatch(/chord/);
+        it('should set correct note displacement for up direction', () => {
+            expect(chord.notes[0].needsDisplacement).toBe(false);
+            expect(chord.notes[1].needsDisplacement).toBe(true);
+            expect(chord.notes[2].needsDisplacement).toBe(false);
+            expect(chord.notes[3].needsDisplacement).toBe(false);
+            expect(chord.notes[4].needsDisplacement).toBe(true);
         });
     });
 });

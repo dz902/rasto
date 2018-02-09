@@ -1,10 +1,18 @@
-import { Beam, Note, Mark } from 'Schema/Music';
+import { Beam, Note, Mark, MarkType, MeasureContext } from 'Schema/Music';
 
 export class Chord extends Mark {
-    notes: Note[] = [];
+    notes: ChordNote[] = [];
     beams: Beam[] = [];
 
     private forcedDirection: StemDirection;
+
+    constructor(notes: Note[], type: string, context: MeasureContext) {
+        super(type, context);
+
+        this.addNotes(notes);
+        this.sortNotes();
+        this.checkNoteDisplacement();
+    }
 
     get lowestNote(): Note {
         return this.notes[0];
@@ -50,14 +58,56 @@ export class Chord extends Mark {
         this.forcedDirection = direction;
     }
 
-    addNote(note: Note): Chord {
-        this.notes.push(note);
-        this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    addNotes(notes: Note[]): void {
+        if (notes.length === 0) {
+            throw new Error();
+        }
 
-        return this;
+        notes.forEach((note) => {
+            if (note.type !== this.type) {
+                throw new Error();
+            }
+
+            let chordNote = new ChordNote(note);
+
+            this.notes.push(chordNote);
+        });
+    }
+
+    sortNotes(): void {
+        this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    }
+
+    checkNoteDisplacement(): void {
+        // checkNoteDisplacement
+
+        let checkNoteDisplacement = (note: ChordNote, i: number, notes: ChordNote[]) => {
+            let prevNote = notes[i - 1];
+            let isNotDisplacing = (prevNote === undefined || !prevNote.needsDisplacement);
+            let isSecond = (prevNote !== undefined && note.getIntervalTo(prevNote) === 2);
+
+            note.needsDisplacement = isNotDisplacing && isSecond;
+        };
+
+        if (this.direction === StemDirection.Up) {
+            this.notes.forEach(checkNoteDisplacement);
+        } else {
+            this.notes.concat([]).reverse().forEach(checkNoteDisplacement);
+        }
     }
 }
 
+class ChordNote extends Note {
+    needsDisplacement: boolean = false;
+
+    constructor(note: Note) {
+        super(note.type,
+              note.pitchOctave,
+              note.pitchStep,
+              note.pitchAlter,
+              note.duration);
+    }
+}
 
 export enum StemDirection {
     Up = 'up',
