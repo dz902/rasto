@@ -58,7 +58,7 @@ export class MusicXMLParser {
         $measure.qq('attributes, note')
                 .each(($element) => {
                     if ($element.name === 'attributes') {
-                        measure.addAttributes($element.collectAttributeElements());
+                        measure.setContext($element.collectAttributeElements());
 
                         return;
                     }
@@ -68,14 +68,14 @@ export class MusicXMLParser {
                     let markIsRest = $note.has('rest');
 
                     if (markIsRest) {
-                        measure.addMark(new Rest(measure.currentAttributes));
+                        measure.addMark(new Rest(measure.currentContext));
                     } else {
                         let markIsNotChordNote = !$note.has('chord');
                         let lastMark = measure.marks[measure.marks.length - 1];
                         let lastMarkIsNotChord = !(lastMark instanceof Chord);
 
                         if (markIsNotChordNote || lastMarkIsNotChord) {
-                            lastMark = new Chord($note.q('type').value, measure.currentAttributes);
+                            lastMark = new Chord($note.q('type').value, measure.currentContext);
                             measure.addMark(lastMark);
                         }
 

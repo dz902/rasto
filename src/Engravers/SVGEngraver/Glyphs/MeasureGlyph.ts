@@ -1,8 +1,8 @@
 import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './';
-import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureAttributes, Rest, diff } from '../../../Schema/Music';
+import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureContext, Rest, diff } from '../../../Schema/Music';
 
 export class MeasureGlyph extends Glyph {
-    private context: MeasureAttributes;
+    private context: MeasureContext;
 
     constructor(private measure: Measure) {
         super('measure', measure.id);
@@ -56,7 +56,7 @@ export class MeasureGlyph extends Glyph {
         this.append(timeGlyph);
     }
 
-    private applyContextChange(newContext: MeasureAttributes, oldContext?: MeasureAttributes): void {
+    private applyContextChange(newContext: MeasureContext, oldContext?: MeasureContext): void {
         this.context = newContext;
 
         let clefDiff: Maybe<SimpleMap>;

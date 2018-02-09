@@ -1,8 +1,7 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from '.';
-import { Chord, Note, maybeThen, SimpleMap } from '../../../Schema/Music';
+import { StemDirection, Chord, Note, maybeThen, SimpleMap } from 'Schema/Music';
 
 export class ChordGlyph extends Glyph {
-    private direction: StemDirection = StemDirection.Down;
     private midStaffPlace: number;
     private hasAdjacentNotes: boolean = false;
     private stemGlyph: StemGlyph;
@@ -20,16 +19,11 @@ export class ChordGlyph extends Glyph {
             throw new Error('empty chord');
         }
 
-        // calculateMidStaffPlace
-
-        this.midStaffPlace = chord.contextStaffPlace + 4;
-
-        this.checkDirection();
         this.drawNotes();
         this.checkStem();
         this.checkFlag();
         this.checkAccidentals();
-        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.contextStaffPlace) / 2);
+        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.context.bottomStaffPlace) / 2);
     }
 
     get noteHeadWidth(): number {
@@ -56,7 +50,7 @@ export class ChordGlyph extends Glyph {
             let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
             let needsDisplacement = !isOffsetting && isSecond;
 
-            if (this.direction === StemDirection.Up) {
+            if (this.chord.direction === StemDirection.Up) {
                 if (needsDisplacement) {
                     offsetX = this.noteHeadWidth;
                     isOffsetting = true;
@@ -85,7 +79,7 @@ export class ChordGlyph extends Glyph {
             this.append(noteHeadGlyph);
         };
 
-        if (this.direction === StemDirection.Up) {
+        if (this.chord.direction === StemDirection.Up) {
             this.chord.notes.forEach(drawNote);
         } else {
             this.chord.notes.concat([]).reverse().forEach(drawNote); // non-destructive
@@ -174,35 +168,13 @@ export class ChordGlyph extends Glyph {
 
         let highestAccidentalGlyph = this.accidentalGlyphs[0];
 
-        if (this.direction === StemDirection.Up) {
+        if (this.chord.direction === StemDirection.Up) {
             if (highestAccidentalGlyph) {
                 this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
             }
         } else {
             if (this.hasAdjacentNotes) {
                 this.accidentalGlyphs.forEach(a => a.move(-highestAccidentalGlyph.width - 0.2)); // fix with meta
-            }
-        }
-    }
-
-    private checkDirection(): void {
-        let chord = this.chord;
-        let chordHasOnlyOneNote = chord.notes.length === 1;
-
-        if (chordHasOnlyOneNote) {
-            if (chord.lowestNote.staffPlace >= this.midStaffPlace) {
-                this.direction = StemDirection.Down;
-            } else {
-                this.direction = StemDirection.Up;
-            }
-        } else {
-            let topNoteDistance = Math.abs(chord.highestNote.staffPlace - this.midStaffPlace);
-            let bottomNoteDistance = Math.abs(chord.lowestNote.staffPlace - this.midStaffPlace);
-
-            if (topNoteDistance >= bottomNoteDistance) {
-                this.direction = StemDirection.Down;
-            } else {
-                this.direction = StemDirection.Up;
             }
         }
     }
@@ -227,12 +199,12 @@ export class ChordGlyph extends Glyph {
         let chord = this.chord;
 
         let onlyUpperLedgeredNotes = (
-            chord.highestNote.staffPlace > (chord.contextStaffPlace + 8) &&
-            chord.lowestNote.staffPlace > (chord.contextStaffPlace + 8)
+            chord.highestNote.staffPlace > (chord.context.bottomStaffPlace + 8) &&
+            chord.lowestNote.staffPlace > (chord.context.bottomStaffPlace + 8)
         );
         let onlyLowerLedgeredNotes = (
-            chord.highestNote.staffPlace < chord.contextStaffPlace &&
-            chord.lowestNote.staffPlace < chord.contextStaffPlace
+            chord.highestNote.staffPlace < chord.context.bottomStaffPlace &&
+            chord.lowestNote.staffPlace < chord.context.bottomStaffPlace
         );
 
         // compensateLedgerNoteStems
@@ -240,12 +212,12 @@ export class ChordGlyph extends Glyph {
         let heightGapToMidLine = 0;
 
         if (onlyLowerLedgeredNotes) {
-            if (this.direction === StemDirection.Up) { // in future direction may be forced
-                heightGapToMidLine = (this.midStaffPlace - chord.lowestNote.staffPlace - 7) / 2;
+            if (this.chord.direction === StemDirection.Up) { // in future direction may be forced
+                heightGapToMidLine = (chord.context.midStaffPlace - chord.lowestNote.staffPlace - 7) / 2;
             }
         } else if (onlyUpperLedgeredNotes) {
-            if (this.direction === StemDirection.Down) {
-                heightGapToMidLine = (chord.highestNote.staffPlace - this.midStaffPlace - 7) / 2;
+            if (this.chord.direction === StemDirection.Down) {
+                heightGapToMidLine = (chord.highestNote.staffPlace - chord.context.midStaffPlace - 7) / 2;
             }
         }
 
@@ -271,7 +243,7 @@ export class ChordGlyph extends Glyph {
         let offset: { x: number, y: number };
         let noteAnchors = Glyph.meta.getGlyphAnchors('note-head', chord.type);
 
-        if (this.direction === StemDirection.Up) {
+        if (this.chord.direction === StemDirection.Up) {
             offset = {
                 x: noteAnchors['stemUpSE'][0] - this.stemGlyph.width,  // move left and make stem inside
                 y: -noteAnchors['stemUpSE'][1]                       // move opposite direction
@@ -312,7 +284,7 @@ export class ChordGlyph extends Glyph {
             return;
         }
 
-        this.flagGlyph = new CharGlyph(`flag-${this.direction}`, this.chord.type);
+        this.flagGlyph = new CharGlyph(`flag-${this.chord.direction}`, this.chord.type);
 
         this.checkFlagOffsets();
 
@@ -320,10 +292,10 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkFlagOffsets(): void {
-        let flagAnchors = Glyph.meta.getGlyphAnchors(`flag-${this.direction}`, this.chord.type);
+        let flagAnchors = Glyph.meta.getGlyphAnchors(`flag-${this.chord.direction}`, this.chord.type);
         let offset: { x: number, y: number };
 
-        if (this.direction === StemDirection.Up) {
+        if (this.chord.direction === StemDirection.Up) {
             offset = {
                 x: flagAnchors['stemUpNW'][0],
                 y: flagAnchors['stemUpNW'][1]
@@ -338,9 +310,4 @@ export class ChordGlyph extends Glyph {
         this.flagGlyph.move(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
         this.flagGlyph.move(offset.x, offset.y);
     }
-}
-
-enum StemDirection {
-    Up = 'up',
-    Down = 'down'
 }
