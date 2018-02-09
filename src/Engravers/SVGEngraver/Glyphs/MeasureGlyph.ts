@@ -1,11 +1,15 @@
-import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from './';
-import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureContext, Rest, diff } from '../../../Schema/Music';
+import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from 'Engravers/SVGEngraver/Glyphs';
+import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureContext, Rest, diff } from 'Schema/Music';
 
 export class MeasureGlyph extends Glyph {
-    private context: MeasureContext;
+    private currentContext: Maybe<MeasureContext>;
 
-    constructor(private measure: Measure) {
+    constructor(private measure: Measure, context?: MeasureContext) {
         super('measure', measure.id);
+
+        if (context !== undefined) {
+            this.currentContext = context;
+        }
 
         this.draw();
     }
@@ -15,11 +19,11 @@ export class MeasureGlyph extends Glyph {
             // this relies on parser to make sure context refers to same object
             // probably should make it more generic
 
-            let noContext = !this.context;
-            let contextChanged = (mark.context !== this.context);
+            let noContext = this.currentContext === undefined;
+            let contextChanged = !noContext && !mark.context.sameAs(this.currentContext!);
 
             if (noContext || contextChanged) {
-                this.applyContextChange(mark.context, this.context);
+                this.applyContextChange(mark.context, this.currentContext);
             }
 
             if (mark instanceof Chord) {
@@ -57,7 +61,7 @@ export class MeasureGlyph extends Glyph {
     }
 
     private applyContextChange(newContext: MeasureContext, oldContext?: MeasureContext): void {
-        this.context = newContext;
+        this.currentContext = newContext;
 
         let clefDiff: Maybe<SimpleMap>;
         let timeDiff: Maybe<SimpleMap>;
@@ -80,6 +84,3 @@ export class MeasureGlyph extends Glyph {
         }
     }
 }
-
-
-;

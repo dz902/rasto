@@ -1,7 +1,7 @@
 import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
 
 export class Measure extends MusicalElement {
-    readonly contexts: MeasureContext[] = [];
+    private contexts: MeasureContext[] = [];
     readonly marks: Mark[] = [];
 
     get currentContext(): Maybe<MeasureContext> {
@@ -33,7 +33,7 @@ export class Measure extends MusicalElement {
     }
 }
 
-export class MeasureContext {
+export class MeasureContext implements SimpleMap {
     constructor(readonly divisions: Maybe<number>,
                 readonly timeBeats: Maybe<number>,
                 readonly timeBeatType: Maybe<number>,
@@ -68,6 +68,19 @@ export class MeasureContext {
             or(this.clefSign, oldContext.clefSign),
             or(this.clefLine, oldContext.clefLine)
         )
+    }
+
+    sameAs(otherContext: MeasureContext): boolean {
+        let thisContext: MeasureContext = this;
+        let k: keyof MeasureContext;
+
+        for (k in thisContext) {
+            if (thisContext[k] !== otherContext[k]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

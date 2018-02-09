@@ -3,6 +3,7 @@ const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 export class SVG {
     protected static invisibleSVG: SVGSVGElement;
     protected rawElement: SVGElement;
+
     private transformerElement: SVGGElement;
 
     private createElement(name: string): SVGElement {
@@ -48,7 +49,7 @@ export class SVG {
         } else {
             console.warn('using bbox width, which may be incorrect for text elements');
 
-            return this.bbox.width;
+            return this.getBBox().width;
         }
     }
 
@@ -68,11 +69,11 @@ export class SVG {
         } else {
             console.warn('using bbox height, which may be incorrect for text elements');
 
-            return this.bbox.height;
+            return this.getBBox().height;
         }
     }
 
-    get bbox(): SVGRect {
+    getBBox(): SVGRect {
         if (!document.body.contains(this.rawElement)) {
             throw Error('element must be rendered to have a bounding box.');
         }
@@ -85,11 +86,11 @@ export class SVG {
     }
 
     get x(): number {
-        return numberOrDefault(this.bbox.x, 0);
+        return numberOrDefault(this.getBBox().x, 0);
     }
 
     get y(): number {
-        return numberOrDefault(this.bbox.y, 0);
+        return numberOrDefault(this.getBBox().y, 0);
     }
 
     // HELPERS
@@ -182,7 +183,7 @@ export class SVG {
     addClass(className: string): SVG {
         className.split(' ').forEach((c: string) => {
             this.rawElement.classList.add(c);
-        })
+        });
 
         return this;
     }

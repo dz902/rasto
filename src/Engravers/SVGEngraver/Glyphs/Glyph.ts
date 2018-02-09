@@ -135,7 +135,7 @@ export class Glyph extends SVG {
     }
 
     get bbox(): SVGRect {
-        let bbox = super.bbox;
+        let bbox = super.getBBox();
 
         return {
             x: bbox.x/Glyph.STAFF_SPACE,

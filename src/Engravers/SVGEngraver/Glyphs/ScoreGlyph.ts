@@ -1,5 +1,5 @@
-import { SVG, Glyph, MeasureGlyph, StaffGlyph } from '.';
-import { Score } from '../../../Schema/Music';
+import { SVG, Glyph, MeasureGlyph, StaffGlyph } from 'Engravers/SVGEngraver/Glyphs';
+import { MeasureContext, Score } from 'Schema/Music';
 
 export class ScoreGlyph extends Glyph {
     constructor(private score: Score) {
@@ -59,13 +59,25 @@ export class ScoreGlyph extends Glyph {
 
         this.append(staff);
 
+        let currentContext: MeasureContext;
+
         this.score.parts[0].measures.forEach((measure, i) => {
-            let measureGlyph = new MeasureGlyph(measure);
+            if (measure.currentContext !== undefined) {
+                currentContext = measure.currentContext;
+            }
+
+            let measureGlyph;
+
+            if (i === 0) {
+                measureGlyph = new MeasureGlyph(measure);
+            } else {
+                measureGlyph = new MeasureGlyph(measure, currentContext);
+            }
 
             this.append(measureGlyph);
 
             if (i !== 0) {
-                this.advance(measureGlyph, 20);
+                this.advance(measureGlyph, measureGlyph.width);
             }
         });
     };
