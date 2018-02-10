@@ -62,7 +62,7 @@ export class ScoreGlyph extends Glyph {
         let currentContext: MeasureContext;
 
         this.score.parts[0].measures.forEach((measure, i) => {
-            if (measure.currentContext !== undefined) {
+            if (measure.currentContext !== null) {
                 currentContext = measure.currentContext;
             }
 

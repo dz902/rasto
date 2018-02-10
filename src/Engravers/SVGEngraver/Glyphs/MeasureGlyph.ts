@@ -2,7 +2,7 @@ import { ChordGlyph, ClefGlyph, Glyph, RestGlyph, TimeGlyph } from 'Engravers/SV
 import { Maybe, SimpleMap, Chord, Mark, Measure, MeasureContext, Rest, diff } from 'Schema/Music';
 
 export class MeasureGlyph extends Glyph {
-    private currentContext: Maybe<MeasureContext>;
+    private currentContext: Maybe<MeasureContext> = null;
 
     constructor(private measure: Measure, context?: MeasureContext) {
         super('measure', measure.id);
@@ -19,11 +19,13 @@ export class MeasureGlyph extends Glyph {
             // this relies on parser to make sure context refers to same object
             // probably should make it more generic
 
-            let noContext = this.currentContext === undefined;
-            let contextChanged = !noContext && !mark.context.sameAs(this.currentContext!);
+            let noContext = this.currentContext === null;
+            let contextIsDifferent = !noContext && !mark.context.sameAs(this.currentContext!);
 
-            if (noContext || contextChanged) {
-                this.applyContextChange(mark.context, this.currentContext);
+            if (noContext) {
+                this.changeContext(mark.context);
+            } else if (contextIsDifferent) {
+                this.changeContext(mark.context, this.currentContext || undefined);
             }
 
             if (mark instanceof Chord) {
@@ -60,7 +62,7 @@ export class MeasureGlyph extends Glyph {
         this.append(timeGlyph);
     }
 
-    private applyContextChange(newContext: MeasureContext, oldContext?: MeasureContext): void {
+    private changeContext(newContext: MeasureContext, oldContext?: MeasureContext): void {
         this.currentContext = newContext;
 
         let clefDiff: Maybe<SimpleMap>;

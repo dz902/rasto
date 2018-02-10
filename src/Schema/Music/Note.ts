@@ -9,16 +9,16 @@ export class Note extends MusicalElement {
     readonly beams: Beam[] = [];
     readonly stem: Stem;
 
-    private noteAccidental: Maybe<Accidental>;
+    private noteAccidental: Maybe<Accidental> = null;
 
-    constructor(type: string,
+    constructor(type: MarkType,
                 pitchOctave: number,
                 pitchStep: string,
                 pitchAlter: Maybe<number>,
                 duration: number) {
         super();
 
-        this.type = ensureMarkType(type);
+        this.type = type;
         this.pitchOctave = ensurePitchOctave(pitchOctave);
         this.pitchStep = ensurePitchStep(pitchStep);
         this.pitchAlter = pitchAlter;

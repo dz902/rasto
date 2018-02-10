@@ -2,6 +2,7 @@ import {
     toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest,
     MeasureContext, Mark
 } from '../Schema/Music';
+import { Maybe } from '../Utilities/Maybe';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -19,14 +20,13 @@ export class MusicXMLParser {
 
     private constructor(dataString: string) {
         this.$music = DOM.parse(dataString);
+        this.rawScore = new Score();
 
         this.parseScore();
         this.parseParts();
     }
 
     private parseScore(): void {
-        this.rawScore = new Score();
-
         let $scoreParts = this.$music.qq('score-partwise part-list score-part');
 
         $scoreParts.each(($sp) => {
@@ -56,16 +56,17 @@ export class MusicXMLParser {
 
                      this.rawScore.parts[i!].measures.push(measure);
 
-                     if (measure.currentContext !== undefined) {
+                     if (measure.currentContext !== null) {
                          currentContext = measure.currentContext;
                      }
                  });
         });
     }
 
-    private extractMeasure($measure: DOM, currentContext?: MeasureContext): Measure {
+    private extractMeasure($measure: DOM, withContext?: MeasureContext): Measure {
         let measure: Measure = new Measure();
         let lastNotes: Note[] = [];
+        let currentContext: Maybe<MeasureContext> = withContext ? withContext : null;
 
         $measure.qq('attributes, note')
                 .each(($element) => {
@@ -76,27 +77,24 @@ export class MusicXMLParser {
                         return;
                     }
 
-                    if (currentContext === undefined) {
+                    if (currentContext === null) {
                         throw new Error();
                     }
 
                     let $note: DOM = $element;
                     let mark: any;
                     let markIsRest = $note.has('rest');
+                    let markAttributes = $note.collectAttributeElements();
 
                     if (markIsRest) {
-                        mark = new Rest(currentContext);
+                        mark = new Rest(markAttributes['type'], currentContext);
                     } else {
-                        // processNote
-
-                        let noteAttributes = $note.collectAttributeElements();
-
                         mark = new Note(
-                            noteAttributes['type'],
-                            ensureNumber(noteAttributes['pitchOctave']),
-                            noteAttributes['pitchStep'],
-                            maybeThen(noteAttributes['pitchAlter'], ensureNumber),
-                            ensureNumber(noteAttributes['duration'])
+                            markAttributes['type'],
+                            ensureNumber(markAttributes['pitchOctave']),
+                            markAttributes['pitchStep'],
+                            maybeThen(markAttributes['pitchAlter'] || null, ensureNumber),
+                            ensureNumber(markAttributes['duration'])
                         );
 
                         $note.has('beam', ($beams) => {

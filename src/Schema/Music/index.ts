@@ -8,3 +8,4 @@ export * from './Rest';
 export * from './Stem';
 export * from './Beam';
 export * from './Score';
+export { Maybe } from '../../Utilities/Maybe';

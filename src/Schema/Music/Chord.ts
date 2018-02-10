@@ -1,12 +1,14 @@
-import { Beam, Note, Mark, MarkType, MeasureContext } from 'Schema/Music';
+import { Beam, Note, Mark, MeasureContext } from 'Schema/Music';
+import { Maybe } from 'Utilities/Maybe';
+import { MarkType } from './Mark';
 
 export class Chord extends Mark {
     notes: ChordNote[] = [];
     beams: Beam[] = [];
 
-    private forcedDirection: StemDirection;
+    private forcedDirection: Maybe<StemDirection> = null;
 
-    constructor(notes: Note[], type: string, context: MeasureContext) {
+    constructor(notes: Note[], type: MarkType, context: MeasureContext) {
         super(type, context);
 
         this.addNotes(notes);
@@ -27,7 +29,7 @@ export class Chord extends Mark {
     }
 
     get direction(): StemDirection {
-        if (this.forcedDirection !== undefined) {
+        if (this.forcedDirection !== null) {
             return this.forcedDirection;
         }
 
@@ -54,18 +56,20 @@ export class Chord extends Mark {
         return direction;
     }
 
-    set direction(direction: StemDirection) {
+    forceDirection(direction: StemDirection) {
         this.forcedDirection = direction;
     }
 
-    addNotes(notes: Note[]): void {
+    // TASKS
+
+    private addNotes(notes: Note[]): void {
         if (notes.length === 0) {
-            throw new Error();
+            throw new Error('chord with no notes');
         }
 
         notes.forEach((note) => {
             if (note.type !== this.type) {
-                throw new Error();
+                throw new Error(`chord/note type mismatch: ${this.type} vs ${note.type}`);
             }
 
             let chordNote = new ChordNote(note);
@@ -74,14 +78,12 @@ export class Chord extends Mark {
         });
     }
 
-    sortNotes(): void {
+    private sortNotes(): void {
         this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
     }
 
-    checkNoteDisplacement(): void {
-        // checkNoteDisplacement
-
-        let checkNoteDisplacement = (note: ChordNote, i: number, notes: ChordNote[]) => {
+    private checkNoteDisplacement(): void {
+        let checkSeconds = (note: ChordNote, i: number, notes: ChordNote[]) => {
             let prevNote = notes[i - 1];
             let isNotDisplacing = (prevNote === undefined || !prevNote.needsDisplacement);
             let isSecond = (prevNote !== undefined && note.getIntervalTo(prevNote) === 2);
@@ -90,9 +92,9 @@ export class Chord extends Mark {
         };
 
         if (this.direction === StemDirection.Up) {
-            this.notes.forEach(checkNoteDisplacement);
+            this.notes.forEach(checkSeconds);
         } else {
-            this.notes.concat([]).reverse().forEach(checkNoteDisplacement);
+            this.notes.concat([]).reverse().forEach(checkSeconds);
         }
     }
 }

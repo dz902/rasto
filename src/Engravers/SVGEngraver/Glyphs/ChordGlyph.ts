@@ -1,12 +1,13 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from '.';
 import { StemDirection, Chord, Note, maybeThen, SimpleMap } from 'Schema/Music';
+import { Maybe } from '../../../Utilities';
 
 export class ChordGlyph extends Glyph {
-    private midStaffPlace: number;
     private hasAdjacentNotes: boolean = false;
-    private stemGlyph: StemGlyph;
-    private flagGlyph: CharGlyph;
+    private stemGlyph: Maybe<StemGlyph> = null;
+    private flagGlyph: Maybe<CharGlyph> = null;
     private accidentalGlyphs: CharGlyph[] = [];
+    // @ts-ignore
     private rawNoteHeadWidth: number;
 
     constructor(private chord: Chord) {
@@ -90,10 +91,10 @@ export class ChordGlyph extends Glyph {
         let baseAccidentalGlyph: CharGlyph;
 
         this.chord.notes
-            .filter(note => note.accidental !== undefined)
+            .filter(note => note.accidental !== null)
             .reverse()
             .forEach((note: Note, i: number, notes: Note[]) => {
-                let prevNote = i - 1 >= 0 ? notes[i - 1] : undefined;
+                let prevNote = i - 1 >= 0 ? notes[i - 1] : null;
                 let accidentalGlyph = new CharGlyph('accidental', note.accidental!.type);
 
                 this.append(accidentalGlyph);
@@ -221,7 +222,7 @@ export class ChordGlyph extends Glyph {
             }
         }
 
-        this.stemGlyph.height += heightGapToMidLine > 0 ? heightGapToMidLine : 0;
+        this.stemGlyph!.height += heightGapToMidLine > 0 ? heightGapToMidLine : 0;
     }
 
     private checkStemOffsets(): void {
@@ -233,7 +234,7 @@ export class ChordGlyph extends Glyph {
         let extraSpaces = longLigatureNoteTypes.indexOf(chord.type);
 
         if (extraSpaces > 0) {
-            this.stemGlyph.height += extraSpaces;
+            this.stemGlyph!.height += extraSpaces;
         }
 
         // the following is confusing mainly because SMuFL use SW-y and Web uses NW-y
@@ -245,13 +246,13 @@ export class ChordGlyph extends Glyph {
 
         if (this.chord.direction === StemDirection.Up) {
             offset = {
-                x: noteAnchors['stemUpSE'][0] - this.stemGlyph.width,  // move left and make stem inside
+                x: noteAnchors['stemUpSE'][0] - this.stemGlyph!.width,  // move left and make stem inside
                 y: -noteAnchors['stemUpSE'][1]                       // move opposite direction
             };
 
-            this.stemGlyph.height -= noteAnchors['stemUpSE'][1];   // shorten stem to keep tip aligned
+            this.stemGlyph!.height -= noteAnchors['stemUpSE'][1];   // shorten stem to keep tip aligned
 
-            offset.y -= this.stemGlyph.height;
+            offset.y -= this.stemGlyph!.height;
         } else {
             offset = {
                 x: noteAnchors['stemDownNW'][0], // move right, stem already is inside note
@@ -263,13 +264,13 @@ export class ChordGlyph extends Glyph {
             // offseted to put stem on the left of note, so we compensate note
             // width to make sure stem in the middle
 
-            this.stemGlyph.height += noteAnchors['stemDownNW'][1]; // lengthen stem to keep tip aligned
+            this.stemGlyph!.height += noteAnchors['stemDownNW'][1]; // lengthen stem to keep tip aligned
 
             offset.x += this.noteHeadWidth;
             offset.y -= (this.chord.spanStaffPlace / 2);
         }
 
-        this.stemGlyph.move(offset.x, offset.y);
+        this.stemGlyph!.move(offset.x, offset.y);
     }
 
     private checkFlag(): void {
@@ -303,11 +304,11 @@ export class ChordGlyph extends Glyph {
         } else {
             offset = {
                 x: flagAnchors['stemDownSW'][0],
-                y: flagAnchors['stemDownSW'][1] + this.stemGlyph.height
+                y: flagAnchors['stemDownSW'][1] + this.stemGlyph!.height
             };
         }
 
-        this.flagGlyph.move(this.stemGlyph.bbox.x, this.stemGlyph.bbox.y);
-        this.flagGlyph.move(offset.x, offset.y);
+        this.flagGlyph!.move(this.stemGlyph!.bbox.x, this.stemGlyph!.bbox.y);
+        this.flagGlyph!.move(offset.x, offset.y);
     }
 }

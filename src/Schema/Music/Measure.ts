@@ -62,11 +62,11 @@ export class MeasureContext implements SimpleMap {
 
     merge(oldContext: MeasureContext): MeasureContext {
         return new MeasureContext(
-            or(this.divisions, oldContext.divisions),
-            or(this.timeBeats, oldContext.timeBeats),
-            or(this.timeBeatType, oldContext.timeBeatType),
-            or(this.clefSign, oldContext.clefSign),
-            or(this.clefLine, oldContext.clefLine)
+            this.divisions || oldContext.divisions,
+            this.timeBeats || oldContext.timeBeats,
+            this.timeBeatType || oldContext.timeBeatType,
+            this.clefSign || oldContext.clefSign,
+            this.clefLine || oldContext.clefLine
         )
     }
 
@@ -81,13 +81,5 @@ export class MeasureContext implements SimpleMap {
         }
 
         return true;
-    }
-}
-
-function or<T>(a: T, b: T): T {
-    if (a !== undefined) {
-        return a;
-    } else {
-        return b;
     }
 }

@@ -6,8 +6,6 @@
     "target": "es2015",
     "inlineSourceMap": true,
     "strict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": false,
     "rootDir": "./src",
     "outDir": "./bin",
     "lib": [

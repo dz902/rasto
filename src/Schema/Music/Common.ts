@@ -1,3 +1,5 @@
+import { Maybe } from '../../Utilities/Maybe';
+
 export class MusicalElement {
     readonly id: string;
     readonly data: SimpleMap = {};
@@ -17,21 +19,19 @@ export abstract class StaffPlace {
     }
 }
 
-export type Maybe<T> = T | undefined;
-
 export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
-    if (value !== undefined && value !== null) {
+    if (value !== null) {
         return thenCallback(value);
     } else {
-        return undefined;
+        return null;
     }
 }
 
 export function maybe<T>(value: T): Maybe<T> {
-    if (value !== undefined) {
+    if (value !== null) {
         return value;
     } else {
-        return undefined;
+        return null;
     }
 }
 
@@ -56,7 +56,7 @@ export function diff<T extends SimpleMap, K extends keyof T>(keys: K[], a: T, b:
         }
     }
 
-    return isDiff ? result : undefined;
+    return isDiff ? result : null;
 }
 
 export function ensureNumber(value: any): number {

@@ -8,6 +8,7 @@ export class CharGlyph extends Glyph {
         super(type, id);
 
         this.glyphKey = String(key);  // number is ok
+        this.textSVG = new SVG('text');
 
         // setNominalSize
 
@@ -18,7 +19,6 @@ export class CharGlyph extends Glyph {
     }
 
     protected draw = (): void => {
-        this.textSVG = new SVG('text');
 
         let codePoints = Glyph.meta.getGlyphCodePoints(this.type, this.glyphKey);
 

@@ -1,10 +1,12 @@
+import { Maybe } from 'Utilities';
+
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 export class SVG {
     protected static invisibleSVG: SVGSVGElement;
     protected rawElement: SVGElement;
 
-    private transformerElement: SVGGElement;
+    private transformerElement: Maybe<SVGGElement> = null;
 
     private createElement(name: string): SVGElement {
         let element = document.createElementNS(SVG_NAMESPACE, name);
@@ -142,29 +144,34 @@ export class SVG {
 
         // getTransformer
 
-        if (this.transformerElement === undefined) {
+        if (this.transformerElement === null) {
+            // selectDirectDescendantTransformer
+
             let transformers = this.rawElement
                                    .querySelectorAll('g.transformer');
+            let transformer: Maybe<SVGGElement> = null;
 
             Array.from(transformers).forEach((el: Element) => {
                 if (el.parentNode === this.rawElement) {
-                    this.transformerElement = <SVGGElement> el;
+                    transformer = <SVGGElement> el;
                 }
             });
 
-            let notTransformed = (this.transformerElement === undefined);
+            let notTransformed = (transformer === null);
 
             if (notTransformed) {
-                this.transformerElement = <SVGGElement> (new SVG('g')).rawElement;
+                transformer = <SVGGElement> (new SVG('g')).rawElement;
 
-                this.transformerElement.classList.add('transformer');
+                transformer.classList.add('transformer');
 
                 while(this.rawElement.children.length > 0) { // length updates in real time...
-                    this.transformerElement.appendChild(this.rawElement.children[0]);
+                    transformer.appendChild(this.rawElement.children[0]);
                 }
 
-                this.rawElement.appendChild(this.transformerElement);
+                this.rawElement.appendChild(transformer);
             }
+
+            this.transformerElement = transformer;
         }
 
         let transform = SVG.invisibleSVG.createSVGTransform();

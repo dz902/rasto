@@ -4,18 +4,19 @@ export class TimeGlyph extends Glyph {
     private beatGlyph: Glyph;
     private beatTypeGlyph: Glyph;
 
-    constructor(private beat: number, private beatType: number) {
+    constructor(private beat: number,
+                private beatType: number) {
         super('time');
 
-        this.drawBeat();
-        this.drawBeatType();
+        this.beatGlyph = this.drawBeat();
+        this.beatTypeGlyph = this.drawBeatType();
         this.alignBeatDigits();
     }
 
-    private drawBeat(): void {
-        this.beatGlyph = new Glyph('time-beat');
+    private drawBeat(): Glyph {
+        let beatGlyph = new Glyph('time-beat');
 
-        this.append(this.beatGlyph);
+        this.append(beatGlyph);
 
         let beatGlyphSize = { width: 0, height: 0 };
 
@@ -30,7 +31,7 @@ export class TimeGlyph extends Glyph {
 
             beatGlyphTen.shiftFromStaffBottom(3);
 
-            this.beatGlyph.append(beatGlyphTen);
+            beatGlyph.append(beatGlyphTen);
 
             beatGlyphSize.width += beatGlyphTen.width;
             beatGlyphSize.height = beatGlyphTen.height;
@@ -43,8 +44,7 @@ export class TimeGlyph extends Glyph {
 
         beatGlyphDigit.shiftFromStaffBottom(3);
 
-        this.beatGlyph
-            .append(beatGlyphDigit);
+        beatGlyph.append(beatGlyphDigit);
 
         // checkDigitBeatOffset
 
@@ -53,19 +53,23 @@ export class TimeGlyph extends Glyph {
         beatGlyphSize.width += beatGlyphDigit.width;
         beatGlyphSize.height = Math.max(beatGlyphSize.height, beatGlyphDigit.height);
 
-        this.beatGlyph.size(beatGlyphSize.width, beatGlyphSize.height);
+        beatGlyph.size(beatGlyphSize.width, beatGlyphSize.height);
+
+        return beatGlyph;
     }
 
-    private drawBeatType(): void {
-        this.beatTypeGlyph = new Glyph('time-beat-type');
-        this.append(this.beatTypeGlyph);
+    private drawBeatType(): Glyph {
+        let beatTypeGlyph = new Glyph('time-beat-type');
+        this.append(beatTypeGlyph);
 
         let beatTypeDigitGlyph = new CharGlyph('time', this.beatType);
 
         beatTypeDigitGlyph.shiftFromStaffBottom(1);
 
-        this.beatTypeGlyph.size(beatTypeDigitGlyph.width, beatTypeDigitGlyph.height);
-        this.beatTypeGlyph.append(beatTypeDigitGlyph);
+        beatTypeGlyph.size(beatTypeDigitGlyph.width, beatTypeDigitGlyph.height);
+        beatTypeGlyph.append(beatTypeDigitGlyph);
+
+        return beatTypeGlyph;
     }
 
     private alignBeatDigits(): void {
