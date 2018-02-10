@@ -90,32 +90,6 @@ export class MusicXMLParser {
                     if (markIsRest) {
                         mark = new Rest(markAttributes['type'], currentContext);
                     } else {
-                        mark = new Note(
-                            ensurePitchOctave(markAttributes['pitchOctave']),
-                            ensurePitchStep(markAttributes['pitchStep']),
-                            maybeThen(markAttributes['pitchAlter'] || null, ensureNumber),
-                            ensureNumber(markAttributes['duration'])
-                        );
-
-                        $note.has('beam', ($beams) => {
-                            $beams.each(($beam) => {
-                                mark.addBeam(new Beam($beam.attributes['number'],
-                                                       $beam.value))
-                            });
-                        });
-
-                        $note.hasOne('accidental', ($accidental) => {
-                            let accidentalType = $accidental.value.split(/-/).map(toCamelCase).join('');
-
-                            if (accidentalType === 'flatFlat') {
-                                accidentalType = 'doubleFlat'; // bad naming taste for MusicXML
-                            }
-
-                            let accidental = new Accidental(accidentalType);
-
-                            mark.addAccidental(accidental);
-                        });
-
                         let markIsNotChordNote = !$note.has('chord');
 
                         if (markIsNotChordNote) {
@@ -124,6 +98,34 @@ export class MusicXMLParser {
                                 lastNotes = [];
                             }
                         }
+
+                        $note.has('beam', ($beams) => {
+                            $beams.each(($beam) => {
+                                mark.addBeam(new Beam($beam.attributes['number'],
+                                                       $beam.value))
+                            });
+                        });
+
+                        let accidental: Maybe<Accidental> = null;
+
+                        $note.hasOne('accidental', ($accidental) => {
+                            let accidentalType = $accidental.value.split(/-/).map(toCamelCase).join('');
+
+                            if (accidentalType === 'flatFlat') {
+                                accidentalType = 'doubleFlat'; // bad naming taste for MusicXML
+                            }
+
+                            accidental = new Accidental(accidentalType);
+                        });
+
+                        mark = new Note(
+                            ensurePitchOctave(markAttributes['pitchOctave']),
+                            ensurePitchStep(markAttributes['pitchStep']),
+                            maybeThen(markAttributes['pitchAlter'] || null, ensureNumber),
+                            ensureNumber(markAttributes['duration']),
+                            accidental
+                        );
+
 
                         lastNotes.push(mark);
                         lastMarkType = ensureMarkType(markAttributes['type']);

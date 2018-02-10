@@ -1,6 +1,7 @@
 import { SVG } from 'Engravers/SVGEngraver/Glyphs';
 
 import * as SMuFL from 'Schema/SMuFL';
+import { StaffPlace } from '../../../Schema/Music';
 
 export class Glyph extends SVG {
     // STATIC

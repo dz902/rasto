@@ -68,6 +68,11 @@ export class Chord extends Mark {
         return noFlagTypes.indexOf(this.type) === -1;
     }
 
+    get relativeStaffPlace(): number {
+        console.log(this.lowestNote.staffPlace - this.context.lowestStaffPlace);
+        return this.lowestNote.staffPlace - this.context.lowestStaffPlace;
+    }
+
     // API
 
     forceDirection(direction: StemDirection): Chord {
@@ -132,12 +137,15 @@ export class Chord extends Mark {
 
     private checkNoteRelativeStaffPlace(): void {
         this.notes.forEach((note) => {
-            note.relativeStaffPlace = note.getIntervalTo(this.lowestNote);
+            note.relativeStaffPlace = note.getIntervalTo(this.lowestNote)-1;
         });
     }
 }
 
 export class ChordNote extends Note {
+    // those really should be internal but lacking the mechanism
+    // public getter + internal setter
+
     needsDisplacement: boolean = false;
     needsLedgerLine: boolean = false;
     relativeStaffPlace: number = 0;
@@ -146,7 +154,8 @@ export class ChordNote extends Note {
         super(note.pitchOctave,
               note.pitchStep,
               note.pitchAlter,
-              note.duration);
+              note.duration,
+              note.accidental);
     }
 
     get type(): MarkType {

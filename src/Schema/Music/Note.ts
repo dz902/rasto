@@ -4,19 +4,14 @@ export class Note extends MusicalElement {
     readonly beams: Beam[] = [];
     readonly stem: Stem;
 
-    private noteAccidental: Maybe<Accidental> = null;
-
     constructor(readonly pitchOctave: PitchOctave,
                 readonly pitchStep: PitchStep,
                 readonly pitchAlter: Maybe<number>,
-                readonly duration: number) {
+                readonly duration: number,
+                readonly accidental: Maybe<Accidental>) {
         super();
 
         this.stem = new Stem("up");
-    }
-
-    get accidental(): Maybe<Accidental> {
-        return this.noteAccidental;
     }
 
     get staffPlace(): number {
@@ -27,10 +22,6 @@ export class Note extends MusicalElement {
 
     addBeam(beam: Beam) {
         this.beams.push(beam);
-    }
-
-    addAccidental(accidental: Accidental) {
-        this.noteAccidental = accidental;
     }
 
     getIntervalTo(note: Note): number {

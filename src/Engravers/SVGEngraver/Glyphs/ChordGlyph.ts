@@ -24,7 +24,7 @@ export class ChordGlyph extends Glyph {
         this.checkStem();
         this.checkFlag();
         this.checkAccidentals();
-        this.shiftFromStaffBottom((this.chord.lowestNote.staffPlace - this.chord.context.lowestStaffPlace) / 2);
+        this.shiftFromStaffBottom(this.chord.relativeStaffPlace/2);
     }
 
     get noteHeadWidth(): number {
@@ -38,7 +38,7 @@ export class ChordGlyph extends Glyph {
     }
 
     private drawNotes(): void {
-        let drawNote = (note: ChordNote, i: number, notes: ChordNote[]) => {
+        let drawNote = (note: ChordNote) => {
             let noteHeadGlyph = new NoteHeadGlyph(note);
 
             // checkNoteDisplacement
@@ -62,7 +62,7 @@ export class ChordGlyph extends Glyph {
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
-            noteHeadGlyph.shiftInterval(note.relativeStaffPlace);
+            noteHeadGlyph.shift(note.relativeStaffPlace/2);
 
             this.append(noteHeadGlyph);
         };
@@ -84,9 +84,7 @@ export class ChordGlyph extends Glyph {
 
                 // moveAccidentalToStaffPlace
 
-                let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
-
-                accidentalGlyph.shiftInterval(intervalToLowestNote);
+                accidentalGlyph.shift(note.relativeStaffPlace/2);
 
                 // checkDisplacement
 
