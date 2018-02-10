@@ -1,6 +1,6 @@
 import {
     toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest,
-    MeasureContext, Mark
+    MeasureContext, Mark, ensureMarkType
 } from '../Schema/Music';
 import { Maybe } from '../Utilities/Maybe';
 
@@ -90,7 +90,7 @@ export class MusicXMLParser {
                         mark = new Rest(markAttributes['type'], currentContext);
                     } else {
                         mark = new Note(
-                            markAttributes['type'],
+                            ensureMarkType(markAttributes['type']),
                             ensureNumber(markAttributes['pitchOctave']),
                             markAttributes['pitchStep'],
                             maybeThen(markAttributes['pitchAlter'] || null, ensureNumber),

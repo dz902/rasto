@@ -56,8 +56,18 @@ export class Chord extends Mark {
         return direction;
     }
 
-    forceDirection(direction: StemDirection) {
+    get needsStem(): boolean {
+        return this.markType !== 'whole';
+    }
+
+    // API
+
+    forceDirection(direction: StemDirection): Chord {
         this.forcedDirection = direction;
+
+        this.checkNoteDisplacement();
+
+        return this;
     }
 
     // TASKS
@@ -68,8 +78,8 @@ export class Chord extends Mark {
         }
 
         notes.forEach((note) => {
-            if (note.type !== this.type) {
-                throw new Error(`chord/note type mismatch: ${this.type} vs ${note.type}`);
+            if (note.type !== this.markType) {
+                throw new Error(`chord/note type mismatch: ${this.markType} vs ${note.type}`);
             }
 
             let chordNote = new ChordNote(note);

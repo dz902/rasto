@@ -29,7 +29,7 @@ export class ChordGlyph extends Glyph {
 
     get noteHeadWidth(): number {
         if (this.rawNoteHeadWidth === undefined) {
-            let bbox = Glyph.meta.getGlyphBBox('note-head', this.chord.type);
+            let bbox = Glyph.meta.getGlyphBBox('note-head', this.chord.markType);
 
             this.rawNoteHeadWidth = bbox.bBoxNE[0] - bbox.bBoxSW[0];
         }
@@ -181,7 +181,7 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkStem(): void {
-        if (this.chord.type === 'whole') {
+        if (this.chord.markType === 'whole') {
             return;
         }
 
@@ -231,7 +231,7 @@ export class ChordGlyph extends Glyph {
         // checkExtraSpaceForLigatures
 
         let longLigatureNoteTypes = ['32th', '64th', '128th'];
-        let extraSpaces = longLigatureNoteTypes.indexOf(chord.type);
+        let extraSpaces = longLigatureNoteTypes.indexOf(chord.markType);
 
         if (extraSpaces > 0) {
             this.stemGlyph!.height += extraSpaces;
@@ -242,7 +242,7 @@ export class ChordGlyph extends Glyph {
         // may need refactor in the future to improve readability
 
         let offset: { x: number, y: number };
-        let noteAnchors = Glyph.meta.getGlyphAnchors('note-head', chord.type);
+        let noteAnchors = Glyph.meta.getGlyphAnchors('note-head', chord.markType);
 
         if (this.chord.direction === StemDirection.Up) {
             offset = {
@@ -276,16 +276,16 @@ export class ChordGlyph extends Glyph {
     private checkFlag(): void {
         let noFlagNeeded = (
             this.chord.beams.length !== 0 ||
-            this.chord.type === 'whole' ||
-            this.chord.type === 'half' ||
-            this.chord.type === 'quarter'
+            this.chord.markType === 'whole' ||
+            this.chord.markType === 'half' ||
+            this.chord.markType === 'quarter'
         );
 
         if (noFlagNeeded) {
             return;
         }
 
-        this.flagGlyph = new CharGlyph(`flag-${this.chord.direction}`, this.chord.type);
+        this.flagGlyph = new CharGlyph(`flag-${this.chord.direction}`, this.chord.markType);
 
         this.checkFlagOffsets();
 
@@ -293,7 +293,7 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkFlagOffsets(): void {
-        let flagAnchors = Glyph.meta.getGlyphAnchors(`flag-${this.chord.direction}`, this.chord.type);
+        let flagAnchors = Glyph.meta.getGlyphAnchors(`flag-${this.chord.direction}`, this.chord.markType);
         let offset: { x: number, y: number };
 
         if (this.chord.direction === StemDirection.Up) {
