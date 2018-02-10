@@ -1,4 +1,4 @@
-import { Beam, Note, Mark, MeasureContext, PitchStep, PitchOctave } from 'Schema/Music';
+import { Beam, Note, Mark, MeasureContext } from 'Schema/Music';
 import { Maybe } from 'Utilities/Maybe';
 import { MarkType } from './Mark';
 
@@ -8,12 +8,13 @@ export class Chord extends Mark {
 
     private forcedDirection: Maybe<StemDirection> = null;
 
-    constructor(notes: Note[], markType: MarkType, context: MeasureContext) {
-        super(markType, context);
+    constructor(notes: Note[], type: MarkType, context: MeasureContext) {
+        super(type, context);
 
         this.addNotes(notes);
         this.sortNotes();
         this.checkNoteDisplacement();
+        this.checkNoteLedgerLine();
     }
 
     get lowestNote(): Note {
@@ -57,7 +58,7 @@ export class Chord extends Mark {
     }
 
     get needsStem(): boolean {
-        return this.markType !== 'whole';
+        return this.type !== 'whole';
     }
 
     // API
@@ -65,6 +66,15 @@ export class Chord extends Mark {
     forceDirection(direction: StemDirection): Chord {
         this.forcedDirection = direction;
 
+        this.checkNoteDisplacement();
+
+        return this;
+    }
+
+    changeType(newType: MarkType): Chord {
+        super.changeType(newType);
+
+        this.notes.map(n => new ChordNote(newType, n));
         this.checkNoteDisplacement();
 
         return this;
@@ -103,10 +113,20 @@ export class Chord extends Mark {
             this.notes.concat([]).reverse().forEach(checkSeconds);
         }
     }
+
+    private checkNoteLedgerLine(): void {
+        this.notes.forEach((note) => {
+            let noteHigherThanSpaceSix = note.staffPlace > this.context.highestStaffPlace + 1;
+            let noteLowerThanSpaceMinusOne = note.staffPlace < this.context.lowestStaffPlace - 1;
+
+            note.needsLedgerLine = noteHigherThanSpaceSix || noteLowerThanSpaceMinusOne;
+        });
+    }
 }
 
 export class ChordNote extends Note {
     needsDisplacement: boolean = false;
+    needsLedgerLine: boolean = false;
 
     constructor(protected markType: MarkType, note: Note) {
         super(note.pitchOctave,

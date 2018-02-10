@@ -33,9 +33,6 @@ export class Note extends MusicalElement {
         this.noteAccidental = accidental;
     }
 
-    configureStem(stem: Stem) {
-    }
-
     getIntervalTo(note: Note): number {
         return Math.abs(this.staffPlace - note.staffPlace) + 1;
     }

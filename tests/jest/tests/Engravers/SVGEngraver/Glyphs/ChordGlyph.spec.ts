@@ -4,27 +4,34 @@ import { MarkType } from 'Schema/Music';
 
 let chord: Chord;
 
-
-describe('ChordGlyph', () => {
+describe('Chord', () => {
     describe('#constructor()', () => {
         beforeEach(() => {
             let context = new MeasureContext(4, 4, 4, 'G', 2);
             let notes = [
-                new Note(MarkType.Whole, 4, 'F', null, 1),
-                new Note(MarkType.Whole, 4, 'G', null, 1),
-                new Note(MarkType.Whole, 4, 'A', null, 1),
-                new Note(MarkType.Whole, 5, 'C', null, 1),
-                new Note(MarkType.Whole, 5, 'D', null, 1)
+                new Note(4, 'F', null, 1),
+                new Note(4, 'G', null, 1),
+                new Note(4, 'A', null, 1),
+                new Note(5, 'C', null, 1),
+                new Note(5, 'D', null, 1),
+                new Note(5, 'G', null, 1),
+                new Note(5, 'A', null, 1)
             ];
 
             chord = new Chord(notes, MarkType.Whole, context);
         });
 
-        it('should have five notes', () => {
-            expect(chord.notes.length).toBe(5);
+        it('should have 7 notes', () => {
+            expect(chord.notes.length).toBe(7);
+        });
+
+        it('should set direction as down', () => {
+            expect(chord.direction).toBe(StemDirection.Down);
         });
 
         it('should set correct note displacement for up direction', () => {
+            chord.forceDirection(StemDirection.Up);
+
             expect(chord.notes[0].needsDisplacement).toBe(false);
             expect(chord.notes[1].needsDisplacement).toBe(true);
             expect(chord.notes[2].needsDisplacement).toBe(false);
@@ -44,6 +51,17 @@ describe('ChordGlyph', () => {
 
         it('should not need stems for whole notes', () => {
             expect(chord.needsStem).toBe(false);
+        });
+
+        it('should need stems for half notes', () => {
+            chord.changeType(MarkType.Half);
+
+            expect(chord.needsStem).toBe(true);
+        });
+
+        it('should need ledger line for higher notes', () => {
+            expect(chord.notes[5].needsLedgerLine).toBe(false);
+            expect(chord.notes[6].needsLedgerLine).toBe(true);
         });
     });
 });
