@@ -50,6 +50,6 @@ export type PitchOctave = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export function ensurePitchOctave(pitchOctave: NumericValue): PitchOctave {
     let p = ensureNumber(pitchOctave);
-    return ensure(p,`pitch step ${pitchOctave} is not valid pitch step`,
+    return ensure(p,`pitch step ${pitchOctave} is not valid pitch octave`,
                   (p: number): p is PitchOctave => (p >= 0 && p <= 9))
 }

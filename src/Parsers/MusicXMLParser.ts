@@ -87,8 +87,6 @@ export class MusicXMLParser {
                     let markIsRest = $note.has('rest');
                     let markAttributes = $note.collectAttributeElements();
 
-                    lastMarkType = markAttributes['type'];
-
                     if (markIsRest) {
                         mark = new Rest(markAttributes['type'], currentContext);
                     } else {
@@ -128,6 +126,7 @@ export class MusicXMLParser {
                         }
 
                         lastNotes.push(mark);
+                        lastMarkType = markAttributes['type'];
                     }
                 });
 

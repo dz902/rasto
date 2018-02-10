@@ -63,6 +63,7 @@ export class Chord extends Mark {
 
     get needsFlag(): boolean {
         let noFlagTypes = [MarkType.Whole, MarkType.Half, MarkType.Quarter];
+        console.log(this.type);
 
         return noFlagTypes.indexOf(this.type) === -1;
     }
