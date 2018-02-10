@@ -1,8 +1,8 @@
 import {
     toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, ChordNote, Rest,
-    MeasureContext, Note, ensurePitchStep, ensurePitchOctave, MarkType
+    MeasureContext, Note, ensurePitchStep, ensurePitchOctave, MarkType, ensureMarkType
 } from '../Schema/Music';
-import { Maybe } from '../Utilities/Maybe';
+import { Maybe } from 'Utilities';
 
 export class MusicXMLParser {
     private $music: DOM;
@@ -126,7 +126,7 @@ export class MusicXMLParser {
                         }
 
                         lastNotes.push(mark);
-                        lastMarkType = markAttributes['type'];
+                        lastMarkType = ensureMarkType(markAttributes['type']);
                     }
                 });
 

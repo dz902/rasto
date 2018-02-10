@@ -13,6 +13,7 @@ export class Chord extends Mark {
 
         this.addNotes(notes);
         this.sortNotes();
+        this.checkNoteRelativeStaffPlace();
         this.checkNoteDisplacement();
         this.checkNoteLedgerLine();
     }
@@ -63,7 +64,6 @@ export class Chord extends Mark {
 
     get needsFlag(): boolean {
         let noFlagTypes = [MarkType.Whole, MarkType.Half, MarkType.Quarter];
-        console.log(this.type);
 
         return noFlagTypes.indexOf(this.type) === -1;
     }
@@ -129,11 +129,18 @@ export class Chord extends Mark {
             note.needsLedgerLine = noteHigherThanSpaceSix || noteLowerThanSpaceMinusOne;
         });
     }
+
+    private checkNoteRelativeStaffPlace(): void {
+        this.notes.forEach((note) => {
+            note.relativeStaffPlace = note.getIntervalTo(this.lowestNote);
+        });
+    }
 }
 
 export class ChordNote extends Note {
     needsDisplacement: boolean = false;
     needsLedgerLine: boolean = false;
+    relativeStaffPlace: number = 0;
 
     constructor(protected markType: MarkType, note: Note) {
         super(note.pitchOctave,

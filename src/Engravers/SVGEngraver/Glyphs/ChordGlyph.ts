@@ -1,6 +1,6 @@
 import { NoteHeadGlyph, Glyph, StemGlyph, CharGlyph } from '.';
 import { StemDirection, Chord, ChordNote, maybeThen, SimpleMap } from 'Schema/Music';
-import { Maybe } from '../../../Utilities';
+import { Maybe } from 'Utilities';
 
 export class ChordGlyph extends Glyph {
     private hasAdjacentNotes: boolean = false;
@@ -38,53 +38,36 @@ export class ChordGlyph extends Glyph {
     }
 
     private drawNotes(): void {
-        let isOffsetting = false;
-
         let drawNote = (note: ChordNote, i: number, notes: ChordNote[]) => {
             let noteHeadGlyph = new NoteHeadGlyph(note);
+
+            // checkNoteDisplacement
+
             let offsetX: number = 0;
 
-            // checkAdjacentNotes
-
-            let intervalToLowestNote = note.getIntervalTo(this.chord.lowestNote);
-            let prevNote = notes[i - 1] ? notes[i - 1] : undefined;
-            let isSecond = prevNote && note.getIntervalTo(prevNote) === 2;
-            let needsDisplacement = !isOffsetting && isSecond;
-
             if (this.chord.direction === StemDirection.Up) {
-                if (needsDisplacement) {
+                if (note.needsDisplacement) {
                     offsetX = this.noteHeadWidth;
-                    isOffsetting = true;
-                } else {
-                    isOffsetting = false;
                 }
             } else {
-                if (needsDisplacement) {
-                    offsetX = 0;
-                    isOffsetting = true;
-                } else {
+                if (!note.needsDisplacement) {
                     offsetX = this.noteHeadWidth;
-                    isOffsetting = false;
                 }
             }
 
-            if (needsDisplacement) {
+            if (note.needsDisplacement) {
                 this.hasAdjacentNotes = true;
             }
 
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
-            noteHeadGlyph.shiftInterval(intervalToLowestNote);
+            noteHeadGlyph.shiftInterval(note.relativeStaffPlace);
 
             this.append(noteHeadGlyph);
         };
 
-        if (this.chord.direction === StemDirection.Up) {
-            this.chord.notes.forEach(drawNote);
-        } else {
-            this.chord.notes.concat([]).reverse().forEach(drawNote); // non-destructive
-        }
+        this.chord.notes.forEach(drawNote);
     }
 
     private checkAccidentals(): void {
