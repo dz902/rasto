@@ -58,7 +58,13 @@ export class Chord extends Mark {
     }
 
     get needsStem(): boolean {
-        return this.type !== 'whole';
+        return this.type !== MarkType.Whole;
+    }
+
+    get needsFlag(): boolean {
+        let noFlagTypes = [MarkType.Whole, MarkType.Half, MarkType.Quarter];
+
+        return noFlagTypes.indexOf(this.type) === -1;
     }
 
     // API

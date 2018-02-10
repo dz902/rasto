@@ -274,14 +274,7 @@ export class ChordGlyph extends Glyph {
     }
 
     private checkFlag(): void {
-        let noFlagNeeded = (
-            this.chord.beams.length !== 0 ||
-            this.chord.type === 'whole' ||
-            this.chord.type === 'half' ||
-            this.chord.type === 'quarter'
-        );
-
-        if (noFlagNeeded) {
+        if (!this.chord.needsFlag) {
             return;
         }
 
