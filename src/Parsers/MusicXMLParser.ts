@@ -1,6 +1,6 @@
 import {
-    toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, Note, Rest,
-    MeasureContext, Mark, ensureMarkType
+    toCamelCase, maybeThen, ensureNumber, Accidental, Beam, SimpleMap, Score, Part, Measure, Chord, ChordNote, Rest,
+    MeasureContext, Note, ensurePitchStep, ensurePitchOctave, MarkType
 } from '../Schema/Music';
 import { Maybe } from '../Utilities/Maybe';
 
@@ -65,7 +65,8 @@ export class MusicXMLParser {
 
     private extractMeasure($measure: DOM, withContext?: MeasureContext): Measure {
         let measure: Measure = new Measure();
-        let lastNotes: Note[] = [];
+        let lastNotes: ChordNote[] = [];
+        let lastMarkType: Maybe<MarkType> = null;
         let currentContext: Maybe<MeasureContext> = withContext ? withContext : null;
 
         $measure.qq('attributes, note')
@@ -86,13 +87,14 @@ export class MusicXMLParser {
                     let markIsRest = $note.has('rest');
                     let markAttributes = $note.collectAttributeElements();
 
+                    lastMarkType = markAttributes['type'];
+
                     if (markIsRest) {
                         mark = new Rest(markAttributes['type'], currentContext);
                     } else {
                         mark = new Note(
-                            ensureMarkType(markAttributes['type']),
-                            ensureNumber(markAttributes['pitchOctave']),
-                            markAttributes['pitchStep'],
+                            ensurePitchOctave(markAttributes['pitchOctave']),
+                            ensurePitchStep(markAttributes['pitchStep']),
                             maybeThen(markAttributes['pitchAlter'] || null, ensureNumber),
                             ensureNumber(markAttributes['duration'])
                         );
@@ -120,7 +122,7 @@ export class MusicXMLParser {
 
                         if (markIsNotChordNote) {
                             if (lastNotes.length > 0) {
-                                measure.addMark(new Chord(lastNotes, lastNotes[0].type, currentContext));
+                                measure.addMark(new Chord(lastNotes, lastMarkType!, currentContext));
                                 lastNotes = [];
                             }
                         }
@@ -130,7 +132,7 @@ export class MusicXMLParser {
                 });
 
         if (lastNotes.length > 0) {
-            measure.addMark(new Chord(lastNotes, lastNotes[0].type, currentContext!));
+            measure.addMark(new Chord(lastNotes, lastMarkType!, currentContext!));
         }
 
         return measure;

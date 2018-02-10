@@ -1,5 +1,6 @@
 import { ChordGlyph } from 'Engravers/SVGEngraver/Glyphs';
 import { StemDirection, Chord, Note, MeasureContext } from 'Schema/Music';
+import { MarkType } from 'Schema/Music';
 
 let chord: Chord;
 
@@ -9,14 +10,14 @@ describe('ChordGlyph', () => {
         beforeEach(() => {
             let context = new MeasureContext(4, 4, 4, 'G', 2);
             let notes = [
-                new Note('whole', 4, 'F', null, 1),
-                new Note('whole', 4, 'G', null, 1),
-                new Note('whole', 4, 'A', null, 1),
-                new Note('whole', 5, 'C', null, 1),
-                new Note('whole', 5, 'D', null, 1)
+                new Note(MarkType.Whole, 4, 'F', null, 1),
+                new Note(MarkType.Whole, 4, 'G', null, 1),
+                new Note(MarkType.Whole, 4, 'A', null, 1),
+                new Note(MarkType.Whole, 5, 'C', null, 1),
+                new Note(MarkType.Whole, 5, 'D', null, 1)
             ];
 
-            chord = new Chord(notes, 'whole', context);
+            chord = new Chord(notes, MarkType.Whole, context);
         });
 
         it('should have five notes', () => {

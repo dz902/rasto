@@ -1,4 +1,5 @@
 import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
+import { StaffPlace } from './Common';
 
 export class Measure extends MusicalElement {
     private contexts: MeasureContext[] = [];
@@ -41,7 +42,7 @@ export class MeasureContext implements SimpleMap {
                 readonly clefLine: Maybe<number>) {
     }
 
-    get bottomStaffPlace(): number {
+    get lowestStaffPlace(): number {
         let staffPlace = 0;
 
         switch (this.clefSign) {
@@ -56,8 +57,12 @@ export class MeasureContext implements SimpleMap {
         return staffPlace;
     }
 
+    get highestStaffPlace(): number {
+        return this.lowestStaffPlace + (StaffPlace.space*4);
+    }
+
     get midStaffPlace(): number {
-        return this.bottomStaffPlace + 4;
+        return this.lowestStaffPlace + (StaffPlace.space*2);
     }
 
     merge(oldContext: MeasureContext): MeasureContext {

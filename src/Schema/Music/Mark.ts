@@ -1,9 +1,23 @@
 import { MusicalElement, MeasureContext, ensure } from '.';
 
 export class Mark extends MusicalElement {
-    constructor(readonly markType: MarkType,
-                readonly context: MeasureContext) {
+    constructor(protected markType: MarkType,
+                protected measureContext: MeasureContext) {
         super();
+    }
+
+    get context(): MeasureContext {
+        return this.measureContext;
+    }
+
+    get type(): MarkType {
+        return this.markType;
+    }
+
+    changeType(newMarkType: MarkType): Mark {
+        this.markType = newMarkType;
+
+        return this;
     }
 }
 

@@ -17,6 +17,8 @@ export abstract class StaffPlace {
     static third(): number {
         return 3;
     }
+
+    static space: number = 2;
 }
 
 export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {

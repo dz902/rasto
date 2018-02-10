@@ -1,8 +1,8 @@
 import { Glyph, CharGlyph } from '.';
-import { Note } from '../../../Schema/Music'
+import { ChordNote } from 'Schema/Music'
 
 export class NoteHeadGlyph extends CharGlyph {
-    constructor(private note: Note) {
+    constructor(private note: ChordNote) {
         super('note-head', note.type, note.id);
     }
 }

@@ -1,4 +1,4 @@
-import { Beam, Note, Mark, MeasureContext } from 'Schema/Music';
+import { Beam, Note, Mark, MeasureContext, PitchStep, PitchOctave } from 'Schema/Music';
 import { Maybe } from 'Utilities/Maybe';
 import { MarkType } from './Mark';
 
@@ -8,8 +8,8 @@ export class Chord extends Mark {
 
     private forcedDirection: Maybe<StemDirection> = null;
 
-    constructor(notes: Note[], type: MarkType, context: MeasureContext) {
-        super(type, context);
+    constructor(notes: Note[], markType: MarkType, context: MeasureContext) {
+        super(markType, context);
 
         this.addNotes(notes);
         this.sortNotes();
@@ -78,11 +78,7 @@ export class Chord extends Mark {
         }
 
         notes.forEach((note) => {
-            if (note.type !== this.markType) {
-                throw new Error(`chord/note type mismatch: ${this.markType} vs ${note.type}`);
-            }
-
-            let chordNote = new ChordNote(note);
+            let chordNote = new ChordNote(this.type, note);
 
             this.notes.push(chordNote);
         });
@@ -109,15 +105,18 @@ export class Chord extends Mark {
     }
 }
 
-class ChordNote extends Note {
+export class ChordNote extends Note {
     needsDisplacement: boolean = false;
 
-    constructor(note: Note) {
-        super(note.type,
-              note.pitchOctave,
+    constructor(protected markType: MarkType, note: Note) {
+        super(note.pitchOctave,
               note.pitchStep,
               note.pitchAlter,
               note.duration);
+    }
+
+    get type(): MarkType {
+        return this.markType;
     }
 }
 
