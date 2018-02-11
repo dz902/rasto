@@ -59,6 +59,12 @@ export class ChordGlyph extends Glyph {
                 this.hasAdjacentNotes = true;
             }
 
+            // checkLedgerLine
+
+            if (note.needsLedgerLine) {
+
+            }
+
             // moveNoteToStaffPlace
 
             noteHeadGlyph.move(offsetX);
