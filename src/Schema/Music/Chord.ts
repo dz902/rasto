@@ -1,15 +1,15 @@
 import { Beam, Note, Mark, MeasureContext } from 'Schema/Music';
 import { Maybe } from 'Utilities/Maybe';
-import { MarkType } from './Mark';
+import { Constituent, NoteType } from './Constituent';
 
-export class Chord extends Mark {
+export class Chord extends Constituent {
     notes: ChordNote[] = [];
     beams: Beam[] = [];
 
     private forcedDirection: Maybe<StemDirection> = null;
 
-    constructor(notes: Note[], type: MarkType, context: MeasureContext) {
-        super(type, context);
+    constructor(notes: Note[], noteType: NoteType) {
+        super(noteType);
 
         this.addNotes(notes);
         this.sortNotes();

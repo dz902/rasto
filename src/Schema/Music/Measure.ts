@@ -1,38 +1,61 @@
-import { Maybe, Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
+import { Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
 import { StaffPlace } from './Common';
+import { Container } from './Container';
+import { Maybe } from '../../Utilities';
+import { Context } from './Context';
 
-export class Measure extends MusicalElement {
-    private contexts: MeasureContext[] = [];
-    readonly marks: Mark[] = [];
+export class Measure extends Container<Chord | Context> {
+    protected content: (Chord | Context)[] = [];
 
-    get currentContext(): Maybe<MeasureContext> {
-        return this.contexts[this.contexts.length - 1];
+    constructor(initialContext: Context) {
+        super();
+
+        this.take(initialContext);
     }
 
-    setContext(a: SimpleMap) {
-        // ensureMeasureAttributes
-
-        let context: MeasureContext = new MeasureContext(
-            maybeThen(a.divisions, ensureNumber),
-            maybeThen(a.timeBeats, ensureNumber),
-            maybeThen(a.timeBeatType, ensureNumber),
-            maybe(a.clefSign),
-            maybeThen(a.clefLine, ensureNumber)
-        );
-
-        let prevContext = this.contexts[this.contexts.length-1];
-
-        if (prevContext) {
-            context = context.merge(prevContext);
-        }
-
-        this.contexts.push(context);
+    get chords(): ReadonlyArray<Chord | Context> {
+        return Object.freeze(this.content.concat([]));
     }
 
-    addMark(mark: Mark) {
-        this.marks.push(mark);
+    take(chordOrContext: Chord | Context) {
+        super.take(chordOrContext);
+
+        return this;
     }
 }
+//
+// export class Measure extends MusicalElement {
+//     private contexts: MeasureContext[] = [];
+//     readonly marks: Mark[] = [];
+//
+//     get currentContext(): Maybe<MeasureContext> {
+//         return this.contexts[this.contexts.length - 1];
+//     }
+//
+//     setContext(a: SimpleMap) {
+//         // ensureMeasureAttributes
+//
+//         let context: MeasureContext = new MeasureContext(
+//             maybeThen(a.divisions, ensureNumber),
+//             maybeThen(a.timeBeats, ensureNumber),
+//             maybeThen(a.timeBeatType, ensureNumber),
+//             maybe(a.clefSign),
+//             maybeThen(a.clefLine, ensureNumber)
+//         );
+//
+//         let prevContext = this.contexts[this.contexts.length-1];
+//
+//         if (prevContext) {
+//             context = context.merge(prevContext);
+//         }
+//
+//         this.contexts.push(context);
+//     }
+//
+//     addMark(mark: Mark) {
+//         this.marks.push(mark);
+//     }
+// }
 
 export class MeasureContext implements SimpleMap {
     constructor(readonly divisions: Maybe<number>,

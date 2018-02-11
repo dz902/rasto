@@ -1,14 +1,10 @@
-import { MusicalElement, Measure } from './';
+import { Container } from './Container';
+import { Measure } from './Measure';
 
-export class Score extends MusicalElement {
-    readonly parts: Part[] = [];
-}
+export class Score extends Container {
+    protected content: Measure[] = [];
 
-export class Part extends MusicalElement {
-    readonly measures: Measure[] = [];
-
-    constructor(id: string,
-                readonly name: string) {
-        super(id);
+    get measures(): ReadonlyArray<Measure> {
+        return Object.freeze(this.content.concat([]));
     }
 }
