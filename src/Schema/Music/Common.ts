@@ -1,5 +1,59 @@
-import { Maybe } from '../../Utilities/Maybe';
+import { Maybe } from 'Utilities/Maybe';
 
+
+export enum NoteType {
+    Whole = 1,
+    Half = 2,
+    Quarter = 4,
+    Eighth = 8,
+    N16th = 16,
+    N32nd = 32,
+    N64th = 64,
+    N128th = 128
+}
+
+export function ensureNoteType(noteType: number): NoteType {
+    let markTypeList: number[] = [
+        NoteType.Whole,
+        NoteType.Half,
+        NoteType.Quarter,
+        NoteType.Eighth,
+        NoteType.N16th,
+        NoteType.N32nd,
+        NoteType.N64th,
+        NoteType.N128th
+    ];
+
+    return ensure(noteType, `mark type ${noteType} is not valid`,
+                  (t: number): t is NoteType => markTypeList.indexOf(t) !== -1);
+}
+
+
+export type PitchStep = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+
+export function ensurePitchStep(pitchStep: string): PitchStep {
+    return ensure(pitchStep, `pitch step ${pitchStep} is not valid pitch step`,
+                  (p: string): p is PitchStep => (p !== '' && 'ABCDEFG'.indexOf(p) !== -1))
+
+}
+
+export type PitchOctave = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
+export function ensurePitchOctave(pitchOctave: NumericValue): PitchOctave {
+    let p = ensureNumber(pitchOctave);
+    return ensure(p,`pitch step ${pitchOctave} is not valid pitch octave`,
+                  (p: number): p is PitchOctave => (p >= 0 && p <= 9))
+}
+
+export enum FlagType {
+    Half = 2,
+    Quarter = 4,
+    Eighth = 8,
+    N16th = 16,
+    N32nd = 32,
+    N64th = 64,
+    N128th = 128
+}
 
 export type LedgerLines = {
     highest: Maybe<number>,
@@ -15,9 +69,10 @@ export class MusicalElement {
     }
 }
 
-export enum Intervals {
-    unison = 1,
-    second, third, fourth, fifth, sixth, seventh, octave, ninth
+export enum StaffPlaces {
+    unison = 0,
+    second, third, fourth, fifth, sixth, seventh, octave, ninth,
+    staffSpan = 8
 }
 
 export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
@@ -90,3 +145,16 @@ function uniq(): string {
     let randomNumber = window.performance ? window.performance.now() : Math.random();
     return String(randomNumber).split('.').join('');
 }
+
+
+export interface StaffItem {
+    readonly staffNumber: number;
+}
+
+export enum StemDirection {
+    Up = 'up',
+    Down = 'down'
+}
+
+export class ErrorMeasureOverflow extends Error {}
+export class ErrorMeasureUnfitNoteType extends Error {}

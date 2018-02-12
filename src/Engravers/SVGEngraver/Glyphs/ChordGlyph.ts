@@ -187,12 +187,12 @@ export class ChordGlyph extends Glyph {
         let chord = this.chord;
 
         let onlyUpperLedgeredNotes = (
-            chord.highestNote.staffPlace > (chord.context.bottomStaffPlace + 8) &&
-            chord.lowestNote.staffPlace > (chord.context.bottomStaffPlace + 8)
+            chord.topNote.staffPlace > (chord.context.bottomStaffPlace + 8) &&
+            chord.bottomNote.staffPlace > (chord.context.bottomStaffPlace + 8)
         );
         let onlyLowerLedgeredNotes = (
-            chord.highestNote.staffPlace < chord.context.bottomStaffPlace &&
-            chord.lowestNote.staffPlace < chord.context.bottomStaffPlace
+            chord.topNote.staffPlace < chord.context.bottomStaffPlace &&
+            chord.bottomNote.staffPlace < chord.context.bottomStaffPlace
         );
 
         // compensateLedgerNoteStems
@@ -201,11 +201,11 @@ export class ChordGlyph extends Glyph {
 
         if (onlyLowerLedgeredNotes) {
             if (this.chord.direction === StemDirection.Up) { // in future direction may be forced
-                heightGapToMidLine = (chord.context.midStaffPlace - chord.lowestNote.staffPlace - 7) / 2;
+                heightGapToMidLine = (chord.context.midStaffPlace - chord.bottomNote.staffPlace - 7) / 2;
             }
         } else if (onlyUpperLedgeredNotes) {
             if (this.chord.direction === StemDirection.Down) {
-                heightGapToMidLine = (chord.highestNote.staffPlace - chord.context.midStaffPlace - 7) / 2;
+                heightGapToMidLine = (chord.topNote.staffPlace - chord.context.midStaffPlace - 7) / 2;
             }
         }
 

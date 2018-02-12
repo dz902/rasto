@@ -1,11 +1,10 @@
-import { NoteType } from './Constituent';
-import { PitchStep } from './Note';
-import { Intervals } from './Common';
+import { NoteType, PitchStep, StaffPlaces, StaffItem } from 'Schema/Music';
 
-export class Context {
+export class Context implements StaffItem {
     constructor(readonly clef: Clef,
                 readonly meter: Meter,
-                readonly key: Key) {
+                readonly key: Key,
+                readonly staffNumber: number) {
 
     }
 
@@ -14,29 +13,36 @@ export class Context {
 
         switch (this.clef.sign) {
             case ClefSign.F:
-                staffPlace = Intervals.octave * 2 + Intervals.fifth - 1;
+                staffPlace = (StaffPlaces.octave) * 2 + StaffPlaces.fifth;
                 break;
             case ClefSign.G:
-                staffPlace = Intervals.octave * 4 + Intervals.third - 1;
+                staffPlace = (StaffPlaces.octave) * 4 + StaffPlaces.third;
                 break;
+            default:
+                throw new Error();
         }
 
         return staffPlace;
     }
 
     get topStaffPlace(): number {
-        return this.bottomStaffPlace + Intervals.ninth - 1;
+        return this.bottomStaffPlace + StaffPlaces.ninth;
     }
 
     get midStaffPlace(): number {
-        return this.bottomStaffPlace + Intervals.fifth - 1;
+        return this.bottomStaffPlace + StaffPlaces.fifth;
     }
 
-    merge(oldContext: Context): Context {
+    static merge(oldContext: Context, newContext: Context): Context {
+        if (newContext.staffNumber !== oldContext.staffNumber) {
+            throw new Error('cannot merge context with different staff numbers');
+        }
+
         return new Context(
-            this.clef || oldContext.clef,
-            this.meter || oldContext.meter,
-            this.key || oldContext.key
+            newContext.clef || oldContext.clef,
+            newContext.meter || oldContext.meter,
+            newContext.key || oldContext.key,
+            newContext.staffNumber
         );
     }
 }
@@ -46,7 +52,7 @@ type Clef = {
     lineNumber: StaffLineNumber
 };
 
-enum ClefSign {
+export enum ClefSign {
     G = 'G',
     F = 'F',
     C = 'C'
@@ -64,17 +70,17 @@ type Key = {
     mode: KeyModes
 };
 
-enum KeyModes {
+export enum KeyModes {
     Major,
     Minor
 }
 
 type Pitch = {
     step: PitchStep,
-    alter: PitchAlter
+    alter?: PitchAlter
 };
 
-enum PitchAlter {
+export enum PitchAlter {
     Sharp = 'sharp',
     Flat = 'flat'
 }

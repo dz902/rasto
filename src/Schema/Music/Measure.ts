@@ -1,91 +1,89 @@
-import { Rest, MusicalElement, SimpleMap, Mark, Chord, maybe, maybeThen, ensureNumber, NumericValue } from '.';
-import { Container } from './Container';
-import { Context } from './Context';
-import { Constituent, FlagType, NoteType } from './Constituent';
-import { LedgerLines } from './Common';
-import { Maybe } from '../../Utilities';
+import { Maybe } from 'Utilities';
+import { StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem, StemDirection, ChordNote } from 'Schema/Music';
 
-type MeasureItem = Constituent | Context;
+export class Measure extends Container<StaffItem> {
+    private currentContext: Maybe<Context> = null;
 
-export class Measure implements Container<MeasureItem> {
-    protected content: (Constituent | Context)[] = [];
-    private currentContext: Context;
-
-    constructor(initialContext: Context) {
-        this.currentContext = initialContext;
-
-        this.addItem(initialContext);
-    }
-
-    get items() {
-        return Object.freeze(this.content.concat([]));
-    }
-
-    addItem(constituentOrContext: MeasureItem) {
-        let item: MeasureItem;
+    addConstituentOrContext(constituentOrContext: Constituent | Context) {
+        let item: StaffItem;
 
         if (constituentOrContext instanceof Chord) {
-            let chord = constituentOrContext;
-            let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentContext);
+            let contextNotSet = this.currentContext === null;
 
-            item = new MeasureChord(chord, StemDirection.Down, ledgerLines, 0);
+            if (contextNotSet) {
+                throw new Error('chords cannot be added before setting a context');
+            }
+
+            let chord = constituentOrContext;
+            let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentContext!);
+            let stem = this.computeStemForChord(chord, this.currentContext!);
+
+            item = new MeasureChord(chord, stem, ledgerLines, 0);
         } else if (constituentOrContext instanceof Context) {
             item = constituentOrContext;
 
-            this.currentContext = item;
+            if (this.currentContext !== null) {
+                this.currentContext = Context.merge(this.currentContext, item as Context);
+            } else {
+                this.currentContext = item as Context;
+            }
         } else {
-            item = constituentOrContext;
+            throw new Error();
         }
 
-        this.content.push(item);
+        super.addItem(item);
 
         return this;
+    }
+
+    get chords(): ReadonlyArray<MeasureChord> {
+        return Object.freeze(this.items.filter(it => it instanceof MeasureChord)) as ReadonlyArray<MeasureChord>;
     }
 
     // PRIVATE
 
     private computeLedgerLinesForChord(chord: Chord, context: Context): LedgerLines {
         let ledgerLines: LedgerLines = { highest: null, lowest: null };
-        let topNoteHigherThanSpaceSix = chord.highestNote.staffPlace > context.topStaffPlace + 1;
+        let topNoteHigherThanSpaceSix = chord.topNote.staffPlace > (context.topStaffPlace + 1);
 
         if (topNoteHigherThanSpaceSix) {
-            ledgerLines.highest = (chord.highestNote.staffPlace - context.topStaffPlace) / 2;
+            ledgerLines.highest = StaffPlaces.staffSpan + Math.floor((chord.topNote.staffPlace - context.topStaffPlace) / 2) * StaffPlaces.third;
         }
 
-        let bottomNoteLowerThanSpaceMinusOne = chord.lowestNote.staffPlace < context.bottomStaffPlace - 1;
+        let bottomNoteLowerThanSpaceMinusOne = chord.bottomNote.staffPlace < context.bottomStaffPlace - 1;
 
         if (bottomNoteLowerThanSpaceMinusOne) {
-            ledgerLines.lowest = (chord.lowestNote.staffPlace - context.topStaffPlace) / 2;
+            ledgerLines.lowest = 0 - Math.floor((context.bottomStaffPlace - chord.bottomNote.staffPlace) / 2) * StaffPlaces.third;
         }
 
         return ledgerLines;
     }
 
-    private computeStemForChord(chord: Chord, context: Context): Maybe<StemDirection> {
-        let stem = null;
-        let stemNeeded = (chord.noteType !== NoteType.Whole);
+    private computeStemForChord(chord: Chord, context: Context): StemDirection {
+        let stem = StemDirection.Down;
+        let topDistance = Math.abs(chord.topNote.staffPlace - context.midStaffPlace);
+        let bottomDistance = Math.abs(chord.bottomNote.staffPlace - context.midStaffPlace);
 
-        if (stemNeeded) {
-            let topDistance = Math.abs(chord.highestNote.staffPlace - context.midStaffPlace);
-            let bottomDistance = Math.abs(chord.lowestNote.staffPlace - context.midStaffPlace);
-
-            if (topDistance >= bottomDistance) {
-                stem = StemDirection.Down;
-            } else {
-                stem = StemDirection.Up;
-            }
+        if (topDistance >= bottomDistance) {
+            stem = StemDirection.Down;
+        } else {
+            stem = StemDirection.Up;
         }
-
+console.log(chord.topNote.staffPlace, chord.bottomNote.staffPlace, context.midStaffPlace);
         return stem;
     }
 }
 
-class MeasureChord extends Chord {
+class MeasureChord extends Chord implements StaffItem {
     constructor(chord: Chord,
                 private chordStem: StemDirection = StemDirection.Down,
                 private chordLedgerLines: LedgerLines = { highest: null, lowest: null },
                 private chordStaffNumber: number = 0) {
-        super(chord.notes, chord.noteType);
+        super(chord.type, chord.notes);
+
+        let displacements = this.computeDisplacementForNotes(chord.notes);
+
+        chord.notes.forEach((n, i) => n.displacement = displacements[i]);
     }
 
     get stem(): StemDirection {
@@ -99,11 +97,26 @@ class MeasureChord extends Chord {
     get staffNumber(): number {
         return this.chordStaffNumber;
     }
-}
 
-export enum StemDirection {
-    Up = 'up',
-    Down = 'down'
+    private computeDisplacementForNotes(notes: ReadonlyArray<ChordNote>): boolean[] {
+        let noteDisplacements: boolean[];
+
+        let checkSeconds = (note: ChordNote, i: number, notes: ReadonlyArray<ChordNote>) => {
+            let prevNote = notes[i - 1];
+            let isNotDisplacing = (prevNote === undefined || !prevNote.displacement);
+            let isSecond = (prevNote !== undefined && note.getIntervalTo(prevNote) === 2);
+
+            return isNotDisplacing && isSecond;
+        };
+
+        if (this.stem === StemDirection.Up) {
+            noteDisplacements = notes.map(checkSeconds);
+        } else {
+            noteDisplacements = notes.concat([]).reverse().map(checkSeconds).reverse();
+        }
+
+        return noteDisplacements;
+    }
 }
 
 //

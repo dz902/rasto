@@ -94,7 +94,7 @@ export class MusicXMLParser {
 
                         if (markIsNotChordNote) {
                             if (lastNotes.length > 0) {
-                                measure.addMark(new Chord(lastNotes, lastMarkType!, currentContext));
+                                measure.addMark(new Chord(lastMarkType!, lastNotes));
                                 lastNotes = [];
                             }
                         }
@@ -133,7 +133,7 @@ export class MusicXMLParser {
                 });
 
         if (lastNotes.length > 0) {
-            measure.addMark(new Chord(lastNotes, lastMarkType!, currentContext!));
+            measure.addMark(new Chord(lastMarkType!, lastNotes));
         }
 
         return measure;

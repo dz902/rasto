@@ -1,7 +1,13 @@
-import { Constituent } from './Constituent';
-import { Context } from './Context';
+export abstract class Container<T> {
+    private containerItems: T[] = [];
 
-export interface Container<T extends Container<any> | Constituent | Context> {
-    readonly items: ReadonlyArray<T>;
-    addItem(item: T): Container<T>;
+    get items(): ReadonlyArray<T> {
+        return Object.freeze(this.containerItems);
+    }
+
+    addItem(item: T): Container<T> {
+        this.containerItems.push(item);
+
+        return this;
+    }
 }

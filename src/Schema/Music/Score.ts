@@ -1,19 +1,30 @@
-import { Container } from './Container';
-import { Measure } from './Measure';
-import { Chord } from './Chord';
+import { Container, Measure, ErrorMeasureOverflow, StaffItem } from 'Schema/Music';
+import { last } from 'Utilities';
 
-export class Score extends Container<Measure> {
-    protected content: Measure[] = [];
+export class Score extends Container<StaffItem> {
+    protected scoreMeasures: Measure[] = [];
 
     get measures(): ReadonlyArray<Measure> {
-        return Object.freeze(this.content.concat([]));
+        return Object.freeze(this.scoreMeasures);
     }
 
-    takeConstituentOrContext(chord: Chord) {
-        let measure = new Measure();
-    }
+    addItem(staffItem: StaffItem): Score {
+        let currentMeasure = last(this.scoreMeasures);
 
-    addItem() {
-        throw new Error('score does not take measure directly');
+        if (currentMeasure === undefined) {
+            currentMeasure = new Measure();
+            this.scoreMeasures.push(currentMeasure);
+        }
+
+        try {
+            currentMeasure.addConstituentOrContext(staffItem);
+        } catch (e) {
+            if (e instanceof ErrorMeasureOverflow) {
+                currentMeasure = new Measure();
+                currentMeasure.addConstituentOrContext(staffItem);
+            }
+        }
+
+        return this;
     }
 }

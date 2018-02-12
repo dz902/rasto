@@ -1,4 +1,4 @@
-import { Mark, MeasureContext } from 'Schema/Music';
+import { Constituent } from 'Schema/Music';
 
-export class Rest extends Mark {
+export class Rest extends Constituent {
 }
