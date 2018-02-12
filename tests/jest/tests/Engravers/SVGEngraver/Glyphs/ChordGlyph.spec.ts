@@ -22,7 +22,7 @@ describe('Chord', () => {
         });
 
         it('should have 7 notes', () => {
-            expect(chord.notes.length).toBe(7);
+            expect(chord._notes.length).toBe(7);
         });
 
         it('should set direction as down', () => {
@@ -32,21 +32,21 @@ describe('Chord', () => {
         it('should set correct note displacement for up direction', () => {
             chord.forceDirection(StemDirection.Up);
 
-            expect(chord.notes[0].needsDisplacement).toBe(false);
-            expect(chord.notes[1].needsDisplacement).toBe(true);
-            expect(chord.notes[2].needsDisplacement).toBe(false);
-            expect(chord.notes[3].needsDisplacement).toBe(false);
-            expect(chord.notes[4].needsDisplacement).toBe(true);
+            expect(chord._notes[0].needsDisplacement).toBe(false);
+            expect(chord._notes[1].needsDisplacement).toBe(true);
+            expect(chord._notes[2].needsDisplacement).toBe(false);
+            expect(chord._notes[3].needsDisplacement).toBe(false);
+            expect(chord._notes[4].needsDisplacement).toBe(true);
         });
 
         it('should set correct note displacement for down direction', () => {
             chord.forceDirection(StemDirection.Down);
 
-            expect(chord.notes[0].needsDisplacement).toBe(false);
-            expect(chord.notes[1].needsDisplacement).toBe(true);
-            expect(chord.notes[2].needsDisplacement).toBe(false);
-            expect(chord.notes[3].needsDisplacement).toBe(true);
-            expect(chord.notes[4].needsDisplacement).toBe(false);
+            expect(chord._notes[0].needsDisplacement).toBe(false);
+            expect(chord._notes[1].needsDisplacement).toBe(true);
+            expect(chord._notes[2].needsDisplacement).toBe(false);
+            expect(chord._notes[3].needsDisplacement).toBe(true);
+            expect(chord._notes[4].needsDisplacement).toBe(false);
         });
 
         it('should not need stems for whole notes', () => {
@@ -60,8 +60,8 @@ describe('Chord', () => {
         });
 
         it('should need ledger line for higher notes', () => {
-            expect(chord.notes[5].needsLedgerLine).toBe(false);
-            expect(chord.notes[6].needsLedgerLine).toBe(true);
+            expect(chord._notes[5].needsLedgerLine).toBe(false);
+            expect(chord._notes[6].needsLedgerLine).toBe(true);
         });
     });
 });

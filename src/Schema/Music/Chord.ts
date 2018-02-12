@@ -1,29 +1,43 @@
-import { Beam, Note, Mark, MeasureContext } from 'Schema/Music';
+import { Beam, Note, Mark } from 'Schema/Music';
 import { Maybe } from 'Utilities/Maybe';
-import { Constituent, NoteType } from './Constituent';
+import { Constituent, FlagType, NoteType } from './Constituent';
+import { LedgerLines } from './Common';
 
 export class Chord extends Constituent {
-    notes: ChordNote[] = [];
-    beams: Beam[] = [];
-
+    private chordNotes: ChordNote[] = [];
+    private chordFlag: Maybe<FlagType> = null;
     private forcedDirection: Maybe<StemDirection> = null;
 
-    constructor(notes: Note[], noteType: NoteType) {
+    constructor(notes: ReadonlyArray<Note>, noteType: NoteType) {
         super(noteType);
 
-        this.addNotes(notes);
-        this.sortNotes();
-        this.checkNoteRelativeStaffPlace();
-        this.checkNoteDisplacement();
-        this.checkNoteLedgerLine();
+        let sortedNotes = this.sortNotes(Array.from(notes));
+
+        for (let note of sortedNotes) {
+            let chordNote = new ChordNote(note, this.noteType);
+
+            chordNote.relativeStaffPlace = chordNote.staffPlace - this.lowestNote.staffPlace;
+
+            this.chordNotes.push(chordNote);
+        }
+
+        this.chordFlag = this.computeFlag(this.noteType);
+    }
+
+    get notes(): ReadonlyArray<ChordNote> {
+        return Object.freeze(this.chordNotes.concat([]));
+    }
+
+    get flag(): FlagType {
+        return this.chordFlag;
     }
 
     get lowestNote(): Note {
-        return this.notes[0];
+        return this.chordNotes[0];
     }
 
     get highestNote(): Note {
-        return this.notes[this.notes.length-1];
+        return this.chordNotes[this.chordNotes.length-1];
     }
 
     get spanStaffPlace(): number {
@@ -36,7 +50,7 @@ export class Chord extends Constituent {
         }
 
         let direction = StemDirection.Down;
-        let chordHasOnlyOneNote = this.notes.length === 1;
+        let chordHasOnlyOneNote = this.chordNotes.length === 1;
 
         if (chordHasOnlyOneNote) {
             if (this.lowestNote.staffPlace >= this.context.midStaffPlace) {
@@ -58,21 +72,6 @@ export class Chord extends Constituent {
         return direction;
     }
 
-    get needsStem(): boolean {
-        return this.type !== MarkType.Whole;
-    }
-
-    get needsFlag(): boolean {
-        let noFlagTypes = [MarkType.Whole, MarkType.Half, MarkType.Quarter];
-
-        return noFlagTypes.indexOf(this.type) === -1;
-    }
-
-    get relativeStaffPlace(): number {
-        console.log(this.lowestNote.staffPlace - this.context.lowestStaffPlace);
-        return this.lowestNote.staffPlace - this.context.lowestStaffPlace;
-    }
-
     // API
 
     forceDirection(direction: StemDirection): Chord {
@@ -83,10 +82,10 @@ export class Chord extends Constituent {
         return this;
     }
 
-    changeType(newType: MarkType): Chord {
-        super.changeType(newType);
+    changeNoteType(newNoteType: NoteType): Constituent {
+        super.changeNoteType(newNoteType);
 
-        this.notes.map(n => new ChordNote(newType, n));
+        this.chordNotes.map(n => new ChordNote(n, newNoteType));
         this.checkNoteDisplacement();
 
         return this;
@@ -94,20 +93,23 @@ export class Chord extends Constituent {
 
     // TASKS
 
-    private addNotes(notes: Note[]): void {
-        if (notes.length === 0) {
-            throw new Error('chord with no notes');
+    private computeStem(noteType: NoteType)
+
+    private computeFlag(noteType: NoteType): Maybe<FlagType> {
+        let flag;
+        let noFlagTypes = [NoteType.Whole, NoteType.Half, NoteType.Quarter];
+
+        if(noFlagTypes.indexOf(noteType) === -1) {
+            flag = null;
+        } else {
+            flag = FlagType[NoteType[noteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
         }
 
-        notes.forEach((note) => {
-            let chordNote = new ChordNote(this.type, note);
-
-            this.notes.push(chordNote);
-        });
+        return flag;
     }
 
-    private sortNotes(): void {
-        this.notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    private sortNotes(notes: Note[]): Note[] {
+        return notes.sort((a, b) => a.staffPlace - b.staffPlace);
     }
 
     private checkNoteDisplacement(): void {
@@ -120,23 +122,14 @@ export class Chord extends Constituent {
         };
 
         if (this.direction === StemDirection.Up) {
-            this.notes.forEach(checkSeconds);
+            this.chordNotes.forEach(checkSeconds);
         } else {
-            this.notes.concat([]).reverse().forEach(checkSeconds);
+            this.chordNotes.concat([]).reverse().forEach(checkSeconds);
         }
     }
 
-    private checkNoteLedgerLine(): void {
-        this.notes.forEach((note) => {
-            let noteHigherThanSpaceSix = note.staffPlace > this.context.highestStaffPlace + 1;
-            let noteLowerThanSpaceMinusOne = note.staffPlace < this.context.lowestStaffPlace - 1;
-
-            note.needsLedgerLine = noteHigherThanSpaceSix || noteLowerThanSpaceMinusOne;
-        });
-    }
-
     private checkNoteRelativeStaffPlace(): void {
-        this.notes.forEach((note) => {
+        this.chordNotes.forEach((note) => {
             note.relativeStaffPlace = note.getIntervalTo(this.lowestNote)-1;
         });
     }
@@ -147,10 +140,9 @@ export class ChordNote extends Note {
     // public getter + internal setter
 
     needsDisplacement: boolean = false;
-    needsLedgerLine: boolean = false;
     relativeStaffPlace: number = 0;
 
-    constructor(protected markType: MarkType, note: Note) {
+    constructor(note: Note, protected markType: NoteType) {
         super(note.pitchOctave,
               note.pitchStep,
               note.pitchAlter,
@@ -158,12 +150,7 @@ export class ChordNote extends Note {
               note.accidental);
     }
 
-    get type(): MarkType {
+    get type(): NoteType {
         return this.markType;
     }
-}
-
-export enum StemDirection {
-    Up = 'up',
-    Down = 'down'
 }

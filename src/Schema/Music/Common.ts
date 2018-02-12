@@ -1,5 +1,11 @@
 import { Maybe } from '../../Utilities/Maybe';
 
+
+export type LedgerLines = {
+    highest: Maybe<number>,
+    lowest: Maybe<number>
+};
+
 export class MusicalElement {
     readonly id: string;
     readonly data: SimpleMap = {};
@@ -9,16 +15,9 @@ export class MusicalElement {
     }
 }
 
-export abstract class StaffPlace {
-    static octave(i: number): number {
-        return i * 7 - 1;
-    }
-
-    static third(): number {
-        return 3;
-    }
-
-    static space: number = 2;
+export enum Intervals {
+    unison = 1,
+    second, third, fourth, fifth, sixth, seventh, octave, ninth
 }
 
 export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {

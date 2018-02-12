@@ -15,7 +15,7 @@ export class ChordGlyph extends Glyph {
 
         // ensureNonEmptyChord
 
-        let chordHasNoNotes: boolean = chord.notes.length === 0;
+        let chordHasNoNotes: boolean = chord._notes.length === 0;
         if (chordHasNoNotes) {
             throw new Error('empty chord');
         }
@@ -73,13 +73,13 @@ export class ChordGlyph extends Glyph {
             this.append(noteHeadGlyph);
         };
 
-        this.chord.notes.forEach(drawNote);
+        this.chord._notes.forEach(drawNote);
     }
 
     private checkAccidentals(): void {
         let baseAccidentalGlyph: CharGlyph;
 
-        this.chord.notes
+        this.chord._notes
             .filter(note => note.accidental !== null)
             .reverse()
             .forEach((note: ChordNote, i: number, notes: ChordNote[]) => {
@@ -187,12 +187,12 @@ export class ChordGlyph extends Glyph {
         let chord = this.chord;
 
         let onlyUpperLedgeredNotes = (
-            chord.highestNote.staffPlace > (chord.context.lowestStaffPlace + 8) &&
-            chord.lowestNote.staffPlace > (chord.context.lowestStaffPlace + 8)
+            chord.highestNote.staffPlace > (chord.context.bottomStaffPlace + 8) &&
+            chord.lowestNote.staffPlace > (chord.context.bottomStaffPlace + 8)
         );
         let onlyLowerLedgeredNotes = (
-            chord.highestNote.staffPlace < chord.context.lowestStaffPlace &&
-            chord.lowestNote.staffPlace < chord.context.lowestStaffPlace
+            chord.highestNote.staffPlace < chord.context.bottomStaffPlace &&
+            chord.lowestNote.staffPlace < chord.context.bottomStaffPlace
         );
 
         // compensateLedgerNoteStems

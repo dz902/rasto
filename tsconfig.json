@@ -3,6 +3,7 @@
     "baseUrl": "./src",
     "module": "commonjs",
     "moduleResolution": "node",
+    "experimentalDecorators": true,
     "target": "es2015",
     "inlineSourceMap": true,
     "strict": true,

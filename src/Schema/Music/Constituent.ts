@@ -19,7 +19,7 @@ export abstract class Constituent {
     }
 }
 
-export const enum NoteType {
+export enum NoteType {
     Whole = 1,
     Half = 2,
     Quarter = 4,
@@ -44,4 +44,14 @@ export function ensureNoteType(noteType: number): NoteType {
 
     return ensure(noteType, `mark type ${noteType} is not valid`,
                   (t: number): t is NoteType => markTypeList.indexOf(t) !== -1);
+}
+
+export enum FlagType {
+    Half = 2,
+    Quarter = 4,
+    Eighth = 8,
+    N16th = 16,
+    N32nd = 32,
+    N64th = 64,
+    N128th = 128
 }

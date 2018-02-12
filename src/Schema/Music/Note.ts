@@ -1,4 +1,5 @@
-import { Accidental, Maybe, Stem, Beam, MusicalElement, NumericValue, MarkType, ensure, ensureMarkType, ensureNumber } from '.';
+import { Accidental, Stem, Beam, MusicalElement, NumericValue, ensure, ensureNumber } from '.';
+import { Maybe } from '../../Utilities';
 
 export class Note extends MusicalElement {
     readonly beams: Beam[] = [];
