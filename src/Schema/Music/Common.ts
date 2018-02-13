@@ -60,15 +60,6 @@ export type LedgerLines = {
     lowest: Maybe<number>
 };
 
-export class MusicalElement {
-    readonly id: string;
-    readonly data: SimpleMap = {};
-
-    constructor(id?:string) {
-        this.id = id ? id : uniq();
-    }
-}
-
 export enum StaffPlaces {
     unison = 0,
     second, third, fourth, fifth, sixth, seventh, octave, ninth,

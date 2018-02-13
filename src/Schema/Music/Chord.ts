@@ -89,7 +89,6 @@ export class ChordNote extends Note {
         super(note.pitchOctave,
               note.pitchStep,
               note.pitchAlter,
-              note.duration,
-              note.accidental);
+              note.duration);
     }
 }

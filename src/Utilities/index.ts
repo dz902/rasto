@@ -1,2 +1,2 @@
 export * from './Maybe';
-export * from './EnhancedArray';
+export * from './ArrayHelpers';
