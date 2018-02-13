@@ -2,13 +2,15 @@ const path = require('path');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
-    entry: './src/Main.ts',
+    entry: {
+        music: './src/Music.ts'
+    },
     module: {
         rules: [
             {
                 test: /\.tsx?$/,
                 use: 'ts-loader',
-                exclude: /node_modules/
+                exclude: [/node_modules/, /tmp/]
             }
         ]
     },
@@ -18,8 +20,7 @@ module.exports = {
     },
     output: {
         path: path.resolve(__dirname, 'bin'),
-        filename: 'bundle.js',
-        library: 'rasto'
+        filename: '[name].bundle.js'
     },
     devtool: "inline-source-map"
 };

@@ -7,7 +7,7 @@ describe('Measure', () => {
         beforeEach(() => {
             measure = new Measure();
 
-            measure.addConstituentOrContext(
+            measure.addContext(
                 new Context(
                     { sign: ClefSign.G, lineNumber: 2 },
                     { beatsPerMeasure: 4, beatUnit: NoteType.Quarter },
@@ -28,7 +28,7 @@ describe('Measure', () => {
 
             let chord = new Chord(NoteType.Whole, notes);
 
-            measure.addConstituentOrContext(chord);
+            measure.addChord(chord);
         });
 
         it('should have one chord', () => {
@@ -36,7 +36,7 @@ describe('Measure', () => {
         });
 
         it('should set direction as down', () => {
-            expect(measure.chords[0].stem).toBe(StemDirection.Down);
+            expect(measure.chords[0].stemDirection).toBe(StemDirection.Down);
         });
 
         it('should set correct note displacement for down direction', () => {
@@ -48,23 +48,13 @@ describe('Measure', () => {
         });
 
         it('should set correct note displacement for up direction', () => {
-            // chord.forceDirection(StemDirection.Up);
-            //
-            // expect(chord._notes[0].needsDisplacement).toBe(false);
-            // expect(chord._notes[1].needsDisplacement).toBe(true);
-            // expect(chord._notes[2].needsDisplacement).toBe(false);
-            // expect(chord._notes[3].needsDisplacement).toBe(false);
-            // expect(chord._notes[4].needsDisplacement).toBe(true);
-        });
+            measure.chords[0].changeStemDirection(StemDirection.Up);
 
-        it('should not need stems for whole notes', () => {
-            // expect(chord.needsStem).toBe(false);
-        });
-
-        it('should need stems for half notes', () => {
-            // chord.changeType(MarkType.Half);
-            //
-            // expect(chord.needsStem).toBe(true);
+            expect(measure.chords[0].notes[0].displacement).toBe(false);
+            expect(measure.chords[0].notes[1].displacement).toBe(true);
+            expect(measure.chords[0].notes[2].displacement).toBe(false);
+            expect(measure.chords[0].notes[3].displacement).toBe(false);
+            expect(measure.chords[0].notes[4].displacement).toBe(true);
         });
 
         it('should need ledger line for higher notes', () => {

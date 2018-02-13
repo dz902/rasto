@@ -5,34 +5,27 @@ import { Note, NoteType } from './index';
 export class Measure extends Container<StaffItem> {
     private currentContext: Maybe<Context> = null;
 
-    addConstituentOrContext(constituentOrContext: Constituent | Context) {
-        let item: StaffItem;
+    addChord(chord: Chord) {
+        let contextNotSet = this.currentContext === null;
 
-        if (constituentOrContext instanceof Chord) {
-            let contextNotSet = this.currentContext === null;
-
-            if (contextNotSet) {
-                throw new Error('chords cannot be added before setting a context');
-            }
-
-            let chord = constituentOrContext;
-            let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentContext!);
-            let stem = this.computeStemForChord(chord, this.currentContext!);
-
-            item = new MeasureChord(chord, stem, ledgerLines, 0);
-        } else if (constituentOrContext instanceof Context) {
-            item = constituentOrContext;
-
-            if (this.currentContext !== null) {
-                this.currentContext = Context.merge(this.currentContext, item as Context);
-            } else {
-                this.currentContext = item as Context;
-            }
-        } else {
-            throw new Error();
+        if (contextNotSet) {
+            throw new Error('chords cannot be added before setting a context');
         }
 
-        super.addItem(item);
+        let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentContext!);
+        let stemDirection = this.computeStemForChord(chord, this.currentContext!);
+
+        super.addItem(new MeasureChord(chord, stemDirection, ledgerLines, 0));
+    }
+
+    addContext(context: Context) {
+        if (this.currentContext !== null) {
+            this.currentContext = Context.merge(this.currentContext, context);
+        } else {
+            this.currentContext = context;
+        }
+
+        super.addItem(context);
 
         return this;
     }
@@ -76,34 +69,46 @@ export class Measure extends Container<StaffItem> {
 }
 
 class MeasureChord extends Chord implements StaffItem {
-    private measureChordNotes: MeasureChordNote[] = [];
+    private _measureChordNotes: MeasureChordNote[] = [];
+    private _stemDirection: StemDirection = StemDirection.Down;
 
     constructor(chord: Chord,
-                private measureChordStem: StemDirection = StemDirection.Down,
-                private measureChordLedgerLines: LedgerLines = { highest: null, lowest: null },
-                private measureChordStaffNumber: number = 0) {
+                stemDirection: StemDirection,
+                private _ledgerLines: LedgerLines,
+                private _staffNumber: number) {
         super(chord.type, chord.notes);
 
-        let displacements = this.computeDisplacementForNotes(chord.notes, measureChordStem);
-
-        this.measureChordNotes = Array.from(chord.notes).map((n, i) => new MeasureChordNote(n, displacements[i]));
+        this.changeStemDirection(stemDirection);
     }
 
     get notes(): ReadonlyArray<MeasureChordNote> {
-        return Object.freeze(this.measureChordNotes);
+        return Object.freeze(this._measureChordNotes);
     }
 
-    get stem(): StemDirection {
-        return this.measureChordStem;
+    get stemDirection(): StemDirection {
+        return this._stemDirection;
     }
 
     get ledgerLines(): LedgerLines {
-        return Object.freeze(this.measureChordLedgerLines);
+        return Object.freeze(this._ledgerLines);
     }
 
     get staffNumber(): number {
-        return this.measureChordStaffNumber;
+        return this._staffNumber;
     }
+
+    // API
+
+    changeStemDirection(stemDirection: StemDirection): MeasureChord {
+        this._stemDirection = stemDirection;
+
+        let displacements = this.computeDisplacementForNotes(super.notes, stemDirection);
+        this._measureChordNotes = Array.from(super.notes).map((n, i) => new MeasureChordNote(n, displacements[i]));
+
+        return this;
+    }
+
+    // PRIVATE
 
     private computeDisplacementForNotes(notes: ReadonlyArray<ChordNote>, stem: StemDirection): boolean[] {
         let noteDisplacements: boolean[];

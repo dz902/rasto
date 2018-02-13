@@ -7,15 +7,19 @@
     "target": "es2015",
     "inlineSourceMap": true,
     "strict": true,
-    "rootDir": "./src",
+    "rootDirs": ["./src", "./tests"],
     "outDir": "./bin",
     "lib": [
       "es2015",
       "dom"
     ]
   },
+  "include": [
+    "src/**/*",
+    "tests/cypress/**/*",
+    "node_modules/cypress/**/*"
+  ],
   "exclude": [
-    "node_modules",
-    "tests"
+    "tmp"
   ]
 }

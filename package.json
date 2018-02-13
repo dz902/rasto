@@ -8,10 +8,12 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@bahmutov/add-typescript-to-cypress": "^2.0.0",
     "@types/jest": "^22.1.1",
     "@types/puppeteer": "^1.0.0",
     "backstopjs": "^3.0.39",
     "chalk": "^2.3.0",
+    "cypress": "^1.4.2",
     "http-server": "^0.11.1",
     "jest": "^22.2.1",
     "ts-jest": "^22.0.3",
@@ -26,7 +28,8 @@
     "vtest": "backstop test --config=tests/backstop/backstop.config.json",
     "test": "jest --config=tests/jest/jest.config.js",
     "server": "http-server -p 8888",
-    "watch": "webpack -w"
+    "watch": "webpack -w",
+    "btest": "cd tests; cypress open"
   },
   "repository": {
     "type": "git",

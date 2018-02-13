@@ -2,8 +2,8 @@ import { Maybe } from 'Utilities';
 import { Note, FlagType, NoteType, Constituent } from 'Schema/Music';
 
 export class Chord extends Constituent {
-    private chordNotes: ChordNote[] = [];
-    private chordFlag: Maybe<FlagType> = null;
+    private _chordNotes: ChordNote[] = [];
+    private _flagType: Maybe<FlagType> = null;
 
     constructor(noteType: NoteType, notes: ReadonlyArray<Note>) {
         super(noteType);
@@ -13,30 +13,30 @@ export class Chord extends Constituent {
         for (let note of sortedNotes) {
             let chordNote = new ChordNote(note);
 
-            this.chordNotes.push(chordNote);
+            this._chordNotes.push(chordNote);
         }
 
-        for (let chordNote of this.chordNotes) {
+        for (let chordNote of this._chordNotes) {
             chordNote.relativeStaffPlace = chordNote.staffPlace - this.bottomNote.staffPlace;
         }
 
-        this.chordFlag = this.computeFlag(this.type);
+        this._flagType = this.computeFlag(this.type);
     }
 
     get notes(): ReadonlyArray<ChordNote> {
-        return Object.freeze(this.chordNotes.concat([]));
+        return Object.freeze(this._chordNotes.concat([]));
     }
 
-    get flag(): Maybe<FlagType> {
-        return this.chordFlag;
+    get flagType(): Maybe<FlagType> {
+        return this._flagType;
     }
 
     get bottomNote(): Note {
-        return this.chordNotes[0];
+        return this._chordNotes[0];
     }
 
     get topNote(): Note {
-        return this.chordNotes[this.chordNotes.length-1];
+        return this._chordNotes[this._chordNotes.length-1];
     }
 
     get spanStaffPlace(): number {
@@ -72,7 +72,7 @@ export class Chord extends Constituent {
     }
 
     private checkNoteRelativeStaffPlace(): void {
-        this.chordNotes.forEach((note) => {
+        this._chordNotes.forEach((note) => {
             note.relativeStaffPlace = note.getIntervalTo(this.bottomNote)-1;
         });
     }
