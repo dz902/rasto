@@ -39,6 +39,14 @@ describe('Measure', () => {
             expect(measure.chords[0].stem).toBe(StemDirection.Down);
         });
 
+        it('should set correct note displacement for down direction', () => {
+            expect(measure.chords[0].notes[0].displacement).toBe(false);
+            expect(measure.chords[0].notes[1].displacement).toBe(true);
+            expect(measure.chords[0].notes[2].displacement).toBe(false);
+            expect(measure.chords[0].notes[3].displacement).toBe(true);
+            expect(measure.chords[0].notes[4].displacement).toBe(false);
+        });
+
         it('should set correct note displacement for up direction', () => {
             // chord.forceDirection(StemDirection.Up);
             //
@@ -47,16 +55,6 @@ describe('Measure', () => {
             // expect(chord._notes[2].needsDisplacement).toBe(false);
             // expect(chord._notes[3].needsDisplacement).toBe(false);
             // expect(chord._notes[4].needsDisplacement).toBe(true);
-        });
-
-        it('should set correct note displacement for down direction', () => {
-            // chord.forceDirection(StemDirection.Down);
-            //
-            // expect(chord._notes[0].needsDisplacement).toBe(false);
-            // expect(chord._notes[1].needsDisplacement).toBe(true);
-            // expect(chord._notes[2].needsDisplacement).toBe(false);
-            // expect(chord._notes[3].needsDisplacement).toBe(true);
-            // expect(chord._notes[4].needsDisplacement).toBe(false);
         });
 
         it('should not need stems for whole notes', () => {

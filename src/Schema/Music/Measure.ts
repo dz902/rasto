@@ -1,5 +1,6 @@
-import { Maybe } from 'Utilities';
+import { last, Maybe } from 'Utilities';
 import { StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem, StemDirection, ChordNote } from 'Schema/Music';
+import { Note, NoteType } from './index';
 
 export class Measure extends Container<StaffItem> {
     private currentContext: Maybe<Context> = null;
@@ -69,141 +70,68 @@ export class Measure extends Container<StaffItem> {
         } else {
             stem = StemDirection.Up;
         }
-console.log(chord.topNote.staffPlace, chord.bottomNote.staffPlace, context.midStaffPlace);
+
         return stem;
     }
 }
 
 class MeasureChord extends Chord implements StaffItem {
+    private measureChordNotes: MeasureChordNote[] = [];
+
     constructor(chord: Chord,
-                private chordStem: StemDirection = StemDirection.Down,
-                private chordLedgerLines: LedgerLines = { highest: null, lowest: null },
-                private chordStaffNumber: number = 0) {
+                private measureChordStem: StemDirection = StemDirection.Down,
+                private measureChordLedgerLines: LedgerLines = { highest: null, lowest: null },
+                private measureChordStaffNumber: number = 0) {
         super(chord.type, chord.notes);
 
-        let displacements = this.computeDisplacementForNotes(chord.notes);
+        let displacements = this.computeDisplacementForNotes(chord.notes, measureChordStem);
 
-        chord.notes.forEach((n, i) => n.displacement = displacements[i]);
+        this.measureChordNotes = Array.from(chord.notes).map((n, i) => new MeasureChordNote(n, displacements[i]));
+    }
+
+    get notes(): ReadonlyArray<MeasureChordNote> {
+        return Object.freeze(this.measureChordNotes);
     }
 
     get stem(): StemDirection {
-        return this.chordStem;
+        return this.measureChordStem;
     }
 
     get ledgerLines(): LedgerLines {
-        return Object.freeze(this.chordLedgerLines);
+        return Object.freeze(this.measureChordLedgerLines);
     }
 
     get staffNumber(): number {
-        return this.chordStaffNumber;
+        return this.measureChordStaffNumber;
     }
 
-    private computeDisplacementForNotes(notes: ReadonlyArray<ChordNote>): boolean[] {
+    private computeDisplacementForNotes(notes: ReadonlyArray<ChordNote>, stem: StemDirection): boolean[] {
         let noteDisplacements: boolean[];
 
-        let checkSeconds = (note: ChordNote, i: number, notes: ReadonlyArray<ChordNote>) => {
-            let prevNote = notes[i - 1];
-            let isNotDisplacing = (prevNote === undefined || !prevNote.displacement);
+        let checkSeconds = (displacements: boolean[], note: ChordNote, i: number, notes: ReadonlyArray<ChordNote>) => {
+            let prevNote = notes[i-1];
+            let prevDisplacement = last(displacements);
+            let isNotDisplacing = (prevDisplacement === undefined || prevDisplacement === false);
             let isSecond = (prevNote !== undefined && note.getIntervalTo(prevNote) === 2);
 
-            return isNotDisplacing && isSecond;
+            displacements.push(isNotDisplacing && isSecond);
+
+            return displacements;
         };
 
-        if (this.stem === StemDirection.Up) {
-            noteDisplacements = notes.map(checkSeconds);
+        if (stem === StemDirection.Up) {
+            noteDisplacements = notes.reduce(checkSeconds, []);
         } else {
-            noteDisplacements = notes.concat([]).reverse().map(checkSeconds).reverse();
+            noteDisplacements = Array.from(notes).reverse().reduce(checkSeconds, []).reverse();
         }
 
         return noteDisplacements;
     }
 }
 
-//
-// export class Measure extends MusicalElement {
-//     private contexts: MeasureContext[] = [];
-//     readonly marks: Mark[] = [];
-//
-//     get currentContext(): Maybe<MeasureContext> {
-//         return this.contexts[this.contexts.length - 1];
-//     }
-//
-//     setContext(a: SimpleMap) {
-//         // ensureMeasureAttributes
-//
-//         let context: MeasureContext = new MeasureContext(
-//             maybeThen(a.divisions, ensureNumber),
-//             maybeThen(a.timeBeats, ensureNumber),
-//             maybeThen(a.timeBeatType, ensureNumber),
-//             maybe(a.clefSign),
-//             maybeThen(a.clefLine, ensureNumber)
-//         );
-//
-//         let prevContext = this.contexts[this.contexts.length-1];
-//
-//         if (prevContext) {
-//             context = context.merge(prevContext);
-//         }
-//
-//         this.contexts.push(context);
-//     }
-//
-//     addMark(mark: Mark) {
-//         this.marks.push(mark);
-//     }
-// }
-
-// export class MeasureContext implements SimpleMap {
-//     constructor(readonly divisions: Maybe<number>,
-//                 readonly timeBeats: Maybe<number>,
-//                 readonly timeBeatType: Maybe<number>,
-//                 readonly clefSign: Maybe<string>,
-//                 readonly clefLine: Maybe<number>) {
-//     }
-//
-//     get lowestStaffPlace(): number {
-//         let staffPlace = 0;
-//
-//         switch (this.clefSign) {
-//             case 'F':
-//                 staffPlace = 2 * 7 - 1 + 5;
-//                 break;
-//             case 'G':
-//                 staffPlace = 4 * 7 - 1 + 3; // 4 octaves + 1 third
-//                 break;
-//         }
-//
-//         return staffPlace;
-//     }
-//
-//     get highestStaffPlace(): number {
-//         return this.lowestStaffPlace + (StaffPlace.space*4);
-//     }
-//
-//     get midStaffPlace(): number {
-//         return this.lowestStaffPlace + (StaffPlace.space*2);
-//     }
-//
-//     merge(oldContext: MeasureContext): MeasureContext {
-//         return new MeasureContext(
-//             this.divisions || oldContext.divisions,
-//             this.timeBeats || oldContext.timeBeats,
-//             this.timeBeatType || oldContext.timeBeatType,
-//             this.clefSign || oldContext.clefSign,
-//             this.clefLine || oldContext.clefLine
-//         )
-//     }
-//
-//     sameAs(otherContext: MeasureContext): boolean {
-//         let thisContext: MeasureContext = this;
-//         let k: keyof MeasureContext;
-//
-//         for (k in thisContext) {
-//             if (thisContext[k] !== otherContext[k]) {
-//                 return false;
-//             }
-//         }
-//
-//         return true;
-//     }
-// }
+class MeasureChordNote extends ChordNote {
+    constructor(note: Note,
+                readonly displacement: boolean) {
+        super(note);
+    }
+}

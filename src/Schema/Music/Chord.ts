@@ -11,7 +11,7 @@ export class Chord extends Constituent {
         let sortedNotes = this.sortNotes(Array.from(notes));
 
         for (let note of sortedNotes) {
-            let chordNote = new ChordNote(note, this.type);
+            let chordNote = new ChordNote(note);
 
             this.chordNotes.push(chordNote);
         }
@@ -49,8 +49,6 @@ export class Chord extends Constituent {
     changeNoteType(newNoteType: NoteType): Constituent {
         super.changeNoteType(newNoteType);
 
-        this.chordNotes.map(n => new ChordNote(n, newNoteType));
-
         return this;
     }
 
@@ -85,18 +83,13 @@ export class ChordNote extends Note {
     // public getter + internal setter
 
     // ** @internal
-    displacement: boolean = false;
     relativeStaffPlace: number = 0;
 
-    constructor(note: Note, protected markType: NoteType) {
+    constructor(note: Note) {
         super(note.pitchOctave,
               note.pitchStep,
               note.pitchAlter,
               note.duration,
               note.accidental);
-    }
-
-    get type(): NoteType {
-        return this.markType;
     }
 }
