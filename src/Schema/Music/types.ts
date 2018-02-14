@@ -1,6 +1,5 @@
 import { Maybe } from 'Utilities/Maybe';
 
-
 export enum NoteType {
     Whole = 1,
     Half = 2,
@@ -27,7 +26,6 @@ export function ensureNoteType(noteType: number): NoteType {
     return ensure(noteType, `mark type ${noteType} is not valid`,
                   (t: number): t is NoteType => markTypeList.indexOf(t) !== -1);
 }
-
 
 export type PitchStep = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 

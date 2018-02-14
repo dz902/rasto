@@ -1,4 +1,4 @@
-import { StaffPlaces, StemDirection, Measure, Context, ClefSign, KeyModes, Note, NoteType, Chord } from 'Schema/Music';
+import { StaffPlaces, StemDirection, Measure, Context, ClefSign, KeyModes, Note, NoteType, Chord } from 'SchemasMusic';
 
 let measure: Measure;
 

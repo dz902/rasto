@@ -1,4 +1,4 @@
-import { NoteType, StemDirection, Chord, Note } from 'Schema/Music';
+import { NoteType, StemDirection, Chord, Note } from 'SchemasMusic';
 
 let chord: Chord;
 

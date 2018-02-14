@@ -1,6 +1,5 @@
 import { last, Maybe } from 'Utilities';
-import { StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem, StemDirection, ChordNote } from 'Schema/Music';
-import { Note, NoteType } from './index';
+import { Note, NoteType, StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem, StemDirection, ChordNote } from 'Schema/Music';
 
 export class Measure extends Container<StaffItem> {
     private currentContext: Maybe<Context> = null;

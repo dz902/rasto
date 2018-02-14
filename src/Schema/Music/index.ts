@@ -1,4 +1,4 @@
-export * from './Common';
+export * from './types';
 
 export * from './Container';
 export * from './Constituent';
