@@ -1,10 +1,9 @@
 import { NoteType, PitchStep, StaffPlaces, StaffItem } from 'Schema/Music';
 
-export class Context implements StaffItem {
+export class Context {
     constructor(readonly clef: Clef,
                 readonly meter: Meter,
-                readonly key: Key,
-                readonly staffNumber: number) {
+                readonly key: Key) {
 
     }
 
@@ -33,16 +32,11 @@ export class Context implements StaffItem {
         return this.bottomStaffPlace + StaffPlaces.fifth;
     }
 
-    static merge(oldContext: Context, newContext: Context): Context {
-        if (newContext.staffNumber !== oldContext.staffNumber) {
-            throw new Error('cannot merge context with different staff numbers');
-        }
-
+    merge(newContext: Context): Context {
         return new Context(
-            newContext.clef || oldContext.clef,
-            newContext.meter || oldContext.meter,
-            newContext.key || oldContext.key,
-            newContext.staffNumber
+            newContext.clef || this.clef,
+            newContext.meter || this.meter,
+            newContext.key || this.key
         );
     }
 }

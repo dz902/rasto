@@ -1,9 +1,13 @@
-import { Score } from 'Schema/Music';
+import { Context, Score } from 'Schema/Music';
 import { Maybe } from 'Utilities';
 import { Parser } from './Parser';
 
 export class MusicXMLParser extends Parser {
-    private rootNode: Document;
+    readonly score = new Score();
+
+    private rootNode: XMLDocument;
+    private currentResult: Maybe<XPathResult> = null;
+    private JXON: JXON = new JXON();
 
     static parse(serializeXML: string): Score {
         return new Score();
@@ -13,29 +17,74 @@ export class MusicXMLParser extends Parser {
         super();
 
         this.rootNode = (new DOMParser()).parseFromString(serializeXML, 'application/xml');
-    }
 
-    fetchAttributesAndNotes() {
-        let result = this.query('//measure/attributes | //measure/note', this.rootNode);
+        this.query('/score-partwise/part/measure/attributes | /score-partwise/part/measure/note')
+            .each((item: Node) => {
+            switch (item.nodeName.toLowerCase()) {
+                case 'attributes':
+                    let rawContext = this.JXON.build(item);
+                    let context = new Context(
+                        {
+                            sign: rawContext['clef']['sign'],
+                            line: rawContext['clef']['line']
+                        },
+                        {
+                            beatsPerMeasure: rawContext['time']['beats'],
+                            beatUnit: rawContext['time']['beatType']
+                        },
+                        {
+                            key: 'C',
+                            mode: 'major'
+                        },
+                        
+                    )
 
-        this.each(result, (item: Node, i: number) => {
 
+                    break;
+                case 'note':
+                    let note = this.JXON.build(item);
+
+                    break;
+                default:
+                    throw new Error();
+            }
         });
     }
 
-    private query(path: string, rootNode: Document, type: number = XPathResult.ANY_TYPE): XPathResult {
-        return document.evaluate(path, rootNode, document.createNSResolver(rootNode), type, null);
+    private query(path: string): MusicXMLParser {
+        if (!this.has(path)) {
+            throw new Error(`path ${path} does not exist`);
+        }
+
+        this.currentResult = this.evaluate('path');
+
+        return this;
     }
 
-    private each(result: XPathResult, callback: (item: Node, i: number) => void) {
-        let item: Maybe<Node> = null;
-        let i: number = 0;
+    private has(path: string): boolean {
+        let result = this.evaluate(`boolean(${path})`);
 
-        while (item = result.iterateNext()) {
-            callback(item, i);
+        return result.booleanValue;
+    }
 
-            i += 1;
+    private evaluate(path: string, type: number = XPathResult.ANY_TYPE): XPathResult {
+        let result = document.evaluate(path, this.rootNode, document.createNSResolver(this.rootNode), type, null);
+
+        return result;
+    }
+
+    private each(callback:(item: Node) => void): MusicXMLParser {
+        if (this.currentResult === null) {
+            throw new Error('no result yet');
         }
+
+        let item: Maybe<Node> = null;
+
+        while (item = this.currentResult.iterateNext()) {
+            callback(item);
+        }
+
+        return this;
     }
 }
 
@@ -71,7 +120,7 @@ export class JXON {
         return vVal === null ? new EmptyTree() : vVal instanceof Object ? vVal : new vVal.constructor(vVal);
     }
 
-    private createObjTree(oParentNode: Element | XMLDocument, nVerb: number, bFreeze: boolean, bNesteAttr: boolean) {
+    private createObjTree(oParentNode: Node | Element | XMLDocument, nVerb: number, bFreeze: boolean, bNesteAttr: boolean) {
         const nLevelStart = this.aCache.length, bChildren = oParentNode.hasChildNodes(),
             bAttributes = oParentNode.hasAttributes && oParentNode.hasAttributes(),
             bHighVerb = Boolean(nVerb & 2);
@@ -202,7 +251,7 @@ export class JXON {
 
     }
 
-    build(oXMLParent: XMLDocument, nVerbosity?: number /* optional */, bFreeze? : boolean /* optional */, bNesteAttributes?: boolean /* optional */) {
+    build(oXMLParent: XMLDocument | Element | Node, nVerbosity?: number /* optional */, bFreeze? : boolean /* optional */, bNesteAttributes?: boolean /* optional */) {
         const nVerbMask = nVerbosity !== undefined ? nVerbosity & 3 : /* put here the default verbosity level: */ 1;
 
         return this.createObjTree(oXMLParent, nVerbMask, bFreeze || false, bNesteAttributes ? bNesteAttributes : nVerbMask === 3);

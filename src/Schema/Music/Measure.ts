@@ -2,26 +2,26 @@ import { last, Maybe } from 'Utilities';
 import { Note, NoteType, StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem, StemDirection, ChordNote } from 'Schema/Music';
 
 export class Measure extends Container<StaffItem> {
-    private currentContext: Maybe<Context> = null;
+    private currentStaffContexts: Context[] = [];
 
-    addChord(chord: Chord) {
-        let contextNotSet = this.currentContext === null;
+    addChord(chord: Chord, staffNumber: number = 0) {
+        let contextNotSet = this.currentStaffContexts === null;
 
         if (contextNotSet) {
             throw new Error('chords cannot be added before setting a context');
         }
 
-        let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentContext!);
-        let stemDirection = this.computeStemForChord(chord, this.currentContext!);
+        let ledgerLines = this.computeLedgerLinesForChord(chord, this.currentStaffContexts!);
+        let stemDirection = this.computeStemForChord(chord, this.currentStaffContexts!);
 
         super.addItem(new MeasureChord(chord, stemDirection, ledgerLines, 0));
     }
 
-    addContext(context: Context) {
-        if (this.currentContext !== null) {
-            this.currentContext = Context.merge(this.currentContext, context);
+    addContext(context: Context, staffNumber: number = 0) {
+        if (this.currentStaffContexts !== null) {
+            this.currentStaffContexts = Context.merge(this.currentStaffContexts, context);
         } else {
-            this.currentContext = context;
+            this.currentStaffContexts = context;
         }
 
         super.addItem(context);
