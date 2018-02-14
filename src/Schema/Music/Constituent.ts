@@ -1,18 +1,18 @@
 import { NoteType } from 'Schema/Music';
 
 export abstract class Constituent {
-    protected _noteType: NoteType;
+    protected constituentNoteType: NoteType;
 
     constructor(noteType: NoteType) {
-        this._noteType = noteType;
+        this.constituentNoteType = noteType;
     }
 
-    get type(): NoteType {
-        return this._noteType;
+    get noteType(): NoteType {
+        return this.constituentNoteType;
     }
 
     changeNoteType(newNoteType: NoteType): Constituent {
-        this._noteType = newNoteType;
+        this.constituentNoteType = newNoteType;
 
         return this;
     }

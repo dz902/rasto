@@ -1,38 +1,31 @@
 import { Chord, Container, Measure, ErrorMeasureOverflow, StaffItem } from 'Schema/Music';
-import { last } from 'Utilities';
+import { last, Maybe } from 'Utilities';
 import { Context } from './Context';
 
-export class Score extends Container<StaffItem> {
-    protected scoreMeasures: Measure[] = [];
+export class Score {
+    private scoreMeasures: Measure[] = [new Measure()];
+    private currentMeasure: Measure = this.scoreMeasures[0];
 
     get measures(): ReadonlyArray<Measure> {
         return Object.freeze(this.scoreMeasures);
     }
 
-    addItem(staffItem: StaffItem): Score {
-        let currentMeasure = last(this.scoreMeasures);
+    addContext(context: Context) {
+        this.currentMeasure.addContext(context);
+    }
 
-        if (currentMeasure === undefined) {
-            currentMeasure = new Measure();
-            this.scoreMeasures.push(currentMeasure);
-        }
+    addChord(chord: Chord) {
+        try {
+            this.currentMeasure.addChord(chord);
+        } catch (e) {
+            if (e instanceof ErrorMeasureOverflow) {
+                let newMeasure = new Measure();
 
-        if (staffItem instanceof Chord) {
-            try {
-                currentMeasure.addChord(staffItem);
-            } catch (e) {
-                if (e instanceof ErrorMeasureOverflow) {
-                    currentMeasure = new Measure();
-                    currentMeasure.addChord(staffItem);
-                }
+                this.scoreMeasures.push(newMeasure);
+                this.currentMeasure = newMeasure;
+
+                this.currentMeasure.addChord(chord);
             }
-        } else if (staffItem instanceof Context) {
-            currentMeasure.addContext(staffItem);
-        } else {
-            throw new Error('unrecognized staff item');
         }
-
-
-        return this;
     }
 }

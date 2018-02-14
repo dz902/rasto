@@ -43,7 +43,7 @@ export class Context {
 
 type Clef = {
     sign: ClefSign;
-    lineNumber: StaffLineNumber
+    lineNumber: number
 };
 
 export enum ClefSign {
@@ -51,8 +51,6 @@ export enum ClefSign {
     F = 'F',
     C = 'C'
 }
-
-type StaffLineNumber = 1 | 2 | 3 | 4 | 5;
 
 type Meter = {
     beatsPerMeasure: number,
@@ -65,8 +63,8 @@ type Key = {
 };
 
 export enum KeyModes {
-    Major,
-    Minor
+    Major = 'major',
+    Minor = 'minor'
 }
 
 type Pitch = {

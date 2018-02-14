@@ -1,46 +1,50 @@
 import { Maybe } from 'Utilities';
 import { Note, FlagType, NoteType, Constituent } from 'Schema/Music';
+import { StemDirection } from './types';
+import { last } from '../../Utilities';
 
 export class Chord extends Constituent {
-    private _chordNotes: ChordNote[] = [];
-    private _flagType: Maybe<FlagType> = null;
+    private chordNotes: ChordNote[] = [];
+    private chordFlagType: Maybe<FlagType> = null;
 
-    constructor(noteType: NoteType, notes: ReadonlyArray<Note>) {
+    constructor(noteType: NoteType, notes: ReadonlyArray<Note>,
+                private chordStemDirection: StemDirection) {
         super(noteType);
 
-        let sortedNotes = this.sortNotes(Array.from(notes));
-
-        for (let note of sortedNotes) {
+        for (let note of notes) {
             let chordNote = new ChordNote(note);
 
-            this._chordNotes.push(chordNote);
+            this.chordNotes.push(chordNote);
         }
 
-        for (let chordNote of this._chordNotes) {
-            chordNote.relativeStaffPlace = chordNote.staffPlace - this.bottomNote.staffPlace;
-        }
-
-        this._flagType = this.computeFlag(this.type);
+        this.sortNotes();
+        this.computeDisplacementForNotes();
+        this.computeNoteRelativeStaffPlaces();
+        this.computeNoteFlags();
     }
 
     get notes(): ReadonlyArray<ChordNote> {
-        return Object.freeze(this._chordNotes.concat([]));
+        return Object.freeze(this.chordNotes.concat([]));
     }
 
     get flagType(): Maybe<FlagType> {
-        return this._flagType;
+        return this.chordFlagType;
     }
 
     get bottomNote(): Note {
-        return this._chordNotes[0];
+        return this.chordNotes[0];
     }
 
     get topNote(): Note {
-        return this._chordNotes[this._chordNotes.length-1];
+        return this.chordNotes[this.chordNotes.length-1];
     }
 
     get spanStaffPlace(): number {
         return this.topNote.staffPlace - this.bottomNote.staffPlace;
+    }
+
+    get stemDirection(): StemDirection {
+        return this.chordStemDirection;
     }
 
     // API
@@ -52,29 +56,66 @@ export class Chord extends Constituent {
         return this;
     }
 
+
+    changeStemDirection(stemDirection: StemDirection): this {
+        this.chordStemDirection = stemDirection;
+        this.computeDisplacementForNotes();
+
+        return this;
+    }
+
     // TASKS
 
-    private computeFlag(noteType: NoteType): Maybe<FlagType> {
+    private computeNoteFlags(): this {
         let flag;
         let noFlagTypes = [NoteType.Whole, NoteType.Half, NoteType.Quarter];
 
-        if(noFlagTypes.indexOf(noteType) === -1) {
+        if(noFlagTypes.indexOf(this.constituentNoteType) === -1) {
             flag = null;
         } else {
-            flag = FlagType[NoteType[noteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
+            flag = FlagType[NoteType[this.constituentNoteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
         }
 
-        return flag;
+        this.chordFlagType = flag;
+
+        return this;
     }
 
-    private sortNotes(notes: Note[]): Note[] {
-        return notes.sort((a, b) => a.staffPlace - b.staffPlace);
+    private sortNotes(): this {
+        this.chordNotes.sort((a, b) => a.staffPlace - b.staffPlace);
+
+        return this;
     }
 
-    private checkNoteRelativeStaffPlace(): void {
-        this._chordNotes.forEach((note) => {
-            note.relativeStaffPlace = note.getIntervalTo(this.bottomNote)-1;
+    private computeNoteRelativeStaffPlaces(): void {
+        this.chordNotes.forEach((note) => {
+            note.relativeStaffPlace = note.staffPlace - this.bottomNote.staffPlace;
         });
+    }
+
+    private computeDisplacementForNotes(): this {
+        let noteDisplacements: boolean[];
+
+        let checkSeconds = (displacements: boolean[], note: ChordNote, i: number, notes: ReadonlyArray<ChordNote>) => {
+            let prevNote = notes[i-1];
+            let prevDisplacement = last(displacements);
+            let isNotDisplacing = (prevDisplacement === undefined || prevDisplacement === false);
+            let isSecond = (prevNote !== undefined && note.getIntervalTo(prevNote) === 2);
+
+            displacements.push(isNotDisplacing && isSecond);
+
+            return displacements;
+        };
+
+        if (this.stemDirection === StemDirection.Up) {
+            noteDisplacements = this.notes.reduce(checkSeconds, []);
+        } else {
+            noteDisplacements = Array.from(this.notes).reverse().reduce(checkSeconds, []).reverse();
+        }
+
+        noteDisplacements.forEach((v, i) => this.chordNotes[i].displacement = v);
+
+        return this;
     }
 }
 
@@ -83,6 +124,7 @@ export class ChordNote extends Note {
     // public getter + internal setter
 
     // ** @internal
+    displacement: boolean = false;
     relativeStaffPlace: number = 0;
 
     constructor(note: Note) {

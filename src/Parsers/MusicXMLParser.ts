@@ -1,4 +1,4 @@
-import { Context, Score } from 'Schema/Music';
+import { Context, KeyModes, Score } from 'Schema/Music';
 import { Maybe } from 'Utilities';
 import { Parser } from './Parser';
 
@@ -26,23 +26,25 @@ export class MusicXMLParser extends Parser {
                     let context = new Context(
                         {
                             sign: rawContext['clef']['sign'],
-                            line: rawContext['clef']['line']
+                            lineNumber: Number(rawContext['clef']['line'])
                         },
                         {
                             beatsPerMeasure: rawContext['time']['beats'],
                             beatUnit: rawContext['time']['beatType']
                         },
                         {
-                            key: 'C',
-                            mode: 'major'
-                        },
-                        
-                    )
+                            tonic: { step: 'C' },
+                            mode: KeyModes.Major
+                        }
+                    );
 
+                    this.score.addContext(context);
 
                     break;
                 case 'note':
                     let note = this.JXON.build(item);
+
+                    //this.score.addChord();
 
                     break;
                 default:
@@ -56,7 +58,7 @@ export class MusicXMLParser extends Parser {
             throw new Error(`path ${path} does not exist`);
         }
 
-        this.currentResult = this.evaluate('path');
+        this.currentResult = this.evaluate(path, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
 
         return this;
     }
