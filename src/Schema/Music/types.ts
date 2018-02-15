@@ -1,5 +1,42 @@
 import { Maybe } from 'Utilities/Maybe';
 
+export type Clef = {
+    sign: ClefSign;
+    lineNumber: number
+};
+
+export enum ClefSign {
+    G = 'G',
+    F = 'F',
+    C = 'C'
+}
+
+export type Meter = {
+    beatsPerMeasure: number,
+    beatUnit: NoteType
+};
+
+export type Key = {
+    tonic: { step: PitchStep, alter?: PitchAlter },
+    mode: KeyModes
+};
+
+export enum KeyModes {
+    Major = 'major',
+    Minor = 'minor'
+}
+
+export type Pitch = {
+    octave: number,
+    step: PitchStep,
+    alter?: PitchAlter
+};
+
+export enum PitchAlter {
+    Sharp = 'sharp',
+    Flat = 'flat'
+}
+
 export enum NoteType {
     Whole = 1,
     Half = 2,

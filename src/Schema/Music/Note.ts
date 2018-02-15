@@ -1,17 +1,15 @@
 import { Maybe } from 'Utilities';
-import { StaffPlaces, PitchOctave, PitchStep } from 'Schema/Music';
+import { StaffPlaces, Pitch } from 'Schema/Music';
 
 export class Note {
-    constructor(readonly pitchOctave: PitchOctave,
-                readonly pitchStep: PitchStep,
-                readonly pitchAlter: Maybe<number>,
+    constructor(readonly pitch: Pitch,
                 readonly duration: number) {
     }
 
     get staffPlace(): number {
         // absoluteStaffPlace
 
-        return this.pitchOctave*StaffPlaces.octave + 'CDEFGAB'.indexOf(this.pitchStep);
+        return this.pitch.octave*StaffPlaces.octave + 'CDEFGAB'.indexOf(this.pitch.step);
     }
 
     getIntervalTo(note: Note): number {

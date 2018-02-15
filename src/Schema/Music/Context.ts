@@ -1,10 +1,10 @@
-import { NoteType, PitchStep, StaffPlaces, StaffItem } from 'Schema/Music';
+import { Clef, ClefSign, Key, Meter, StaffPlaces } from 'Schema/Music';
+import { Maybe } from 'Utilities';
 
 export class Context {
     constructor(readonly clef: Clef,
                 readonly meter: Meter,
                 readonly key: Key) {
-
     }
 
     get bottomStaffPlace(): number {
@@ -39,40 +39,4 @@ export class Context {
             newContext.key || this.key
         );
     }
-}
-
-type Clef = {
-    sign: ClefSign;
-    lineNumber: number
-};
-
-export enum ClefSign {
-    G = 'G',
-    F = 'F',
-    C = 'C'
-}
-
-type Meter = {
-    beatsPerMeasure: number,
-    beatUnit: NoteType
-};
-
-type Key = {
-    tonic: Pitch,
-    mode: KeyModes
-};
-
-export enum KeyModes {
-    Major = 'major',
-    Minor = 'minor'
-}
-
-type Pitch = {
-    step: PitchStep,
-    alter?: PitchAlter
-};
-
-export enum PitchAlter {
-    Sharp = 'sharp',
-    Flat = 'flat'
 }

@@ -10,7 +10,7 @@ describe('Chord', () => {
     beforeEach(() => {
         chordHalfCDEFDown = new Chord(NoteType.Half, [note4E, note4D, note4C, note4F], StemDirection.Down);
     });
-    
+
     context('#constructor()', () => {
         it('should set correct note displacements', () => {
             expect(chordHalfCDEFDown.notes[0].displacement).to.be.true;

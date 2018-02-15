@@ -1,7 +1,5 @@
-import { Maybe } from 'Utilities';
-import { Note, FlagType, NoteType, Constituent } from 'Schema/Music';
-import { StemDirection } from './types';
-import { last } from '../../Utilities';
+import { Maybe, last } from 'Utilities';
+import { StemDirection, Note, FlagType, NoteType, Constituent } from 'Schema/Music';
 
 export class Chord extends Constituent {
     private chordNotes: ChordNote[] = [];
@@ -48,7 +46,6 @@ export class Chord extends Constituent {
     }
 
     // API
-
 
     changeNoteType(newNoteType: NoteType): Constituent {
         super.changeNoteType(newNoteType);
@@ -129,9 +126,7 @@ class ChordNote extends Note {
     relativeStaffPlace: number = 0;
 
     constructor(note: Note) {
-        super(note.pitchOctave,
-              note.pitchStep,
-              note.pitchAlter,
+        super(note.pitch,
               note.duration);
     }
 }

@@ -4,10 +4,19 @@ import { Context } from './Context';
 
 export class Score {
     private scoreMeasures: Measure[] = [new Measure()];
-    private currentMeasure: Measure = this.scoreMeasures[0];
 
     get measures(): ReadonlyArray<Measure> {
         return Object.freeze(this.scoreMeasures);
+    }
+
+    get currentMeasure(): Measure {
+        let measure = last(this.scoreMeasures);
+
+        if (measure === undefined) {
+            throw new Error('impossible error');
+        }
+
+        return measure;
     }
 
     addContext(context: Context) {
@@ -19,13 +28,15 @@ export class Score {
             this.currentMeasure.addChord(chord);
         } catch (e) {
             if (e instanceof ErrorMeasureOverflow) {
-                let newMeasure = new Measure();
-
-                this.scoreMeasures.push(newMeasure);
-                this.currentMeasure = newMeasure;
-
+                this.addMeasure();
                 this.currentMeasure.addChord(chord);
             }
         }
+    }
+
+    private addMeasure() {
+        let newMeasure = new Measure();
+
+        this.scoreMeasures.push(newMeasure);
     }
 }
