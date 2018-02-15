@@ -1,5 +1,4 @@
 import { Clef, ClefSign, Key, Meter, StaffPlaces } from 'Schema/Music';
-import { Maybe } from 'Utilities';
 
 export class Context {
     constructor(readonly clef: Clef,

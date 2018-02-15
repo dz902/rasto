@@ -127,6 +127,7 @@ class ChordNote extends Note {
 
     constructor(note: Note) {
         super(note.pitch,
-              note.duration);
+              note.duration,
+              note.accidental);
     }
 }

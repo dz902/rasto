@@ -1,9 +1,11 @@
 import { Maybe } from 'Utilities';
 import { StaffPlaces, Pitch } from 'Schema/Music';
+import { Accidental } from './types';
 
 export class Note {
     constructor(readonly pitch: Pitch,
-                readonly duration: number) {
+                readonly duration: number,
+                readonly accidental: Maybe<Accidental>) {
     }
 
     get staffPlace(): number {

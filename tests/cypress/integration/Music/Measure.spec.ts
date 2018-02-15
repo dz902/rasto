@@ -6,10 +6,10 @@ let contextG44CMajor = new Context(
     { beatsPerMeasure: 4, beatUnit: NoteType.Quarter },
     { tonic: { step: 'C' }, mode: KeyModes.Major });
 let chordHalfCDEFDown = new Chord(NoteType.Half, [
-    new Note({ octave: 4,  step: 'C' }, 1),
-    new Note({ octave: 4,  step: 'D' }, 1),
-    new Note({ octave: 4,  step: 'E' }, 1),
-    new Note({ octave: 4,  step: 'F' }, 1)
+    new Note({ octave: 4,  step: 'C' },1, null),
+    new Note({ octave: 4,  step: 'D' },1, null),
+    new Note({ octave: 4,  step: 'E' }, 1, null),
+    new Note({ octave: 4,  step: 'F' }, 1, null)
 ], StemDirection.Down);
 
 describe('Measure', () => {

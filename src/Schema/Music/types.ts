@@ -37,6 +37,18 @@ export enum PitchAlter {
     Flat = 'flat'
 }
 
+export type Accidental = {
+    sign: AccidentalSign
+    parentheses: boolean
+};
+
+export enum AccidentalSign {
+    DoubleSharp,
+    Sharp,
+    Flat,
+    DoubleFlat
+}
+
 export enum NoteType {
     Whole = 1,
     Half = 2,
