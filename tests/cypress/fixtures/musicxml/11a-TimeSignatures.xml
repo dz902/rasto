@@ -23,7 +23,7 @@
           <fifths>0</fifths>
           <mode>major</mode>
         </key>
-        <time symbol="cut">
+        <time symbol="common">
           <beats>2</beats>
           <beat-type>2</beat-type>
         </time>

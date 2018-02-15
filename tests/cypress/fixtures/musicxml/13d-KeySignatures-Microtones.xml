@@ -21,19 +21,19 @@
       <attributes>
         <divisions>1</divisions>
         <key>
-          <key-step>G</key-step>
+          <key-step>4</key-step>
           <key-alter>-1.5</key-alter>
-          <key-step>A</key-step>
+          <key-step>5</key-step>
           <key-alter>-1</key-alter>
-          <key-step>B</key-step>
+          <key-step>6</key-step>
           <key-alter>-0.5</key-alter>
-          <key-step>C</key-step>
+          <key-step>0</key-step>
           <key-alter>0</key-alter>
-          <key-step>D</key-step>
+          <key-step>1</key-step>
           <key-alter>0.5</key-alter>
-          <key-step>E</key-step>
+          <key-step>2</key-step>
           <key-alter>1</key-alter>
-          <key-step>F</key-step>
+          <key-step>3</key-step>
           <key-alter>1.5</key-alter>
         </key>
         <time>

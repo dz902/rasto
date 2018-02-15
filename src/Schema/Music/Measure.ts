@@ -31,6 +31,14 @@ export class Measure extends Container<StaffItem> {
 
         return this;
     }
+
+    get chords(): ReadonlyArray<MeasureChord> {
+        return Object.freeze(this.items.filter(it => it instanceof MeasureChord)) as ReadonlyArray<MeasureChord>;
+    }
+
+    get contexts(): ReadonlyArray<MeasureContext> {
+        return Object.freeze(this.items.filter(it => it instanceof MeasureContext)) as ReadonlyArray<MeasureContext>;
+    }
 }
 
 class MeasureChord extends Chord implements StaffItem {
