@@ -22,10 +22,7 @@ describe('Measure', () => {
             measure.addContext(contextG44CMajor);
 
             expect(measure.items[0]).to.be.instanceof(Context);
-
-            expect(measure.contexts[0].clef).to.equal(contextG44CMajor.clef);
-            expect(measure.contexts[0].meter).to.equal(contextG44CMajor.meter);
-            expect(measure.contexts[0].key).to.equal(contextG44CMajor.key);
+            expect(measure.contexts[0]).to.containSubset(contextG44CMajor);
         });
     });
 
@@ -37,6 +34,10 @@ describe('Measure', () => {
 
         it('should add chord to measure', () => {
             expect(measure.chords[0].notes).to.deep.equal(chordHalfCDEFDown.notes);
+        });
+
+        it('should set context for added chord', () => {
+            expect(measure.chords[0].context).to.containSubset(contextG44CMajor);
         });
     });
 });

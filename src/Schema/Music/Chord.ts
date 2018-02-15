@@ -20,7 +20,7 @@ export class Chord extends Constituent {
         this.sortNotes();
         this.computeDisplacementForNotes();
         this.computeNoteRelativeStaffPlaces();
-        this.computeNoteFlags();
+        this.computeFlagType();
     }
 
     get notes(): ReadonlyArray<ChordNote> {
@@ -53,9 +53,10 @@ export class Chord extends Constituent {
     changeNoteType(newNoteType: NoteType): Constituent {
         super.changeNoteType(newNoteType);
 
+        this.computeFlagType();
+
         return this;
     }
-
 
     changeStemDirection(stemDirection: StemDirection): this {
         this.chordStemDirection = stemDirection;
@@ -66,11 +67,11 @@ export class Chord extends Constituent {
 
     // TASKS
 
-    private computeNoteFlags(): this {
+    private computeFlagType(): this {
         let flag;
         let noFlagTypes = [NoteType.Whole, NoteType.Half, NoteType.Quarter];
 
-        if(noFlagTypes.indexOf(this.constituentNoteType) === -1) {
+        if(noFlagTypes.indexOf(this.noteType) !== -1) {
             flag = null;
         } else {
             flag = FlagType[NoteType[this.constituentNoteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
@@ -119,7 +120,7 @@ export class Chord extends Constituent {
     }
 }
 
-export class ChordNote extends Note {
+class ChordNote extends Note {
     // those really should be internal but lacking the mechanism
     // public getter + internal setter
 
