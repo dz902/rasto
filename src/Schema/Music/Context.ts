@@ -2,8 +2,8 @@ import { Clef, ClefSign, Key, Meter, StaffPlaces } from 'Schema/Music';
 
 export class Context {
     constructor(readonly clef: Clef,
-                readonly meter: Meter,
-                readonly key: Key) {
+                readonly key: Key,
+                readonly meter: Meter) {
     }
 
     get bottomStaffPlace(): number {
@@ -32,10 +32,6 @@ export class Context {
     }
 
     merge(newContext: Context): Context {
-        return new Context(
-            newContext.clef || this.clef,
-            newContext.meter || this.meter,
-            newContext.key || this.key
-        );
+        return new Context(newContext.clef || this.clef, newContext.key || this.key, newContext.meter || this.meter);
     }
 }

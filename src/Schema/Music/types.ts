@@ -13,10 +13,15 @@ export enum ClefSign {
 
 export type Meter = {
     beatsPerMeasure: number,
-    beatUnit: NoteType
+    beatUnit: NoteType,
+    symbol?: MeterSymbol
 };
 
-export type Key = {
+export enum MeterSymbol {
+    CommonTime, CutTime
+}
+
+export interface Key {
     tonic: { step: PitchStep, alter?: PitchAlter },
     mode: KeyModes
 };
@@ -26,21 +31,21 @@ export enum KeyModes {
     Minor = 'minor'
 }
 
-export type Pitch = {
+export interface Pitch {
     octave: number,
     step: PitchStep,
     alter?: PitchAlter
-};
+}
 
 export enum PitchAlter {
     Sharp = 'sharp',
     Flat = 'flat'
 }
 
-export type Accidental = {
+export interface Accidental {
     sign: AccidentalSign
     parentheses: boolean
-};
+}
 
 export enum AccidentalSign {
     DoubleSharp,
@@ -102,10 +107,10 @@ export enum FlagType {
     N128th = 128
 }
 
-export type LedgerLines = {
+export interface LedgerLines {
     highest: Maybe<number>,
     lowest: Maybe<number>
-};
+}
 
 export enum StaffPlaces {
     unison = 0,

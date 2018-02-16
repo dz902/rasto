@@ -1,11 +1,12 @@
 import { Maybe, last } from 'Utilities';
-import { StemDirection, Note, FlagType, NoteType, Constituent } from 'Schema/Music';
+import { StemDirection, Note, FlagType, NoteType, Mark } from 'Schema/Music';
 
-export class Chord extends Constituent {
+export class Chord extends Mark {
     private chordNotes: ChordNote[] = [];
     private chordFlagType: Maybe<FlagType> = null;
 
-    constructor(noteType: NoteType, notes: ReadonlyArray<Note>,
+    constructor(noteType: NoteType,
+                notes: ReadonlyArray<Note>,
                 private chordStemDirection: StemDirection) {
         super(noteType);
 
@@ -20,6 +21,8 @@ export class Chord extends Constituent {
         this.computeNoteRelativeStaffPlaces();
         this.computeFlagType();
     }
+
+    // @property
 
     get notes(): ReadonlyArray<ChordNote> {
         return Object.freeze(this.chordNotes.concat([]));
@@ -45,9 +48,9 @@ export class Chord extends Constituent {
         return this.chordStemDirection;
     }
 
-    // API
+    // @public
 
-    changeNoteType(newNoteType: NoteType): Constituent {
+    changeNoteType(newNoteType: NoteType): Mark {
         super.changeNoteType(newNoteType);
 
         this.computeFlagType();
@@ -71,7 +74,7 @@ export class Chord extends Constituent {
         if(noFlagTypes.indexOf(this.noteType) !== -1) {
             flag = null;
         } else {
-            flag = FlagType[NoteType[this.constituentNoteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
+            flag = FlagType[NoteType[this.noteType] as keyof typeof FlagType]; // BLACK MAGIC #36316326
         }
 
         this.chordFlagType = flag;
@@ -121,13 +124,14 @@ class ChordNote extends Note {
     // those really should be internal but lacking the mechanism
     // public getter + internal setter
 
-    // ** @internal
+    // @internal
     displacement: boolean = false;
     relativeStaffPlace: number = 0;
 
     constructor(note: Note) {
         super(note.pitch,
               note.duration,
-              note.accidental);
+              note.accidental,
+              note.articulations);
     }
 }

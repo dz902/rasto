@@ -1,9 +1,9 @@
-import { Chord, FlagType, Note, NoteType, StemDirection } from 'Schema/Music';
+import { Articulation, ArticulationType, Chord, FlagType, Note, NoteType, StemDirection } from 'Schema/Music';
 
-let note4C = new Note({ octave: 4,  step: 'C' },1, null);
-let note4D = new Note({ octave: 4,  step: 'D' },1, null);
-let note4E = new Note({ octave: 4,  step: 'E' },1, null);
-let note4F = new Note({ octave: 4,  step: 'F' },1, null);
+let note4C = new Note({ octave: 4,  step: 'C' },1, null, [new Articulation(ArticulationType.Accent)]);
+let note4D = new Note({ octave: 4,  step: 'D' },1, null, null);
+let note4E = new Note({ octave: 4,  step: 'E' },1, null, null);
+let note4F = new Note({ octave: 4,  step: 'F' },1, null, null);
 let chordHalfCDEFDown: Chord;
 
 describe('Chord', () => {

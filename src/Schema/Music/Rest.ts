@@ -1,4 +1,4 @@
-import { Constituent } from 'Schema/Music';
+import { Mark } from 'Schema/Music';
 
-export class Rest extends Constituent {
+export class Rest extends Mark {
 }

@@ -1,9 +1,10 @@
 export * from './types';
 
 export * from './Container';
-export * from './Constituent';
+export * from './Mark';
 export * from './Context';
 
+export * from './Articulation';
 export * from './Note';
 export * from './Chord';
 export * from './Measure';

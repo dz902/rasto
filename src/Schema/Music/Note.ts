@@ -1,16 +1,18 @@
 import { Maybe } from 'Utilities';
 import { StaffPlaces, Pitch } from 'Schema/Music';
 import { Accidental } from './types';
+import { Articulation } from './Articulation';
 
 export class Note {
     constructor(readonly pitch: Pitch,
                 readonly duration: number,
-                readonly accidental: Maybe<Accidental>) {
+                readonly accidental: Maybe<Accidental>,
+                readonly articulations: Maybe<Articulation[]>) {
     }
 
-    get staffPlace(): number {
-        // absoluteStaffPlace
+    // @internal
 
+    get staffPlace(): number {
         return this.pitch.octave*StaffPlaces.octave + 'CDEFGAB'.indexOf(this.pitch.step);
     }
 

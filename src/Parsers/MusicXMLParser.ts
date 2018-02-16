@@ -23,20 +23,16 @@ export class MusicXMLParser extends Parser {
             switch (item.nodeName.toLowerCase()) {
                 case 'attributes':
                     let rawContext = this.JXON.build(item);
-                    let context = new Context(
-                        {
-                            sign: rawContext['clef']['sign'],
-                            lineNumber: Number(rawContext['clef']['line'])
-                        },
-                        {
-                            beatsPerMeasure: rawContext['time']['beats'],
-                            beatUnit: rawContext['time']['beatType']
-                        },
-                        {
-                            tonic: { step: 'C' },
-                            mode: KeyModes.Major
-                        }
-                    );
+                    let context = new Context({
+                                                  sign: rawContext['clef']['sign'],
+                                                  lineNumber: Number(rawContext['clef']['line'])
+                                              }, {
+                                                  tonic: { step: 'C' },
+                                                  mode: KeyModes.Major
+                                              }, {
+                                                  beatsPerMeasure: rawContext['time']['beats'],
+                                                  beatUnit: rawContext['time']['beatType']
+                                              });
 
                     this.score.addContext(context);
 

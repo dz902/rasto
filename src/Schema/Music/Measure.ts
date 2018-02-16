@@ -1,4 +1,4 @@
-import { StaffPlaces, Constituent, Chord, Container, Context, LedgerLines, StaffItem } from 'Schema/Music';
+import { StaffPlaces, Mark, Chord, Container, Context, LedgerLines, StaffItem } from 'Schema/Music';
 
 export class Measure extends Container<StaffItem> {
     private currentMeasureContexts: { [staffNumber: number]: MeasureContext } = [];
@@ -74,7 +74,7 @@ class MeasureChord extends Chord implements StaffItem {
 
 class MeasureContext extends Context implements StaffItem {
     constructor(context: Context, readonly staffNumber: number) {
-        super(context.clef, context.meter, context.key);
+        super(context.clef, context.key, context.meter);
     }
 
     merge(newContext: Context): MeasureContext {
