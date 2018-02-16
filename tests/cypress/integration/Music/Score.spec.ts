@@ -19,7 +19,7 @@ describe('Score', () => {
 
     context('#get measures()', () => {
         it('should return measures with context and chord', () => {
-            let measure = score.addMeasure(new Measure());
+            let measure = score.addMeasure();
             measure.addContext(contextG44CMajor);
             measure.addChord(chordHalfCDEFDown);
 

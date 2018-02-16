@@ -17,7 +17,7 @@ let contextFCSharpMinor44 = new Context(
     { beatsPerMeasure: 4, beatUnit: NoteType.Quarter, symbol: MeterSymbol.CommonTime }
 );
 
-let m0 = score.addMeasure(new Measure());
+let m0 = score.addMeasure();
 m0.addContext(contextGCSharpMinor44, 0);
 m0.addChord(
     new Chord(

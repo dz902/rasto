@@ -5,7 +5,7 @@ export abstract class Container<T> {
         return Object.freeze(this.containerItems);
     }
 
-    addItem(item: T): Container<T> {
+    addItem(item: T): this {
         this.containerItems.push(item);
 
         return this;

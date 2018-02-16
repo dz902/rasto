@@ -1,7 +1,19 @@
-import { StaffPlaces, Mark, Chord, Container, Context, LedgerLines, StaffItem } from 'Schema/Music';
+import { StaffPlaces, Chord, Container, Context, LedgerLines, StaffItem } from 'Schema/Music';
 
 export class Measure extends Container<StaffItem> {
-    private currentMeasureContexts: { [staffNumber: number]: MeasureContext } = [];
+    private currentMeasureContexts: MeasureContext[] = [];
+
+    get chords(): ReadonlyArray<MeasureChord> {
+        return Object.freeze(this.items.filter(it => it instanceof MeasureChord)) as ReadonlyArray<MeasureChord>;
+    }
+
+    get contexts(): ReadonlyArray<MeasureContext> {
+        return Object.freeze(this.items.filter(it => it instanceof MeasureContext)) as ReadonlyArray<MeasureContext>;
+    }
+
+    get tailContext(): MeasureContext[] {
+        return this.currentMeasureContexts;
+    }
 
     addChord(chord: Chord, staffNumber: number = 0) {
         let currentMeasureContext = this.currentMeasureContexts[staffNumber];
@@ -27,16 +39,6 @@ export class Measure extends Container<StaffItem> {
         this.currentMeasureContexts[staffNumber] = measureContext;
 
         super.addItem(measureContext);
-
-        return this;
-    }
-
-    get chords(): ReadonlyArray<MeasureChord> {
-        return Object.freeze(this.items.filter(it => it instanceof MeasureChord)) as ReadonlyArray<MeasureChord>;
-    }
-
-    get contexts(): ReadonlyArray<MeasureContext> {
-        return Object.freeze(this.items.filter(it => it instanceof MeasureContext)) as ReadonlyArray<MeasureContext>;
     }
 }
 
@@ -72,7 +74,7 @@ class MeasureChord extends Chord implements StaffItem {
     }
 }
 
-class MeasureContext extends Context implements StaffItem {
+export class MeasureContext extends Context implements StaffItem {
     constructor(context: Context, readonly staffNumber: number) {
         super(context.clef, context.key, context.meter);
     }
