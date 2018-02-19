@@ -5,9 +5,7 @@ import { Articulation } from './Articulation';
 
 export class Note {
     constructor(readonly pitch: Pitch,
-                readonly duration: number,
-                readonly accidental: Maybe<Accidental>,
-                readonly articulations: Maybe<Articulation[]>) {
+                readonly accidental: Maybe<Accidental> = null) {
     }
 
     // @internal

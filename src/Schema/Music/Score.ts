@@ -1,72 +1,129 @@
-import { Chord, Container, Measure, ErrorMeasureOverflow, StaffItem } from 'Schema/Music';
+import { Chord, StaffItem } from 'Schema/Music';
 import { last, Maybe } from 'Utilities';
 import { Context } from './Context';
 import { Direction } from './Articulation';
-import { MeasureContext } from './Measure';
+import { LedgerLines, StaffPlaces } from './types';
+import { Container } from './Container';
 
-export class Score extends Container<StaffItem> {
-    private currentMeasureContexts: MeasureContext[] = [];
+export class Score {
+    private currentScoreContexts: ScoreContext[] = [];
+    private scoreMeasures: Measure[] = [];
     private scoreDirections: Direction[] = [];
-
-    get measures(): ReadonlyArray<Measure> {
-    }
 
     get directions(): ReadonlyArray<Direction> {
         return Object.freeze(Array.from(this.scoreDirections));
     }
 
-    addMeasure(measure: Measure): this {
-        let inheritedContext: MeasureContext[];
-        let lastMeasure = last(this.measures);
+    /**
+     * Level 1 - Absolute sounds with accidentals / note-level articulations
+     */
 
-        if (lastMeasure !== undefined) {
-            inheritedContext = lastMeasure.tailContext;
-        }
-
-        this.addItem(new ScoreMeasure(measure, inheritedContext));
-
-        return this;
-    }
-
-    addDirection(direction: Direction): void {
-        this.scoreDirections.push(direction);
-    }
-
-    addChord(chord: Chord, staffNumber: number = 0) {
-        let currentMeasureContext = this.currentMeasureContexts[staffNumber];
-        let contextNotSet = currentMeasureContext === undefined;
+    addChord(chord: Chord, staffNumber: number = 0): this {
+        let currentScoreContext = this.currentScoreContexts[staffNumber];
+        let contextNotSet = currentScoreContext === undefined;
 
         if (contextNotSet) {
             throw new Error('chords cannot be added before setting a context');
         }
 
-        super.addItem(new MeasureChord(chord, this.currentMeasureContexts[staffNumber]));
+        this.currentMeasure.push(new ScoreChord(chord, currentScoreContext));
+
+        return this;
     }
 
-    addContext(context: Context, staffNumber: number = 0) {
-        let currentMeasureContext = this.currentMeasureContexts[staffNumber];
-        let measureContext: MeasureContext;
+    // Level 2 - Sounds with context / idea of keys / beat unit / clef
+
+    addContext(context: Context, staffNumber: number = 0): this {
+        let currentMeasureContext = this.currentScoreContexts[staffNumber];
+        let scoreContext: ScoreContext;
 
         if (currentMeasureContext !== undefined) {
-            measureContext = currentMeasureContext.merge(context);
+            scoreContext = currentMeasureContext.merge(context);
         } else {
-            measureContext = new MeasureContext(context, staffNumber);
+            scoreContext = new ScoreContext(context, staffNumber);
         }
 
-        this.currentMeasureContexts[staffNumber] = measureContext;
+        this.currentScoreContexts[staffNumber] = scoreContext;
 
-        super.addItem(measureContext);
+        this.currentMeasure.push(scoreContext);
+
+        return this;
+    }
+
+    // Level 3 - Chords grouped into measures / logical unit of music
+
+    addMeasure(): this {
+        this.scoreMeasures.push([]);
+
+        return this;
+    }
+
+    // Level 4 - Measures with directions
+
+    addDirection(direction: Direction): this {
+        this.scoreDirections.push(direction);
+
+        return this;
+    }
+
+    private get currentMeasure(): Measure {
+        let lastMeasure = last(this.scoreMeasures);
+
+        if (lastMeasure === undefined) {
+            let newMeasure: Measure = []
+            this.scoreMeasures.push(newMeasure);
+
+            return newMeasure;
+        }
+
+        return lastMeasure;
     }
 }
 
-class ScoreMeasure extends Measure {
-    constructor(measure: Measure, inheritedContext?: MeasureContext[]) {
-        super();
 
-        if (inheritedContext !== undefined) {
-            this.addContext(inheritedContext);
+class ScoreChord extends Chord implements StaffItem {
+    constructor(private chord: Chord,
+                readonly context: ScoreContext) {
+        super(chord.noteType, chord.notes, chord.duration, chord.stemDirection, chord.articulations);
+
+        this.computeLedgerLines();
+    }
+
+    get staffNumber(): number {
+        return this.context.staffNumber;
+    }
+
+    // PRIVATE
+
+    private computeLedgerLines(): LedgerLines {
+        let ledgerLines: LedgerLines = { highest: null, lowest: null };
+        let topNoteHigherThanSpaceSix = this.topNote.staffPlace > (this.context.topStaffPlace + 1);
+
+        if (topNoteHigherThanSpaceSix) {
+            ledgerLines.highest = StaffPlaces.staffSpan + Math.floor((this.topNote.staffPlace - this.context.topStaffPlace) / 2) * StaffPlaces.third;
         }
 
-        measure.items.forEach(it => this.addItem(it));
+        let bottomNoteLowerThanSpaceMinusOne = this.bottomNote.staffPlace < this.context.bottomStaffPlace - 1;
+
+        if (bottomNoteLowerThanSpaceMinusOne) {
+            ledgerLines.lowest = 0 - Math.floor((this.context.bottomStaffPlace - this.bottomNote.staffPlace) / 2) * StaffPlaces.third;
+        }
+
+        return ledgerLines;
     }
 }
+
+export class ScoreContext extends Context implements StaffItem {
+    constructor(context: Context, readonly staffNumber: number) {
+        super(context.clef, context.key, context.meter);
+    }
+
+    merge(newContext: Context): ScoreContext {
+        return new ScoreContext(
+            super.merge(newContext),
+            this.staffNumber
+        );
+    }
+}
+
+type Measure = (Chord | Context)[];

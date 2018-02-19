@@ -1,5 +1,6 @@
 import { Maybe, last } from 'Utilities';
 import { StemDirection, Note, FlagType, NoteType, Mark } from 'Schema/Music';
+import { Articulation } from './Articulation';
 
 export class Chord extends Mark {
     private chordNotes: ChordNote[] = [];
@@ -7,7 +8,9 @@ export class Chord extends Mark {
 
     constructor(noteType: NoteType,
                 notes: ReadonlyArray<Note>,
-                private chordStemDirection: StemDirection) {
+                readonly duration: number,
+                readonly stemDirection: StemDirection,
+                readonly articulations: Articulation[] = []) {
         super(noteType);
 
         for (let note of notes) {
@@ -42,27 +45,6 @@ export class Chord extends Mark {
 
     get spanStaffPlace(): number {
         return this.topNote.staffPlace - this.bottomNote.staffPlace;
-    }
-
-    get stemDirection(): StemDirection {
-        return this.chordStemDirection;
-    }
-
-    // @public
-
-    changeNoteType(newNoteType: NoteType): Mark {
-        super.changeNoteType(newNoteType);
-
-        this.computeFlagType();
-
-        return this;
-    }
-
-    changeStemDirection(stemDirection: StemDirection): this {
-        this.chordStemDirection = stemDirection;
-        this.computeDisplacementForNotes();
-
-        return this;
     }
 
     // TASKS
@@ -130,8 +112,6 @@ class ChordNote extends Note {
 
     constructor(note: Note) {
         super(note.pitch,
-              note.duration,
-              note.accidental,
-              note.articulations);
+              note.accidental);
     }
 }
