@@ -1,50 +1,50 @@
 import { Maybe, last } from 'Utilities';
-import { StemDirection, Note, FlagType, NoteType, Mark } from 'Schema/Music';
+import { StemDirection, Pitch, FlagType, NoteType, Mark } from 'Schema/Music';
 import { Articulation } from './Articulation';
 
 export class Chord extends Mark {
-    private chordNotes: ChordNote[] = [];
+    private chordPitches: ChordPitch[] = [];
     private chordFlagType: Maybe<FlagType> = null;
 
     constructor(noteType: NoteType,
-                notes: ReadonlyArray<Note>,
+                pitches: ReadonlyArray<Pitch>,
                 readonly duration: number,
                 readonly stemDirection: StemDirection,
                 readonly articulations: Articulation[] = []) {
         super(noteType);
 
-        for (let note of notes) {
-            let chordNote = new ChordNote(note);
+        for (let pitch of pitches) {
+            let chordPitch = new ChordPitch(pitch);
 
-            this.chordNotes.push(chordNote);
+            this.chordPitches.push(chordPitch);
         }
 
-        this.sortNotes();
-        this.computeDisplacementForNotes();
+        this.sortPitches();
+        this.computeNoteHeadDisplacements();
         this.computeNoteRelativeStaffPlaces();
         this.computeFlagType();
     }
 
     // @property
 
-    get notes(): ReadonlyArray<ChordNote> {
-        return Object.freeze(this.chordNotes.concat([]));
+    get pitches(): ReadonlyArray<ChordPitch> {
+        return Object.freeze(this.chordPitches.concat([]));
     }
 
     get flagType(): Maybe<FlagType> {
         return this.chordFlagType;
     }
 
-    get bottomNote(): Note {
-        return this.chordNotes[0];
+    get bottomPitch(): Pitch {
+        return this.chordPitches[0];
     }
 
-    get topNote(): Note {
-        return this.chordNotes[this.chordNotes.length-1];
+    get topPitch(): Pitch {
+        return this.chordPitches[this.chordPitches.length-1];
     }
 
     get spanStaffPlace(): number {
-        return this.topNote.staffPlace - this.bottomNote.staffPlace;
+        return this.topPitch.staffPlace - this.bottomPitch.staffPlace;
     }
 
     // TASKS
@@ -64,22 +64,22 @@ export class Chord extends Mark {
         return this;
     }
 
-    private sortNotes(): this {
-        this.chordNotes.sort((a, b) => a.staffPlace - b.staffPlace);
+    private sortPitches(): this {
+        this.chordPitches.sort((a, b) => a.staffPlace - b.staffPlace);
 
         return this;
     }
 
     private computeNoteRelativeStaffPlaces(): void {
-        this.chordNotes.forEach((note) => {
-            note.relativeStaffPlace = note.staffPlace - this.bottomNote.staffPlace;
+        this.chordPitches.forEach((note) => {
+            note.relativeStaffPlace = note.staffPlace - this.bottomPitch.staffPlace;
         });
     }
 
-    private computeDisplacementForNotes(): this {
+    private computeNoteHeadDisplacements(): this {
         let noteDisplacements: boolean[];
 
-        let checkSeconds = (displacements: boolean[], note: ChordNote, i: number, notes: ReadonlyArray<ChordNote>) => {
+        let checkSeconds = (displacements: boolean[], note: ChordPitch, i: number, notes: ReadonlyArray<ChordPitch>) => {
             let prevNote = notes[i-1];
             let prevDisplacement = last(displacements);
             let isNotDisplacing = (prevDisplacement === undefined || prevDisplacement === false);
@@ -91,18 +91,18 @@ export class Chord extends Mark {
         };
 
         if (this.stemDirection === StemDirection.Up) {
-            noteDisplacements = this.notes.reduce(checkSeconds, []);
+            noteDisplacements = this.pitches.reduce(checkSeconds, []);
         } else {
-            noteDisplacements = Array.from(this.notes).reverse().reduce(checkSeconds, []).reverse();
+            noteDisplacements = Array.from(this.pitches).reverse().reduce(checkSeconds, []).reverse();
         }
 
-        noteDisplacements.forEach((v, i) => this.chordNotes[i].displacement = v);
+        noteDisplacements.forEach((v, i) => this.chordPitches[i].displacement = v);
 
         return this;
     }
 }
 
-class ChordNote extends Note {
+class ChordPitch extends Pitch {
     // those really should be internal but lacking the mechanism
     // public getter + internal setter
 
@@ -110,8 +110,9 @@ class ChordNote extends Note {
     displacement: boolean = false;
     relativeStaffPlace: number = 0;
 
-    constructor(note: Note) {
-        super(note.pitch,
-              note.accidental);
+    constructor(pitch: Pitch) {
+        super(pitch.step,
+              pitch.octave,
+              pitch.alter);
     }
 }

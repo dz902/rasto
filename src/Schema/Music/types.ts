@@ -31,12 +31,6 @@ export enum KeyModes {
     Minor = 'minor'
 }
 
-export interface Pitch {
-    octave: number,
-    step: PitchStep,
-    alter?: PitchAlter
-}
-
 export enum PitchAlter {
     Sharp = 'sharp',
     Flat = 'flat'
@@ -183,11 +177,6 @@ export function toCamelCase(ss: string, i: number): string {
 }
 
 // PRIVATE
-
-function uniq(): string {
-    let randomNumber = window.performance ? window.performance.now() : Math.random();
-    return String(randomNumber).split('.').join('');
-}
 
 
 export interface StaffItem {

@@ -19,7 +19,7 @@ describe('Chord', () => {
         });
 
         it('should have 7 notes', () => {
-            expect(chord.notes.length).toBe(7);
+            expect(chord.pitches.length).toBe(7);
         });
 
         it('should be a whole note chord', () => {

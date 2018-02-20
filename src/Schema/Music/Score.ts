@@ -1,9 +1,8 @@
 import { Chord, StaffItem } from 'Schema/Music';
-import { last, Maybe } from 'Utilities';
+import { flatten, last, Maybe } from 'Utilities';
 import { Context } from './Context';
-import { Direction } from './Articulation';
+import { Direction, Tie } from './Direction';
 import { LedgerLines, StaffPlaces } from './types';
-import { Container } from './Container';
 
 export class Score {
     private currentScoreContexts: ScoreContext[] = [];
@@ -13,10 +12,6 @@ export class Score {
     get directions(): ReadonlyArray<Direction> {
         return Object.freeze(Array.from(this.scoreDirections));
     }
-
-    /**
-     * Level 1 - Absolute sounds with accidentals / note-level articulations
-     */
 
     addChord(chord: Chord, staffNumber: number = 0): this {
         let currentScoreContext = this.currentScoreContexts[staffNumber];
@@ -30,8 +25,6 @@ export class Score {
 
         return this;
     }
-
-    // Level 2 - Sounds with context / idea of keys / beat unit / clef
 
     addContext(context: Context, staffNumber: number = 0): this {
         let currentMeasureContext = this.currentScoreContexts[staffNumber];
@@ -50,18 +43,39 @@ export class Score {
         return this;
     }
 
-    // Level 3 - Chords grouped into measures / logical unit of music
-
     addMeasure(): this {
         this.scoreMeasures.push([]);
 
         return this;
     }
 
-    // Level 4 - Measures with directions
-
     addDirection(direction: Direction): this {
         this.scoreDirections.push(direction);
+
+        return this;
+    }
+
+    addTie(tie: Tie): this {
+        let chord = this.chords.find(c => c.rawChord === tie.chord);
+
+        if (chord === undefined) {
+            throw new Error('tying chord does not exist');
+        }
+
+        let staffItems = this.getStaffItems(chord.staffNumber);
+        let nextIndex = staffItems.indexOf(chord) + 1;
+        let nextStaffItem = staffItems[nextIndex];
+        let nextStaffItemNotChord = !(nextStaffItem instanceof Chord);
+
+        if (nextStaffItemNotChord) {
+            throw new Error('tied chords must be adjacent');
+        }
+
+        let notesNotMatch = !tie.pitchIndices.reduce((result: boolean, i: number): boolean => {
+            return result && (nextStaffItem as ScoreChord).pitches[i].equals(tie.chord.pitches[i]);
+        }, true);
+
+        this.scoreDirections.push(tie);
 
         return this;
     }
@@ -78,15 +92,27 @@ export class Score {
 
         return lastMeasure;
     }
+
+    get chords(): ScoreChord[] {
+        return flatten(this.scoreMeasures).filter(item => item instanceof ScoreChord);
+    }
+
+    getStaffItems(staffNumber: number): StaffItem[] {
+        return flatten(this.scoreMeasures).filter(item => item.staffNumber === staffNumber)
+    }
 }
 
 
 class ScoreChord extends Chord implements StaffItem {
     constructor(private chord: Chord,
                 readonly context: ScoreContext) {
-        super(chord.noteType, chord.notes, chord.duration, chord.stemDirection, chord.articulations);
+        super(chord.noteType, chord.pitches, chord.duration, chord.stemDirection, chord.articulations);
 
         this.computeLedgerLines();
+    }
+
+    get rawChord(): Chord {
+        return this.chord;
     }
 
     get staffNumber(): number {
@@ -97,16 +123,16 @@ class ScoreChord extends Chord implements StaffItem {
 
     private computeLedgerLines(): LedgerLines {
         let ledgerLines: LedgerLines = { highest: null, lowest: null };
-        let topNoteHigherThanSpaceSix = this.topNote.staffPlace > (this.context.topStaffPlace + 1);
+        let topNoteHigherThanSpaceSix = this.topPitch.staffPlace > (this.context.topStaffPlace + 1);
 
         if (topNoteHigherThanSpaceSix) {
-            ledgerLines.highest = StaffPlaces.staffSpan + Math.floor((this.topNote.staffPlace - this.context.topStaffPlace) / 2) * StaffPlaces.third;
+            ledgerLines.highest = StaffPlaces.staffSpan + Math.floor((this.topPitch.staffPlace - this.context.topStaffPlace) / 2) * StaffPlaces.third;
         }
 
-        let bottomNoteLowerThanSpaceMinusOne = this.bottomNote.staffPlace < this.context.bottomStaffPlace - 1;
+        let bottomNoteLowerThanSpaceMinusOne = this.bottomPitch.staffPlace < this.context.bottomStaffPlace - 1;
 
         if (bottomNoteLowerThanSpaceMinusOne) {
-            ledgerLines.lowest = 0 - Math.floor((this.context.bottomStaffPlace - this.bottomNote.staffPlace) / 2) * StaffPlaces.third;
+            ledgerLines.lowest = 0 - Math.floor((this.context.bottomStaffPlace - this.bottomPitch.staffPlace) / 2) * StaffPlaces.third;
         }
 
         return ledgerLines;
@@ -126,4 +152,4 @@ export class ScoreContext extends Context implements StaffItem {
     }
 }
 
-type Measure = (Chord | Context)[];
+type Measure = StaffItem[];

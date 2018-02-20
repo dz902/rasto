@@ -1,6 +1,6 @@
 import {
     Articulation, ArticulationType,
-    Chord, ClefSign, Context, Dynamics, DynamicsTypes, KeyModes, Measure, MeterSymbol, Note, NoteType, PitchAlter,
+    Chord, ClefSign, Context, Dynamics, DynamicsTypes, KeyModes, MeterSymbol, Pitch, NoteType, PitchAlter,
     Score,
     StemDirection
 } from 'Schema/Music';
@@ -23,22 +23,22 @@ score.addMeasure()
          ),
          1)
      .addChord(new Chord(NoteType.Quarter,
-                         [new Note({step: 'A', octave: 3})],
+                         [new Pitch('A', 3)],
                          32,
                          StemDirection.Up,
                          [new Articulation(ArticulationType.Accent)]))
      .addChord(new Chord(NoteType.Quarter,
-                         [new Note({step: 'G', octave: 3})],
+                         [new Pitch('G', 3)],
                          32,
                          StemDirection.Up,
                          [new Articulation(ArticulationType.Accent)]))
      .addChord(new Chord(NoteType.Quarter,
-                         [new Note({step: 'A', octave: 2}), new Note({step: 'A', octave: 1})],
+                         [new Pitch('A', 2), new Pitch('A', 1)],
                          32,
                          StemDirection.Up,
                          [new Articulation(ArticulationType.Accent)]), 1)
      .addChord(new Chord(NoteType.Quarter,
-                         [new Note({step: 'G', octave: 2}), new Note({step: 'G', octave: 1})],
+                         [new Pitch('G', 2), new Pitch('G',1)],
                          32,
                          StemDirection.Up,
                          [new Articulation(ArticulationType.Accent)]), 1);

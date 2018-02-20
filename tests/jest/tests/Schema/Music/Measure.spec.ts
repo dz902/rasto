@@ -40,21 +40,21 @@ describe('Measure', () => {
         });
 
         it('should set correct note displacement for down direction', () => {
-            expect(measure.chords[0].notes[0].displacement).toBe(false);
-            expect(measure.chords[0].notes[1].displacement).toBe(true);
-            expect(measure.chords[0].notes[2].displacement).toBe(false);
-            expect(measure.chords[0].notes[3].displacement).toBe(true);
-            expect(measure.chords[0].notes[4].displacement).toBe(false);
+            expect(measure.chords[0].pitches[0].displacement).toBe(false);
+            expect(measure.chords[0].pitches[1].displacement).toBe(true);
+            expect(measure.chords[0].pitches[2].displacement).toBe(false);
+            expect(measure.chords[0].pitches[3].displacement).toBe(true);
+            expect(measure.chords[0].pitches[4].displacement).toBe(false);
         });
 
         it('should set correct note displacement for up direction', () => {
             measure.chords[0].changeStemDirection(StemDirection.Up);
 
-            expect(measure.chords[0].notes[0].displacement).toBe(false);
-            expect(measure.chords[0].notes[1].displacement).toBe(true);
-            expect(measure.chords[0].notes[2].displacement).toBe(false);
-            expect(measure.chords[0].notes[3].displacement).toBe(false);
-            expect(measure.chords[0].notes[4].displacement).toBe(true);
+            expect(measure.chords[0].pitches[0].displacement).toBe(false);
+            expect(measure.chords[0].pitches[1].displacement).toBe(true);
+            expect(measure.chords[0].pitches[2].displacement).toBe(false);
+            expect(measure.chords[0].pitches[3].displacement).toBe(false);
+            expect(measure.chords[0].pitches[4].displacement).toBe(true);
         });
 
         it('should need ledger line for higher notes', () => {
