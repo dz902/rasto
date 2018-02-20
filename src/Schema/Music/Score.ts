@@ -75,6 +75,10 @@ export class Score {
             return result && (nextStaffItem as ScoreChord).pitches[i].equals(tie.chord.pitches[i]);
         }, true);
 
+        if (notesNotMatch) {
+            throw new Error('tying different pitches');
+        }
+
         this.scoreDirections.push(tie);
 
         return this;

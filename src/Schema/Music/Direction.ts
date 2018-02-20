@@ -22,7 +22,7 @@ export class Tie extends Direction {
         super();
 
         if (pitchIndices === undefined) {
-            pitchIndices = Array(chord.pitches.length).map((v, i) => i);
+            pitchIndices = Array(chord.pitches.length).fill(0).map((v, i) => i);
         } else {
             let chordPitchesMissing = !this.pitchIndices!.reduce((result: boolean, i: number): boolean => {
                 return result && chord.pitches[i] !== undefined;

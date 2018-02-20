@@ -2,7 +2,7 @@ import {
     Articulation, ArticulationType,
     Chord, ClefSign, Context, Dynamics, DynamicsTypes, KeyModes, MeterSymbol, Pitch, NoteType, PitchAlter,
     Score,
-    StemDirection
+    StemDirection, Tie
 } from 'Schema/Music';
 
 let score: Score = new Score();
@@ -38,10 +38,38 @@ score.addMeasure()
                          StemDirection.Up,
                          [new Articulation(ArticulationType.Accent)]), 1)
      .addChord(new Chord(NoteType.Quarter,
-                         [new Pitch('G', 2), new Pitch('G',1)],
+                         [new Pitch('G', 2), new Pitch('G', 1)],
                          32,
                          StemDirection.Up,
-                         [new Articulation(ArticulationType.Accent)]), 1);
+                         [new Articulation(ArticulationType.Accent)]), 1)
+     .addMeasure();
+
+let tc = new Chord(NoteType.Whole,
+                   [new Pitch('C', 3)],
+                   128,
+                   StemDirection.Up,
+                   [new Articulation(ArticulationType.Accent)]);
+let tc2 = new Chord(NoteType.Whole,
+                    [new Pitch('C', 2), new Pitch('C', 1)],
+                    128,
+                    StemDirection.Up,
+                    [new Articulation(ArticulationType.Accent)]);
+
+score.addChord(tc, 0)
+     .addChord(tc2, 1)
+     .addMeasure()
+     .addChord(new Chord(NoteType.Half,
+                         [new Pitch('C', 3)],
+                         64,
+                         StemDirection.Up,
+                         [new Articulation(ArticulationType.Accent)]), 0)
+     .addChord(new Chord(NoteType.Half,
+                         [new Pitch('C', 2), new Pitch('C', 1)],
+                         64,
+                         StemDirection.Up,
+                         [new Articulation(ArticulationType.Accent)]), 1)
+     .addTie(new Tie(tc))
+     .addTie(new Tie(tc2));
 
 
 //score.addDirection(new Dynamics(DynamicsTypes.FF, c1));
