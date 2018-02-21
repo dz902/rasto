@@ -1,4 +1,4 @@
-import { Articulation, ArticulationType, Chord, FlagType, Pitch, NoteType, StemDirection } from 'Schema/Music';
+import { Articulation, ArticulationType, Chord, FlagType, Note, NoteType, StemDirection } from 'Schema/Music';
 
 let chordHalfCDEFDown: Chord;
 

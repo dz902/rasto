@@ -1,13 +1,17 @@
 import { Chord, StaffItem } from 'Schema/Music';
-import { flatten, last, Maybe } from 'Utilities';
+import { flatten, last, Nullable } from 'Utilities';
 import { Context } from './Context';
 import { Direction, Tie } from './Direction';
 import { LedgerLines, StaffPlaces } from './types';
 
 export class Score {
-    private currentScoreContexts: ScoreContext[] = [];
+    private currentStaffContexts: ScoreContext[] = [];
     private scoreMeasures: Measure[] = [];
     private scoreDirections: Direction[] = [];
+
+    get measures(): Measure[] {
+        return Array.from(this.scoreMeasures);
+    }
 
     get chords(): ScoreChord[] {
         return flatten(this.scoreMeasures).filter(item => item instanceof ScoreChord);
@@ -17,12 +21,22 @@ export class Score {
         return Array.from(this.scoreDirections);
     }
 
+    get staves(): ScoreContext[] {
+        return Array(this.currentStaffContexts.length).fill(0).reduce((staves: ScoreContext[], i: number) => {
+            let staffItems = this.getStaffItems(i);
+
+            staves.push(staffItems[0] as ScoreContext);
+
+            return staves;
+        }, []);
+    }
+
     getStaffItems(staffNumber: number): StaffItem[] {
         return flatten(this.scoreMeasures).filter(item => item.staffNumber === staffNumber)
     }
 
     addChord(chord: Chord, staffNumber: number = 0): this {
-        let currentScoreContext = this.currentScoreContexts[staffNumber];
+        let currentScoreContext = this.currentStaffContexts[staffNumber];
         let contextNotSet = currentScoreContext === undefined;
 
         if (contextNotSet) {
@@ -35,7 +49,7 @@ export class Score {
     }
 
     addContext(context: Context, staffNumber: number = 0): this {
-        let currentMeasureContext = this.currentScoreContexts[staffNumber];
+        let currentMeasureContext = this.currentStaffContexts[staffNumber];
         let scoreContext: ScoreContext;
 
         if (currentMeasureContext !== undefined) {
@@ -44,7 +58,7 @@ export class Score {
             scoreContext = new ScoreContext(context, staffNumber);
         }
 
-        this.currentScoreContexts[staffNumber] = scoreContext;
+        this.currentStaffContexts[staffNumber] = scoreContext;
 
         this.currentMeasure.push(scoreContext);
 
@@ -110,7 +124,7 @@ export class Score {
 class ScoreChord extends Chord implements StaffItem {
     constructor(private chord: Chord,
                 readonly context: ScoreContext) {
-        super(chord.noteType, chord.pitches, chord.duration, chord.stemDirection, chord.articulations);
+        super(chord.noteType, chord.notes, chord.duration, chord.stemDirection, chord.articulations);
 
         this.computeLedgerLines();
     }

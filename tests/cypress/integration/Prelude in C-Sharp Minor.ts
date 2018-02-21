@@ -1,6 +1,6 @@
 import {
     Articulation, ArticulationType,
-    Chord, ClefSign, Context, Dynamics, DynamicsTypes, KeyModes, MeterSymbol, Pitch, NoteType, PitchAlter,
+    Chord, ClefSign, Context, Dynamics, DynamicsTypes, KeyModes, MeterSymbol, Note, NoteType, PitchAlter,
     Score,
     StemDirection, Tie
 } from 'Schema/Music';

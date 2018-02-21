@@ -1,16 +1,16 @@
-import { Chord, Context, KeyModes, NoteType, Pitch, Score, StemDirection } from 'Schema/Music';
-import { Maybe } from 'Utilities';
+import { Chord, Context, KeyModes, NoteType, Note, Score, StemDirection } from 'Schema/Music';
+import { Nullable } from 'Utilities';
 import { Parser } from './Parser';
 
 export class MusicXMLParser extends Parser {
     readonly score = new Score();
 
     private rootNode: XMLDocument;
-    private currentResult: Maybe<XPathResult> = null;
+    private currentResult: Nullable<XPathResult> = null;
     private JXON: JXON = new JXON();
 
     static parse(serializeXML: string): Score {
-        return new Score();
+        return (new MusicXMLParser(serializeXML)).score;
     }
 
     constructor(serializeXML: string) {
@@ -20,72 +20,72 @@ export class MusicXMLParser extends Parser {
 
         let chordNoteType: NoteType;
         let chordDuration: number;
-        let chordPitches: Pitch[] = [];
+        let chordPitches: Note[] = [];
 
         this.query('/score-partwise/part/measure | /score-partwise/part/measure/child::*')
             .each((item: Node) => {
-            switch (item.nodeName.toLowerCase()) {
-                case 'measure':
-                    this.score.addMeasure();
+                switch (item.nodeName.toLowerCase()) {
+                    case 'measure':
+                        this.score.addMeasure();
 
-                    break;
-                case 'attributes':
-                    let rawContext = this.JXON.build(item);
-                    let context = new Context({
-                                                  sign: rawContext['clef']['sign'],
-                                                  lineNumber: Number(rawContext['clef']['line'])
-                                              }, {
-                                                  tonic: { step: 'C' },
-                                                  mode: KeyModes.Major
-                                              }, {
-                                                  beatsPerMeasure: rawContext['time']['beats'],
-                                                  beatUnit: rawContext['time']['beatType']
-                                              });
+                        break;
+                    case 'attributes':
+                        let rawContext = this.JXON.build(item);
+                        let context = new Context({
+                                                      sign: rawContext['clef']['sign'],
+                                                      lineNumber: Number(rawContext['clef']['line'])
+                                                  }, {
+                                                      tonic: { step: 'C' },
+                                                      mode: KeyModes.Major
+                                                  }, {
+                                                      beatsPerMeasure: rawContext['time']['beats'],
+                                                      beatUnit: rawContext['time']['beatType']
+                                                  });
 
-                    this.score.addContext(context);
+                        this.score.addContext(context);
 
-                    break;
-                case 'note':
-                    let note = this.JXON.build(item);
+                        break;
+                    case 'note':
+                        let note = this.JXON.build(item);
 
-                    if (note['chord'] === undefined) {
-                        // flushChordBuffer
+                        if (note['chord'] === undefined) {
+                            // flushChordBuffer
 
-                        if (chordPitches.length > 0) {
-                            let chord = new Chord(chordNoteType!, chordPitches, chordDuration, StemDirection.Down);
+                            if (chordPitches.length > 0) {
+                                let chord = new Chord(chordNoteType!, chordPitches, chordDuration, StemDirection.Down);
 
-                            this.score.addChord(chord);
+                                this.score.addChord(chord);
 
-                            chordPitches = [];
+                                chordPitches = [];
+                            }
+
+                            // createChordBuffer
+
+                            switch (note['type']) {
+                                case 'whole':
+                                    chordNoteType = NoteType.Whole;
+                                    break;
+                                case 'half':
+                                    chordNoteType = NoteType.Half;
+                                    break;
+                                case 'quarter':
+                                    chordNoteType = NoteType.Quarter;
+                                    break;
+                                default:
+                                    throw new Error();
+                            }
+
+                            chordDuration = note['duration'];
+                            chordPitches.push(new Pitch(note['pitch']['step'], note['pitch']['octave']));
                         }
 
-                        // createChordBuffer
+                        //this.score.addChord();
 
-                        switch (note['type']) {
-                            case 'whole':
-                                chordNoteType = NoteType.Whole;
-                                break;
-                            case 'half':
-                                chordNoteType = NoteType.Half;
-                                break;
-                            case 'quarter':
-                                chordNoteType = NoteType.Quarter;
-                                break;
-                            default:
-                                throw new Error();
-                        }
-
-                        chordDuration = note['duration'];
-                        chordPitches.push(new Pitch(note['pitch']['step'], note['pitch']['octave']));
-                    }
-
-                    //this.score.addChord();
-
-                    break;
-                default:
+                        break;
+                    default:
                     //throw new Error();
-            }
-        });
+                }
+            });
     }
 
     private query(path: string): this {
@@ -110,12 +110,12 @@ export class MusicXMLParser extends Parser {
         return result;
     }
 
-    private each(callback:(item: Node) => void): MusicXMLParser {
+    private each(callback: (item: Node) => void): MusicXMLParser {
         if (this.currentResult === null) {
             throw new Error('no result yet');
         }
 
-        let item: Maybe<Node> = null;
+        let item: Nullable<Node> = null;
 
         while (item = this.currentResult.iterateNext()) {
             callback(item);
@@ -287,7 +287,7 @@ export class JXON {
 
     }
 
-    build(oXMLParent: XMLDocument | Element | Node, nVerbosity?: number /* optional */, bFreeze? : boolean /* optional */, bNesteAttributes?: boolean /* optional */) {
+    build(oXMLParent: XMLDocument | Element | Node, nVerbosity?: number /* optional */, bFreeze?: boolean /* optional */, bNesteAttributes?: boolean /* optional */) {
         const nVerbMask = nVerbosity !== undefined ? nVerbosity & 3 : /* put here the default verbosity level: */ 1;
 
         return this.createObjTree(oXMLParent, nVerbMask, bFreeze || false, bNesteAttributes ? bNesteAttributes : nVerbMask === 3);

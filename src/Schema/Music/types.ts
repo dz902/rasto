@@ -1,4 +1,4 @@
-import { Maybe } from 'Utilities/Maybe';
+import { Nullable } from 'Utilities/Maybe';
 
 export type Clef = {
     sign: ClefSign;
@@ -102,8 +102,8 @@ export enum FlagType {
 }
 
 export interface LedgerLines {
-    highest: Maybe<number>,
-    lowest: Maybe<number>
+    highest: Nullable<number>,
+    lowest: Nullable<number>
 }
 
 export enum StaffPlaces {
@@ -112,7 +112,7 @@ export enum StaffPlaces {
     staffSpan = 8
 }
 
-export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
+export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Nullable<S> {
     if (value !== null) {
         return thenCallback(value);
     } else {
@@ -120,7 +120,7 @@ export function maybeThen<T,S>(value: T, thenCallback: (v: T) => S): Maybe<S> {
     }
 }
 
-export function maybe<T>(value: T): Maybe<T> {
+export function maybe<T>(value: T): Nullable<T> {
     if (value !== null) {
         return value;
     } else {
@@ -136,7 +136,7 @@ export function ensure<U, T>(value: U, errorMessage: string, predicate: (value: 
     }
 }
 
-export function diff<T extends SimpleMap, K extends keyof T>(keys: K[], a: T, b: T): Maybe<SimpleMap> {
+export function diff<T extends SimpleMap, K extends keyof T>(keys: K[], a: T, b: T): Nullable<SimpleMap> {
     let isDiff = false;
     let result: SimpleMap = {};
 

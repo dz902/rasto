@@ -1,4 +1,4 @@
-import { Maybe } from 'Utilities';
+import { Nullable } from 'Utilities';
 import { StaffPlaces } from 'Schema/Music';
 import { Accidental, PitchOctave, PitchStep } from './types';
 import { Articulation } from './Articulation';

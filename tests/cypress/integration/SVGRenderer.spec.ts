@@ -1,5 +1,6 @@
 import { MusicXMLParser } from 'Parsers/MusicXMLParser';
 import { ClefSign, Context } from 'Schema/Music';
+import { SVGRenderer } from '../../../src/Renderers/SVGRenderer';
 
 describe('MusicXMLParser', () => {
     context('#01a-Pitches-Pitches', () => {
@@ -7,8 +8,9 @@ describe('MusicXMLParser', () => {
             cy.fixture('musicxml/01a-Pitches-Pitches.xml').then((xmlString: string) => {
                 let score = MusicXMLParser.parse(xmlString);
 
-                expect(score.getStaffItems(0)[0]).to.be.instanceof(Context);
-                expect((score.getStaffItems(0)[0] as any).clef.sign).to.equal(ClefSign.G);
+                let element = SVGRenderer.render(score, 400, 300);
+
+                console.log(element);
             });
         });
 
@@ -16,7 +18,6 @@ describe('MusicXMLParser', () => {
             cy.fixture('musicxml/01a-Pitches-Pitches.xml').then((xmlString: string) => {
                 let score = MusicXMLParser.parse(xmlString);
 
-                expect(score.measures.length).to.equal(26);
             });
         })
     });

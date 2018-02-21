@@ -1,6 +1,6 @@
 import { Mark } from './Mark';
 import { Chord } from './Chord';
-import { Maybe } from '../../Utilities';
+import { Nullable } from '../../Utilities';
 
 /**
  * Base class representing a musical direction that encompasses multiple

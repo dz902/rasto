@@ -1,4 +1,4 @@
-import { Score, Chord, ClefSign, Context, KeyModes, Pitch, NoteType, StemDirection } from 'Schema/Music';
+import { Score, Chord, ClefSign, Context, KeyModes, Note, NoteType, StemDirection } from 'Schema/Music';
 
 describe('Score', () => {
     beforeEach(() => {

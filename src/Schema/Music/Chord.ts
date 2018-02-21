@@ -1,13 +1,13 @@
-import { Maybe, last } from 'Utilities';
-import { StemDirection, Pitch, FlagType, NoteType, Mark } from 'Schema/Music';
+import { Nullable, last } from 'Utilities';
+import { StemDirection, Note, FlagType, NoteType, Mark } from 'Schema/Music';
 import { Articulation } from './Articulation';
 
 export class Chord extends Mark {
     private chordPitches: ChordPitch[] = [];
-    private chordFlagType: Maybe<FlagType> = null;
+    private chordFlagType: Nullable<FlagType> = null;
 
     constructor(noteType: NoteType,
-                pitches: ReadonlyArray<Pitch>,
+                pitches: ReadonlyArray<Note>,
                 readonly duration: number,
                 readonly stemDirection: StemDirection,
                 readonly articulations: Articulation[] = []) {
@@ -31,15 +31,15 @@ export class Chord extends Mark {
         return Object.freeze(this.chordPitches.concat([]));
     }
 
-    get flagType(): Maybe<FlagType> {
+    get flagType(): Nullable<FlagType> {
         return this.chordFlagType;
     }
 
-    get bottomPitch(): Pitch {
+    get bottomPitch(): Note {
         return this.chordPitches[0];
     }
 
-    get topPitch(): Pitch {
+    get topPitch(): Note {
         return this.chordPitches[this.chordPitches.length-1];
     }
 
@@ -102,7 +102,7 @@ export class Chord extends Mark {
     }
 }
 
-class ChordPitch extends Pitch {
+class ChordPitch extends Note {
     // those really should be internal but lacking the mechanism
     // public getter + internal setter
 
@@ -110,7 +110,7 @@ class ChordPitch extends Pitch {
     displacement: boolean = false;
     relativeStaffPlace: number = 0;
 
-    constructor(pitch: Pitch) {
+    constructor(pitch: Note) {
         super(pitch.step,
               pitch.octave,
               pitch.alter);
