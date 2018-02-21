@@ -1,4 +1,4 @@
-import { Context, KeyModes, Score } from 'Schema/Music';
+import { Chord, Context, KeyModes, NoteType, Pitch, Score, StemDirection } from 'Schema/Music';
 import { Maybe } from 'Utilities';
 import { Parser } from './Parser';
 
@@ -18,9 +18,17 @@ export class MusicXMLParser extends Parser {
 
         this.rootNode = (new DOMParser()).parseFromString(serializeXML, 'application/xml');
 
-        this.query('/score-partwise/part/measure/attributes | /score-partwise/part/measure/note')
+        let chordNoteType: NoteType;
+        let chordDuration: number;
+        let chordPitches: Pitch[] = [];
+
+        this.query('/score-partwise/part/measure | /score-partwise/part/measure/child::*')
             .each((item: Node) => {
             switch (item.nodeName.toLowerCase()) {
+                case 'measure':
+                    this.score.addMeasure();
+
+                    break;
                 case 'attributes':
                     let rawContext = this.JXON.build(item);
                     let context = new Context({
@@ -40,16 +48,47 @@ export class MusicXMLParser extends Parser {
                 case 'note':
                     let note = this.JXON.build(item);
 
+                    if (note['chord'] === undefined) {
+                        // flushChordBuffer
+
+                        if (chordPitches.length > 0) {
+                            let chord = new Chord(chordNoteType!, chordPitches, chordDuration, StemDirection.Down);
+
+                            this.score.addChord(chord);
+
+                            chordPitches = [];
+                        }
+
+                        // createChordBuffer
+
+                        switch (note['type']) {
+                            case 'whole':
+                                chordNoteType = NoteType.Whole;
+                                break;
+                            case 'half':
+                                chordNoteType = NoteType.Half;
+                                break;
+                            case 'quarter':
+                                chordNoteType = NoteType.Quarter;
+                                break;
+                            default:
+                                throw new Error();
+                        }
+
+                        chordDuration = note['duration'];
+                        chordPitches.push(new Pitch(note['pitch']['step'], note['pitch']['octave']));
+                    }
+
                     //this.score.addChord();
 
                     break;
                 default:
-                    throw new Error();
+                    //throw new Error();
             }
         });
     }
 
-    private query(path: string): MusicXMLParser {
+    private query(path: string): this {
         if (!this.has(path)) {
             throw new Error(`path ${path} does not exist`);
         }
@@ -90,15 +129,14 @@ export class MusicXMLParser extends Parser {
 
 export class JXON {
 
-    private sValProp = '_';
-    private sAttrProp = 'keyAttributes';
-    private sAttrsPref = '@';
-    /* you can customize these values */
+    private sValProp: string = '_';
+    private sAttrProp: string = 'keyAttributes';
+    private sAttrsPref: string = '@';
     private aCache: Element[] = [];
-    private rIsNull = /^\s*$/;
-    private rIsBool = /^(?:true|false)$/i;
+    private rIsNull: RegExp = /^\s*$/;
+    private rIsBool: RegExp = /^(?:true|false)$/i;
 
-    private parseText(sValue: string) {
+    private parseText(sValue: string): any {
         if (this.rIsNull.test(sValue)) {
             return null;
         } else if (this.rIsBool.test(sValue)) {
@@ -225,13 +263,13 @@ export class JXON {
                     oParentEl.appendChild(oXMLDoc.createTextNode(vValue.constructor === Date ? vValue.toGMTString() : String(vValue)));
                 }
             } else if (sName === this.sAttrProp) { /* verbosity level is 3 */
-                for (var sAttrib in vValue) {
+                for (let sAttrib in vValue) {
                     (oParentEl as Element).setAttribute(sAttrib, vValue[sAttrib]);
                 }
             } else if (sName.charAt(0) === this.sAttrsPref) {
                 (oParentEl as Element).setAttribute(sName.slice(1), vValue);
             } else if (vValue.constructor === Array) {
-                for (var nItem = 0; nItem < vValue.length; nItem++) {
+                for (let nItem = 0; nItem < vValue.length; nItem++) {
                     oChild = oXMLDoc.createElement(sName);
                     this.loadObjTree(oXMLDoc, oChild, vValue[nItem]);
                     oParentEl.appendChild(oChild);

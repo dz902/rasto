@@ -9,8 +9,16 @@ export class Score {
     private scoreMeasures: Measure[] = [];
     private scoreDirections: Direction[] = [];
 
-    get directions(): ReadonlyArray<Direction> {
-        return Object.freeze(Array.from(this.scoreDirections));
+    get chords(): ScoreChord[] {
+        return flatten(this.scoreMeasures).filter(item => item instanceof ScoreChord);
+    }
+
+    get directions(): Direction[] {
+        return Array.from(this.scoreDirections);
+    }
+
+    getStaffItems(staffNumber: number): StaffItem[] {
+        return flatten(this.scoreMeasures).filter(item => item.staffNumber === staffNumber)
     }
 
     addChord(chord: Chord, staffNumber: number = 0): this {
@@ -95,14 +103,6 @@ export class Score {
         }
 
         return lastMeasure;
-    }
-
-    get chords(): ScoreChord[] {
-        return flatten(this.scoreMeasures).filter(item => item instanceof ScoreChord);
-    }
-
-    getStaffItems(staffNumber: number): StaffItem[] {
-        return flatten(this.scoreMeasures).filter(item => item.staffNumber === staffNumber)
     }
 }
 
