@@ -8,7 +8,7 @@
     "inlineSourceMap": true,
     "strict": true,
     "rootDirs": ["./src", "./tests"],
-    "outDir": "./bin",
+    "outDir": "./dist",
     "lib": [
       "es2015",
       "dom"

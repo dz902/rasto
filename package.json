@@ -6,7 +6,11 @@
   "bin": {
     "rasto": "Engraver.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "vue": "^2.5.13",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.0.1"
+  },
   "devDependencies": {
     "@bahmutov/add-typescript-to-cypress": "^2.0.0",
     "@types/chai": "^4.1.2",
@@ -16,19 +20,23 @@
     "backstopjs": "^3.0.39",
     "chai-subset": "^1.6.0",
     "chalk": "^2.3.0",
+    "css-loader": "^0.28.9",
     "cypress": "^1.4.2",
+    "pug": "^2.0.0-rc.4",
     "ts-loader": "^3.5.0",
     "tsconfig-paths-webpack-plugin": "^2.0.0",
     "tslint": "^5.9.1",
     "typescript": "^2.7.1",
-    "webpack": "^3.10.0"
+    "vue-loader": "^14.1.1",
+    "vue-template-compiler": "^2.5.13",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
   },
   "scripts": {
     "build": "webpack",
     "vtest-approve": "backstop approve --config=tests/backstop/backstop.config.json",
     "vtest": "backstop test --config=tests/backstop/backstop.config.json",
     "test": "jest --config=tests/jest/jest.config.js",
-    "server": "http-server -p 8888",
     "watch": "webpack -w",
     "btest": "cd tests; cypress open"
   },
