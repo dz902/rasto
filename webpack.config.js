@@ -3,7 +3,7 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
     entry: {
-        music: './src/Main.ts'
+        main: './src/Main.ts'
     },
     module: {
         rules: [

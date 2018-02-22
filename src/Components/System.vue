@@ -1,11 +1,12 @@
 <template lang="pug">
-    svg.staves
+    svg.system
         svg.staff
+            svg.measure
 </template>
 
-<script>
+<script lang="ts">
     export default {
-        name: "staves"
+        name: "system"
     };
 </script>
 

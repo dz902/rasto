@@ -1,10 +1,16 @@
 <template lang="pug">
     svg.score
+        system-component
 </template>
 
-<script>
+<script lang="ts">
+    import SystemComponent from './System.vue';
+
     export default {
-        name: "score"
+        name: "score",
+        components: {
+            SystemComponent
+        }
     };
 </script>
 
