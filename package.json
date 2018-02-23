@@ -7,6 +7,7 @@
     "rasto": "Engraver.js"
   },
   "dependencies": {
+    "lodash": "^4.17.5",
     "vue": "^2.5.13",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1"
@@ -16,13 +17,16 @@
     "@types/chai": "^4.1.2",
     "@types/chai-subset": "^1.3.1",
     "@types/jest": "^22.1.1",
+    "@types/lodash": "^4.14.104",
     "@types/puppeteer": "^1.0.0",
     "backstopjs": "^3.0.39",
     "chai-subset": "^1.6.0",
     "chalk": "^2.3.0",
     "css-loader": "^0.28.9",
     "cypress": "^1.4.2",
+    "node-sass": "^4.7.2",
     "pug": "^2.0.0-rc.4",
+    "sass-loader": "^6.0.6",
     "ts-loader": "^3.5.0",
     "tsconfig-paths-webpack-plugin": "^2.0.0",
     "tslint": "^5.9.1",

@@ -1,12 +1,3 @@
-export interface Store<T> {
-    state: T,
-    mutations: {
-        [k: string]: Mutator<T>
-    }
-}
-
-type Mutator<T> = (state: T, payload: any) => void;
-
 /**
  * Item family
  */
@@ -32,41 +23,43 @@ export interface Score {
     initialContexts: Context[];
     measures: Measure[];
     directions: Direction[];
+    layout: ScoreLayout;
 }
 
 export interface Measure {
     endingBar?: Bar;
-    staffItems: StaffItem[];
+    items: MeasureItem[];
 }
 
 /**
  * StaffItem family
  */
 
+export interface MeasureItem extends StaffItem {
+    kind: 'contextChange' | 'bar' | 'chord' | 'rest';
+}
+
+export type ContextChange = Partial<Context> & MeasureItem;
+
 export interface Context extends StaffItem {
     clef: Clef;
     meter: Meter;
 }
 
-export interface ContextChange extends StaffItem {
-    clef?: Clef;
-    meter?: Meter;
-}
-
-export interface Bar extends StaffItem {
+export interface Bar extends MeasureItem {
     type: BarType;
 }
 
-export interface Mark extends ReferableItem, StaffItem, PartItem {
+export interface Mark extends ReferableItem, PartItem {
     type: MarkType;
 }
 
-export interface Chord extends Mark {
+export interface Chord extends Mark, MeasureItem {
     notes: Note[];
     articulations: Articulation[];
 }
 
-export interface Rest extends Mark {
+export interface Rest extends Mark, MeasureItem {
 
 }
 
@@ -93,6 +86,10 @@ export interface Dynamics extends Direction {
 /**
  * Compound types
  */
+
+export interface ScoreLayout {
+    scoreWidth: number;
+}
 
 export interface Note {
     name: NoteName;
@@ -157,3 +154,6 @@ export enum AccidentalType {
  */
 
 export type Nullable<T> = T | null;
+export type Partial<T> = {
+    [P in keyof T]?: T[P];
+}
