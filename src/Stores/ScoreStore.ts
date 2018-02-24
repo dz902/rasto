@@ -1,19 +1,62 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { Chord, ContextChange, Direction, Measure, MeasureItem, Score, StaffItem, Tie } from '../types';
+import {
+    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
+    Tie
+} from '../types';
 
 Vue.use(Vuex);
 
-export default new Vuex.Store({
-    state: {
-        openingBar: undefined,
-        initialContexts: [],
-        measures: [],
-        directions: [],
-        layout: {
-            scoreWidth: 800
+let scoreTest: Score = {
+    initialContexts: [
+        {
+            staffId: 0,
+            clef: {
+                sign: ClefSign.G,
+                lineNumber: 2
+            },
+            meter: {
+                beatsPerMeasure: 4,
+                beatUnit: MarkType.Quarter
+            }
+        },
+        {
+            staffId: 1,
+            clef: {
+                sign: ClefSign.F,
+                lineNumber: 4
+            },
+            meter: {
+                beatsPerMeasure: 4,
+                beatUnit: MarkType.Quarter
+            }
         }
-    },
+    ],
+    measures: [
+        {
+            items: [
+                {
+                    kind: 'chord',
+                    type: MarkType.Quarter,
+                    notes: [
+                        {
+                            name: 'C',
+                            octaveNumber: 4
+                        }
+                    ],
+                    staffId: 0
+                } as Chord
+            ]
+        }
+    ],
+    directions: [],
+    layout: {
+        scoreWidth: 50
+    }
+};
+
+export default new Vuex.Store({
+    state: scoreTest,
     getters: {
         GET_MEASURE_ITEMS_BY_STAFF_ID
     },

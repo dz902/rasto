@@ -19,7 +19,7 @@ export interface PartItem {
  */
 
 export interface Score {
-    openingBar?: Bar;
+    leftBar?: Bar;
     initialContexts: Context[];
     measures: Measure[];
     directions: Direction[];
@@ -27,7 +27,7 @@ export interface Score {
 }
 
 export interface Measure {
-    endingBar?: Bar;
+    rightBar?: Bar;
     items: MeasureItem[];
 }
 
@@ -35,18 +35,17 @@ export interface Measure {
  * StaffItem family
  */
 
-export interface MeasureItem extends StaffItem {
-    kind: 'contextChange' | 'bar' | 'chord' | 'rest';
-}
+export type MeasureItem = Chord | Rest | ContextChange | Bar;
 
-export type ContextChange = Partial<Context> & MeasureItem;
+export type ContextChange = Partial<Context> & StaffItem & { kind: 'contextChange' };
 
 export interface Context extends StaffItem {
     clef: Clef;
     meter: Meter;
 }
 
-export interface Bar extends MeasureItem {
+export interface Bar extends StaffItem {
+    kind: 'bar';
     type: BarType;
 }
 
@@ -54,13 +53,14 @@ export interface Mark extends ReferableItem, PartItem {
     type: MarkType;
 }
 
-export interface Chord extends Mark, MeasureItem {
+export interface Chord extends Mark, StaffItem {
+    kind: 'chord';
     notes: Note[];
-    articulations: Articulation[];
+    articulations?: Articulation[];
 }
 
-export interface Rest extends Mark, MeasureItem {
-
+export interface Rest extends Mark, StaffItem {
+    kind: 'rest';
 }
 
 /**
@@ -120,7 +120,9 @@ export interface Meter {
  */
 
 export enum MarkType {
-    Whole = 'whole'
+    Whole = 'whole',
+    Half = 'half',
+    Quarter = 'quarter'
 }
 
 export type NoteName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
