@@ -20,7 +20,7 @@ import GlyphComponent from './Glyph.vue';
 import { GlyphKinds, MarkType, Note, StemDirection } from 'types';
 import { last, merge } from 'lodash';
 import { getIntervalBetween, getNotePosition, getPositionDiff } from 'Stores/helpers';
-import { getGlyphWidth } from 'Fonts/helpers';
+import { getEngravingDefaults, getGlyphAnchors, getGlyphWidth } from 'Fonts/helpers';
 
 type ChordNote = Note & {
     isDisplaced: boolean
@@ -64,12 +64,31 @@ export default Vue.extend({
 
                 notesWithDisplacements.push({ isDisplaced: isDisplaced }); // ugly, refactor later
 
+                let anchors = this.noteHeadAnchors;
                 let x = 0;
 
                 if (this.chord.stemDirection === StemDirection.Down) {
-                    x = isDisplaced ? 0 : this.noteHeadWidth as number;
+                    if (isDisplaced) {
+                        x = getEngravingDefaults('stemThickness');
+                    } else {
+                        x = this.noteHeadWidth as number;
+
+                        if (anchors && anchors['stemUpSE']) {
+                            x += (this.noteHeadWidth as number) - anchors['stemUpSE'][0];
+                        }
+                    }
                 } else {
-                    x = isDisplaced ? this.noteHeadWidth as number : 0;
+                    if (isDisplaced) {
+                        x = this.noteHeadWidth as number;
+
+                        if (anchors && anchors['stemDownNW']) {
+                            x -= anchors['stemDownNW'][0];
+                        }
+
+                        x -= getEngravingDefaults('stemThickness');
+                    } else {
+                        x = 0;
+                    }
                 }
 
                 let noteHeadBindings = {
@@ -108,6 +127,25 @@ export default Vue.extend({
             let x = this.noteHeadWidth as number;
             let y = this.chord.stemDirection === StemDirection.Down ? 0 : -height;
 
+            // checkAnchors
+
+            let anchors = this.noteHeadAnchors;
+
+            if (anchors) {
+                if (this.chord.stemDirection === StemDirection.Down) {
+                    if (anchors['stemDownNW']) {
+                        x += anchors['stemDownNW'][0];
+                        y -= anchors['stemDownNW'][1];
+                        height += anchors['stemDownNW'][1];
+                    }
+                } else {
+                    if (anchors['stemUpSE']) {
+                        x = anchors['stemUpSE'][0];
+                        height -= anchors['stemUpSE'][1];
+                    }
+                }
+            }
+
             return {
                 height: height + 'rem',
                 x: x + 'rem',
@@ -116,6 +154,9 @@ export default Vue.extend({
         },
         noteHeadWidth(): number {
             return getGlyphWidth(GlyphKinds.NoteHead, this.chord.type as string);
+        },
+        noteHeadAnchors(): { [k:string]: [number, number] } | null {
+            return getGlyphAnchors(GlyphKinds.NoteHead, this.chord.type);
         }
     },
     methods: {

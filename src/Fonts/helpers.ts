@@ -2,11 +2,22 @@ import { GlyphKinds, MarkType } from '../types';
 
 const fontMeta = require('Fonts/Bravura/bravura_metadata.json');
 
+export function getEngravingDefaults(k: string): number {
+    return fontMeta['engravingDefaults'][k];
+}
+
 export function getGlyphWidth(kind: GlyphKinds, name: string): number {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
     let bBox = fontMeta['glyphBBoxes'][glyphKey];
 
     return bBox['bBoxNE'][0] - bBox['bBoxSW'][0];
+}
+
+export function getGlyphAnchors(kind: GlyphKinds, name: string): { [k:string]: [number, number] } | null {
+    let glyphKey = getGlyphKeyFromKindAndName(kind, name);
+    let anchors = fontMeta['glyphsWithAnchors'][glyphKey];
+
+    return anchors || null;
 }
 
 function getGlyphKeyFromKindAndName(kind: GlyphKinds, name: string): string {
