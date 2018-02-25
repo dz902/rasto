@@ -1,3 +1,7 @@
+export enum GlyphKinds {
+    NoteHead = 'note-head'
+}
+
 /**
  * Item family
  */
@@ -57,6 +61,7 @@ export interface Chord extends Mark, StaffItem {
     kind: 'chord';
     notes: Note[];
     articulations?: Articulation[];
+    stemDirection: StemDirection;
 }
 
 export interface Rest extends Mark, StaffItem {
@@ -89,6 +94,7 @@ export interface Dynamics extends Direction {
 
 export interface ScoreLayout {
     scoreWidth: number;
+    [k: string]: any;
 }
 
 export interface Note {
@@ -149,6 +155,11 @@ export enum ArticulationType {
 
 export enum AccidentalType {
     Sharp = 'sharp'
+}
+
+export enum StemDirection {
+    Up = 'up',
+    Down = 'down'
 }
 
 /**

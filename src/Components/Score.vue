@@ -1,15 +1,15 @@
 <template lang="pug">
 svg.score(v-bind:width="`${score.layout.scoreWidth}em`")
-    svg.system(y="5em")
+    svg.system(x="0.1rem" y="1rem")
         svg.staff
             svg.staff-lines
                 line.staff-line(
                     v-for="n in 5",
                     :class="`line-${n}`",
                     x1="0",
-                    :y1="`${n-1}em`",
+                    :y1="`${n-1}rem`",
                     x2="100%",
-                    :y2="`${n-1}em`"
+                    :y2="`${n-1}rem`"
                 )
             svg.measures
                 svg.measure(v-for="measure in score.measures")
@@ -17,7 +17,7 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`")
                         chord-component(
                             v-if="measureItem.kind === 'chord'",
                             :chord="measureItem",
-                            :y="`${computeChordShift(measureItem)}em`"
+                            :y="`${computeChordShift(measureItem)}rem`"
                         )
                         svg.context(v-else-if="measureItem.kind === 'contextChange'")
                             svg.clef(v-if="measureItem.clef")
@@ -77,11 +77,10 @@ export default Vue.extend({
     src: url(../Fonts/Bravura/woff/Bravura.woff2)
 
 svg.score
-    font-size: 8px
-
     & /deep/ svg
         overflow: visible
 
     line.staff-line
         stroke: black
+        stroke-width: 0.13rem
 </style>

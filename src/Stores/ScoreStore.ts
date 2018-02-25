@@ -1,9 +1,9 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
-    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
+    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem, StemDirection,
     Tie
-} from '../types';
+} from 'types';
 
 Vue.use(Vuex);
 
@@ -42,8 +42,17 @@ let scoreTest: Score = {
                         {
                             name: 'C',
                             octaveNumber: 4
+                        },
+                        {
+                            name: 'D',
+                            octaveNumber: 4
+                        },
+                        {
+                            name: 'E',
+                            octaveNumber: 4
                         }
                     ],
+                    stemDirection: StemDirection.Down,
                     staffId: 0
                 } as Chord
             ]

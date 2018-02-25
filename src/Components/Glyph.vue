@@ -11,6 +11,6 @@ export default {
 
 <style lang="sass" scoped>
 text.glyphChar
-    font: 4em Bravura, fantasy
+    font: 4rem Bravura, fantasy
     color: black
 </style>
