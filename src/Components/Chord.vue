@@ -1,28 +1,29 @@
 <template lang="pug">
-svg.chord(
-    :class="classBindings"
-)
+svg.chord()
     svg.ledger-lines
         line.ledger-line
     svg.note-heads
         glyph-component.note-head(
-            v-for="note in notes",
-            :key="note.id",
-            :x="`${computeDisplacement(chord.type, note.isDisplaced, chord.stemDirection)}rem`"
+            v-for="noteHead in noteHeads"
+            v-bind:key="Math.random()"
+            v-bind="noteHead"
         ) {{ noteHeadChar }}
-    rect.stem
+    rect.stem(
+        v-if="stem"
+        v-bind="stem"
+    )
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
-import { Chord, GlyphKinds, MarkType, Note, StemDirection } from 'types';
+import { GlyphKinds, MarkType, Note, StemDirection } from 'types';
 import { last, merge } from 'lodash';
-import { notePosition } from 'Stores/helpers';
+import { getIntervalBetween, getNotePosition } from 'Stores/helpers';
 import { getGlyphWidth } from 'Fonts/helpers';
 
 type ChordNote = Note & {
-    isDisplaced: boolean;
+    isDisplaced: boolean
 };
 
 export default Vue.extend({
@@ -31,20 +32,13 @@ export default Vue.extend({
         chord: {
             type: Object,
             required: true
+        },
+        clef: {
+            type: Object,
+            required: false
         }
     },
     computed: {
-        classBindings(): object {
-            let classBinding: {[k: string]: boolean} = {};
-
-            if (this.chord.stemDirection === StemDirection.Down) {
-                classBinding['chord-stem-down'] = true;
-            } else {
-                classBinding['chord-stem-up'] = true;
-            }
-
-            return classBinding;
-        },
         noteHeadChar(): string {
             let typeToHeadCodePoint: {[k: string]: number} = {
                 [MarkType.Whole]: 0xE0A2,
@@ -60,20 +54,29 @@ export default Vue.extend({
 
             return String.fromCodePoint(codePoint);
         },
-        notes(): ChordNote[] {
-            let notesWidthDisplacements: ChordNote[];
+        noteHeads(): object[] {
+            let noteHeadsBindings: { [k: string]: any }[] = [];
 
-            let intervalBetween = (noteA: Note, noteB: Note): number => {
-                return (Math.abs(notePosition(noteA) - notePosition(noteB)))*2 + 1;
-            };
+            let addDisplacement = (notesWithDisplacements: (typeof noteHeadsBindings), note: Note, i: number, notes: Note[]): object[] => {
+                let prevNote = notes[i-1];
+                let adjacentNoteFound = i > 0 && getIntervalBetween(note, prevNote) === 2;
+                let isDisplaced = adjacentNoteFound && notesWithDisplacements[i-1].isDisplaced === false;
 
-            let addDisplacement = (notesWithDisplacements: ChordNote[], note: Note, i: number, notes: Note[]): ChordNote[] => {
-                let prevNote = notesWithDisplacements[i-1];
-                let adjacentNoteFound = prevNote !== undefined && intervalBetween(note, prevNote) === 2;
-                let adjacentNoteIsNotDisplaced = adjacentNoteFound && prevNote.isDisplaced === false;
-                let chordNote: ChordNote = merge(note, { isDisplaced: adjacentNoteIsNotDisplaced });
+                notesWithDisplacements.push({ isDisplaced: isDisplaced }); // ugly, refactor later
 
-                notesWithDisplacements.push(chordNote);
+                let x = 0;
+
+                if (this.chord.stemDirection === StemDirection.Down) {
+                    x = isDisplaced ? 0 : this.noteHeadWidth as number;
+                } else {
+                    x = isDisplaced ? this.noteHeadWidth as number : 0;
+                }
+
+                let noteHeadBindings = {
+                    x: x + 'rem'
+                };
+
+                noteHeadsBindings.push(noteHeadBindings); // ugly, refactor later
 
                 return notesWithDisplacements;
             };
@@ -81,22 +84,44 @@ export default Vue.extend({
             let notes: Note[] = Array.from(this.chord.notes);
 
             if (this.chord.stemDirection === StemDirection.Up) {
-                notesWidthDisplacements = notes.reduce(addDisplacement, []);
+                notes.reduce(addDisplacement, []);
             } else {
-                notesWidthDisplacements = notes.reverse().reduce(addDisplacement, []).reverse();
+                notes.reverse().reduce(addDisplacement, []);
+
+                noteHeadsBindings.reverse(); // ugly refactor later
             }
 
-            return notesWidthDisplacements;
+            let lowestNotePosition = getNotePosition(notes[0]);
+
+            notes.forEach((note, i) => {
+                noteHeadsBindings[i].y = -(getNotePosition(note)-lowestNotePosition) + 'rem';
+            });
+
+            return noteHeadsBindings;
+        },
+        stem(): object | null {
+            if (this.chord.type === MarkType.Whole) {
+                return null;
+            }
+
+            let stem: { [k: string]: any } = {};
+
+            stem.x = this.noteHeadWidth as number + 'rem';
+            stem.height = '3.5rem';
+            stem.y = this.chord.stemDirection === StemDirection.Down ? 0 : '-3.5rem';
+
+            return stem;
+        },
+        noteHeadWidth(): number {
+            return getGlyphWidth(GlyphKinds.NoteHead, this.chord.type as string);
         }
     },
     methods: {
-        computeDisplacement (markType: MarkType, isDisplaced: boolean, stemDirection: StemDirection): number {
-            let glyphWidth = getGlyphWidth(GlyphKinds.NoteHead, markType as string);
-
-            if (stemDirection === StemDirection.Down) {
-                return isDisplaced ? 0 : glyphWidth;
+        computeDisplacement(isDisplaced: boolean): number {
+            if (this.chord.stemDirection === StemDirection.Down) {
+                return isDisplaced ? 0 : this.noteHeadWidth as number;
             } else {
-                return isDisplaced ? glyphWidth : 0;
+                return isDisplaced ? this.noteHeadWidth as number : 0;
             }
         }
     },
@@ -106,6 +131,8 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped>
-
+<style lang="sass" scoped>
+rect.stem
+    width: 0.12rem
+    fill: black
 </style>

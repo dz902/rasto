@@ -1,6 +1,6 @@
 import { Clef, ClefSign, GlyphKinds, MarkType, Note } from 'types';
 
-export function staffBottomPositionFromClef(clef: Clef): number {
+export function getStaffBottomLinePositionFromClef(clef: Clef): number {
     let bottomPosition = 0;
     let dummyNote: Note;
 
@@ -18,9 +18,21 @@ export function staffBottomPositionFromClef(clef: Clef): number {
             };
     }
 
-    return notePosition(dummyNote);
+    return getNotePosition(dummyNote);
 }
 
-export function notePosition(note: Note): number {
+export function getStaffLinePositionFromClef(clef: Clef, lineIndex: number): number {
+    return getStaffBottomLinePositionFromClef(clef) + lineIndex;
+}
+
+export function getNotePosition(note: Note): number {
     return ((note.octaveNumber * 7) + 'CDEFGAB'.indexOf(note.name)) / 2;
+}
+
+export function getPositionDiff(a: number, b: number): number {
+    return Math.abs(a - b);
+}
+
+export function getIntervalBetween(noteA: Note, noteB: Note): number {
+    return getPositionDiff(getNotePosition(noteA) , getNotePosition(noteB))*2 + 1;
 }

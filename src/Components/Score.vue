@@ -1,5 +1,5 @@
 <template lang="pug">
-svg.score(v-bind:width="`${score.layout.scoreWidth}em`")
+svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
     svg.system(x="0.1rem" y="1rem")
         svg.staff
             svg.staff-lines
@@ -12,12 +12,11 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`")
                     :y2="`${n-1}rem`"
                 )
             svg.measures
-                svg.measure(v-for="measure in score.measures")
-                    template(v-for="measureItem in measure.items")
+                svg.measure(v-for="measure in measures")
+                    template(v-for="item in measure.items")
                         chord-component(
-                            v-if="measureItem.kind === 'chord'",
-                            :chord="measureItem",
-                            :y="`${computeChordShift(measureItem)}rem`"
+                            v-if="item.kind === 'chord'"
+                            v-bind="item"
                         )
                         svg.context(v-else-if="measureItem.kind === 'contextChange'")
                             svg.clef(v-if="measureItem.clef")
@@ -33,6 +32,7 @@ import ScoreStore from 'Stores/ScoreStore';
 import ChordComponent from './Chord.vue';
 import { Chord, ClefSign, Context, ContextChange } from 'types';
 import { merge } from 'lodash';
+import { getNotePosition, getStaffBottomLinePositionFromClef } from '../Stores/helpers';
 
 export default Vue.extend({
     name: 'score',
@@ -42,25 +42,36 @@ export default Vue.extend({
             currentContexts: ScoreStore.state.initialContexts
         }
     },
+    computed: {
+        measures(): object[] {
+            return this.score.measures.map((measure) => {
+                let measureBindings: { [k: string]: any } = {};
+
+                measureBindings.items = measure.items.map((item) => {
+                    let itemBindings: { [k: string]: any } = {
+                        kind: item.kind
+                    };
+
+                    switch(item.kind) {
+                        case 'chord':
+                            let chordBottomNotePosition = getNotePosition(item.notes[0]);
+                            let staffBottomLinePosition = getStaffBottomLinePositionFromClef(this.currentContexts[item.staffId].clef);
+
+                            itemBindings.y = 4 - (chordBottomNotePosition - staffBottomLinePosition) + 'rem';
+
+                            itemBindings.chord = item;
+
+                            break;
+                    }
+
+                    return itemBindings;
+                });
+
+                return measureBindings;
+            });
+        }
+    },
     methods: {
-        computeStaffBottomSpace(context: Context): number {
-            let bottomSpace = 0;
-
-            switch (context.clef.sign) {
-                case ClefSign.G:
-                    bottomSpace = 7*4 + 3 - 1;
-                    break;
-            }
-
-            return bottomSpace / 2;
-        },
-        computeChordShift(chord: Chord): number {
-            let bottomNote = chord.notes[0];
-            let chordBottomSpace = ((bottomNote.octaveNumber * 7) + 'CDEFGAB'.indexOf(bottomNote.name)) / 2;
-            let staffBottomSpace = this.computeStaffBottomSpace(this.currentContexts[chord.staffId]);
-
-            return 4 - (chordBottomSpace - staffBottomSpace);
-        },
         changeContextOnStaff(newContext: ContextChange) {
             merge(this.currentContexts[newContext.staffId], newContext);
         }
