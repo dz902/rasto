@@ -19,7 +19,7 @@ import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
 import { GlyphKinds, MarkType, Note, StemDirection } from 'types';
 import { last, merge } from 'lodash';
-import { getIntervalBetween, getNotePosition } from 'Stores/helpers';
+import { getIntervalBetween, getNotePosition, getPositionDiff } from 'Stores/helpers';
 import { getGlyphWidth } from 'Fonts/helpers';
 
 type ChordNote = Note & {
@@ -104,13 +104,15 @@ export default Vue.extend({
                 return null;
             }
 
-            let stem: { [k: string]: any } = {};
+            let height = 3.5 + getPositionDiff(getNotePosition(this.chord.notes[0]), getNotePosition(this.chord.notes[this.chord.notes.length-1]));
+            let x = this.noteHeadWidth as number;
+            let y = this.chord.stemDirection === StemDirection.Down ? 0 : -height;
 
-            stem.x = this.noteHeadWidth as number + 'rem';
-            stem.height = '3.5rem';
-            stem.y = this.chord.stemDirection === StemDirection.Down ? 0 : '-3.5rem';
-
-            return stem;
+            return {
+                height: height + 'rem',
+                x: x + 'rem',
+                y: y + 'rem'
+            };
         },
         noteHeadWidth(): number {
             return getGlyphWidth(GlyphKinds.NoteHead, this.chord.type as string);
