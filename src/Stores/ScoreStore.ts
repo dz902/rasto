@@ -41,15 +41,15 @@ let scoreTest: Score = {
                     notes: [
                         {
                             name: 'C',
-                            octaveNumber: 6
+                            octaveNumber: 5
                         },
                         {
                             name: 'D',
-                            octaveNumber: 6
+                            octaveNumber: 5
                         },
                         {
                             name: 'E',
-                            octaveNumber: 6
+                            octaveNumber: 5
                         }
                     ],
                     stemDirection: StemDirection.Down,

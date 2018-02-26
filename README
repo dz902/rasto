@@ -2,7 +2,7 @@ Rasto
 
 Todo:
 
-- Extend stem to middle line for distant chords
+- Generic alignment function
 - Ledger lines
 - Flags
 - Accidentals

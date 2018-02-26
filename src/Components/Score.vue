@@ -58,7 +58,7 @@ export default Vue.extend({
                             let chordBottomNotePosition = getNotePosition(item.notes[0]);
                             let staffBottomLinePosition = getStaffBottomLinePositionFromClef(currentClef);
 
-                            itemBindings.y = 4 - getPositionDiff(chordBottomNotePosition, staffBottomLinePosition) + 'rem';
+                            itemBindings.y = 4 - (chordBottomNotePosition - staffBottomLinePosition) + 'rem';
 
                             itemBindings.chord = item;
                             itemBindings.clef = currentClef;

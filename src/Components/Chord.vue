@@ -49,9 +49,15 @@ export default Vue.extend({
                 return null;
             }
 
+            let stemWidth = getEngravingDefaults('stemThickness');
+
+            // basicOffsets
+
             let height = 3.5 + this.boundaryNoteSpan;
-            let x = this.noteHeadWidth as number;
+            let x = this.chord.stemDirection === StemDirection.Down ? this.noteHeadWidth : this.noteHeadWidth * 2;
             let y = this.chord.stemDirection === StemDirection.Down ? 0 : -height;
+
+            x -= stemWidth;
 
             // checkAnchors
 
@@ -66,7 +72,7 @@ export default Vue.extend({
                     }
                 } else {
                     if (anchors['stemUpSE']) {
-                        x = anchors['stemUpSE'][0];
+                        x += (this.noteHeadWidth - anchors['stemUpSE'][0]);
                         height -= anchors['stemUpSE'][1];
                     }
                 }
@@ -92,7 +98,7 @@ export default Vue.extend({
             }
 
             return {
-                width: getEngravingDefaults('stemThickness') + 'rem',
+                width: stemWidth + 'rem',
                 height: height + 'rem',
                 x: x + 'rem',
                 y: y + 'rem'
@@ -126,22 +132,22 @@ export default Vue.extend({
                 notesWithDisplacements.push({ isDisplaced: isDisplaced }); // ugly, refactor later
 
                 let anchors = this.noteHeadAnchors;
-                let x = 0;
+                let x: number = 0;
                 let stemWidth = this.stem ? Number.parseFloat(this.stem['width']) : 0;
 
                 if (this.chord.stemDirection === StemDirection.Down) {
                     if (isDisplaced) {
-                        x = stemWidth;
+                        x = 0;
                     } else {
-                        x = this.noteHeadWidth as number;
+                        x = this.noteHeadWidth - stemWidth;
 
                         if (anchors && anchors['stemUpSE']) {
-                            x += (this.noteHeadWidth as number) - anchors['stemUpSE'][0];
+                            x += this.noteHeadWidth - anchors['stemUpSE'][0];
                         }
                     }
                 } else {
                     if (isDisplaced) {
-                        x = this.noteHeadWidth as number;
+                        x = this.noteHeadWidth * 2;
 
                         if (anchors && anchors['stemDownNW']) {
                             x -= anchors['stemDownNW'][0];
@@ -149,7 +155,7 @@ export default Vue.extend({
 
                         x -= stemWidth;
                     } else {
-                        x = 0;
+                        x = this.noteHeadWidth;
                     }
                 }
 
