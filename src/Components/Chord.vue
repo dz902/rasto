@@ -51,15 +51,28 @@ export default Vue.extend({
                 return ledgerLines;
             }
 
+            let stemWidth = this.stem ? this.stem.width : 0;
             let ledgerLineExtension = getEngravingDefaults('legerLineExtension') * 2;
+            let basicOffset = -ledgerLineExtension / 2;
             let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
+
+            let checkDisplacedNotes = (filter: (n: Note) => boolean): boolean => {
+                return this.chord.notes.reduce((displacedNotesIndices: number[], note: Note, i: number): number[] => {
+                    if (filter(note)) {
+                        if (this.noteHeads[i].isDisplaced) {
+                            displacedNotesIndices.push(i);
+                        }
+                    }
+
+                    return displacedNotesIndices;
+                }, []).length > 0;
+            };
 
             if (this.highestNotePosition > staffBoundaryPositions.highest) {
                 let extraThirds = Math.floor(this.highestNotePosition) - staffBoundaryPositions.highest;
-                let ledgerNotesIsDisplaced = at(this.noteHeads, range(this.noteHeads.length-1-extraThirds, this.noteHeads.length-1)).some(n => n.isDisplaced)
-                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 : this.noteHeadWidth;
+                let ledgerNotesIsDisplaced = checkDisplacedNotes(n => getNotePosition(n) >= this.highestNotePosition + 1);
+                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
-                let basicOffset = (chordWidth - ledgerLineWidth) / 2;
 
                 for (let i = 0, n = extraThirds; i < n; ++i) {
                     let y = this.highestNotePosition - i - 1;
@@ -75,10 +88,17 @@ export default Vue.extend({
 
             if (this.lowestNotePosition < staffBoundaryPositions.lowest) {
                 let extraThirds = Math.abs(Math.ceil(this.lowestNotePosition) - staffBoundaryPositions.lowest);
-                let ledgerNotesIsDisplaced = at(this.noteHeads, range(extraThirds)).some(n => n.isDisplaced);
-                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 : this.noteHeadWidth;
+                let ledgerNotesIsDisplaced = checkDisplacedNotes(n => getNotePosition(n) <= this.lowestNotePosition - 1);
+                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
-                let basicOffset = (chordWidth - ledgerLineWidth) / 2;
+
+                if (this.chord.stemDirection === StemDirection.Down) {
+                    if (!ledgerNotesIsDisplaced) {
+                        basicOffset += this.noteHeadWidth-stemWidth;
+                    }
+                } else {
+
+                }
 
                 for (let i = 0, n = extraThirds; i < n; ++i) {
                     ledgerLines.push({
@@ -183,12 +203,10 @@ export default Vue.extend({
 
             // computedDisplacement
 
-            let addDisplacement = (notesDisplacements: boolean[], note: Note, i: number, notes: Note[]) => {
+            let addDisplacement = (noteHeadsBindings: Bindings[], note: Note, i: number, notes: Note[]) => {
                 let prevNote = notes[i-1];
-                let adjacentNoteFound = i > 0 && getIntervalBetween(note, prevNote) === 2;
-                let isDisplaced = adjacentNoteFound && notesDisplacements[i-1] === false;
-
-                notesDisplacements.push(isDisplaced); // ugly, refactor later
+                let adjacentNoteFound = prevNote !== undefined && getIntervalBetween(note, prevNote) === 2;
+                let isDisplaced = adjacentNoteFound && !noteHeadsBindings[i-1].isDisplaced;
 
                 let anchors = this.noteHeadAnchors;
                 let x: number = 0;
@@ -218,30 +236,26 @@ export default Vue.extend({
                     }
                 }
 
-                let noteHeadBindings = {
+                noteHeadsBindings.push({
                     x: x,
                     isDisplaced: isDisplaced
-                };
+                });
 
-                noteHeadsBindings.push(noteHeadBindings); // ugly, refactor later
-
-                return notesDisplacements;
+                return noteHeadsBindings;
             };
 
-            let notes: Note[] = Array.from(this.chord.notes);
-
             if (this.chord.stemDirection === StemDirection.Up) {
-                notes.reduce(addDisplacement, []);
+                noteHeadsBindings = this.chord.notes.reduce(addDisplacement, []);
             } else {
-                notes.reverse().reduce(addDisplacement, []);
-
-                noteHeadsBindings.reverse(); // ugly refactor later
+                noteHeadsBindings = (Array.from(this.chord.notes) as Note[]).reverse().reduce(addDisplacement, []).reverse();
             }
 
             // computeShift
 
-            notes.forEach((note, i) => {
-                noteHeadsBindings[i].y = -(getNotePosition(note)-this.lowestNotePosition);
+            noteHeadsBindings = noteHeadsBindings.map((n, i) => {
+                n.y = -(getNotePosition(this.chord.notes[i]) - this.lowestNotePosition);
+
+                return n;
             });
 
             return noteHeadsBindings;
