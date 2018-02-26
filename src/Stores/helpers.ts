@@ -1,5 +1,11 @@
 import { Clef, ClefSign, GlyphKinds, MarkType, Note } from 'types';
 
+export function getStaffBoundaryPositionsFromClef(clef: Clef): { lowest: number, highest: number } {
+    return {
+        lowest: getStaffLinePositionFromClef(clef, 1),
+        highest: getStaffLinePositionFromClef(clef, 5)
+    }
+}
 export function getStaffBottomLinePositionFromClef(clef: Clef): number {
     let bottomPosition = 0;
     let dummyNote: Note;
@@ -21,8 +27,8 @@ export function getStaffBottomLinePositionFromClef(clef: Clef): number {
     return getNotePosition(dummyNote);
 }
 
-export function getStaffLinePositionFromClef(clef: Clef, lineIndex: number): number {
-    return getStaffBottomLinePositionFromClef(clef) + lineIndex;
+export function getStaffLinePositionFromClef(clef: Clef, lineNumber: number): number {
+    return getStaffBottomLinePositionFromClef(clef) + lineNumber - 1;
 }
 
 export function getNotePosition(note: Note): number {

@@ -19,7 +19,12 @@ import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
 import { GlyphKinds, MarkType, Note, StemDirection } from 'types';
 import { last, merge } from 'lodash';
-import { getIntervalBetween, getNotePosition, getPositionDiff } from 'Stores/helpers';
+import {
+    getIntervalBetween,
+    getNotePosition,
+    getPositionDiff,
+    getStaffBoundaryPositionsFromClef
+} from 'Stores/helpers';
 import { getEngravingDefaults, getGlyphAnchors, getGlyphWidth } from 'Fonts/helpers';
 
 type ChordNote = Note & {
@@ -39,6 +44,60 @@ export default Vue.extend({
         }
     },
     computed: {
+        stem(): { [k: string]: string } | null {
+            if (this.chord.type === MarkType.Whole) {
+                return null;
+            }
+
+            let height = 3.5 + this.boundaryNoteSpan;
+            let x = this.noteHeadWidth as number;
+            let y = this.chord.stemDirection === StemDirection.Down ? 0 : -height;
+
+            // checkAnchors
+
+            let anchors = this.noteHeadAnchors;
+
+            if (anchors) {
+                if (this.chord.stemDirection === StemDirection.Down) {
+                    if (anchors['stemDownNW']) {
+                        x += anchors['stemDownNW'][0];
+                        y -= anchors['stemDownNW'][1]+this.boundaryNoteSpan;
+                        height += anchors['stemDownNW'][1];
+                    }
+                } else {
+                    if (anchors['stemUpSE']) {
+                        x = anchors['stemUpSE'][0];
+                        height -= anchors['stemUpSE'][1];
+                    }
+                }
+            }
+
+            // checkExtension
+
+            if (this.clef) {
+                let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
+
+                if (this.chord.stemDirection === StemDirection.Down &&
+                    this.lowestNotePosition > staffBoundaryPositions.highest + 1.5) {
+                    let diff = getPositionDiff(this.lowestNotePosition, staffBoundaryPositions.highest + 1.5);
+
+                    height += diff;
+                } else if (this.chord.stemDirection === StemDirection.Up &&
+                           this.highestNotePosition < staffBoundaryPositions.lowest - 1.5) {
+                    let diff = getPositionDiff(this.highestNotePosition, staffBoundaryPositions.lowest - 1.5);
+
+                    y -= diff;
+                    height += diff;
+                }
+            }
+
+            return {
+                width: getEngravingDefaults('stemThickness') + 'rem',
+                height: height + 'rem',
+                x: x + 'rem',
+                y: y + 'rem'
+            };
+        },
         noteHeadChar(): string {
             let typeToHeadCodePoint: {[k: string]: number} = {
                 [MarkType.Whole]: 0xE0A2,
@@ -57,6 +116,8 @@ export default Vue.extend({
         noteHeads(): object[] {
             let noteHeadsBindings: { [k: string]: any }[] = [];
 
+            // computedDisplacement
+
             let addDisplacement = (notesWithDisplacements: (typeof noteHeadsBindings), note: Note, i: number, notes: Note[]): object[] => {
                 let prevNote = notes[i-1];
                 let adjacentNoteFound = i > 0 && getIntervalBetween(note, prevNote) === 2;
@@ -66,10 +127,11 @@ export default Vue.extend({
 
                 let anchors = this.noteHeadAnchors;
                 let x = 0;
+                let stemWidth = this.stem ? Number.parseFloat(this.stem['width']) : 0;
 
                 if (this.chord.stemDirection === StemDirection.Down) {
                     if (isDisplaced) {
-                        x = getEngravingDefaults('stemThickness');
+                        x = stemWidth;
                     } else {
                         x = this.noteHeadWidth as number;
 
@@ -85,7 +147,7 @@ export default Vue.extend({
                             x -= anchors['stemDownNW'][0];
                         }
 
-                        x -= getEngravingDefaults('stemThickness');
+                        x -= stemWidth;
                     } else {
                         x = 0;
                     }
@@ -110,62 +172,34 @@ export default Vue.extend({
                 noteHeadsBindings.reverse(); // ugly refactor later
             }
 
-            let lowestNotePosition = getNotePosition(notes[0]);
+            // computeShift
 
             notes.forEach((note, i) => {
-                noteHeadsBindings[i].y = -(getNotePosition(note)-lowestNotePosition) + 'rem';
+                noteHeadsBindings[i].y = -(getNotePosition(note)-this.lowestNotePosition) + 'rem';
             });
 
             return noteHeadsBindings;
-        },
-        stem(): object | null {
-            if (this.chord.type === MarkType.Whole) {
-                return null;
-            }
-
-            let height = 3.5 + getPositionDiff(getNotePosition(this.chord.notes[0]), getNotePosition(this.chord.notes[this.chord.notes.length-1]));
-            let x = this.noteHeadWidth as number;
-            let y = this.chord.stemDirection === StemDirection.Down ? 0 : -height;
-
-            // checkAnchors
-
-            let anchors = this.noteHeadAnchors;
-
-            if (anchors) {
-                if (this.chord.stemDirection === StemDirection.Down) {
-                    if (anchors['stemDownNW']) {
-                        x += anchors['stemDownNW'][0];
-                        y -= anchors['stemDownNW'][1];
-                        height += anchors['stemDownNW'][1];
-                    }
-                } else {
-                    if (anchors['stemUpSE']) {
-                        x = anchors['stemUpSE'][0];
-                        height -= anchors['stemUpSE'][1];
-                    }
-                }
-            }
-
-            return {
-                height: height + 'rem',
-                x: x + 'rem',
-                y: y + 'rem'
-            };
         },
         noteHeadWidth(): number {
             return getGlyphWidth(GlyphKinds.NoteHead, this.chord.type as string);
         },
         noteHeadAnchors(): { [k:string]: [number, number] } | null {
             return getGlyphAnchors(GlyphKinds.NoteHead, this.chord.type);
-        }
-    },
-    methods: {
-        computeDisplacement(isDisplaced: boolean): number {
-            if (this.chord.stemDirection === StemDirection.Down) {
-                return isDisplaced ? 0 : this.noteHeadWidth as number;
+        },
+        lowestNotePosition(): number {
+            return getNotePosition(this.chord.notes[0]);
+        },
+        highestNotePosition(): number {
+            let lastNote: Note | undefined = last(this.chord.notes);
+
+            if (lastNote) {
+                return getNotePosition(lastNote);
             } else {
-                return isDisplaced ? this.noteHeadWidth as number : 0;
+                return this.lowestNotePosition;
             }
+        },
+        boundaryNoteSpan(): number {
+            return getPositionDiff(this.lowestNotePosition, this.highestNotePosition);
         }
     },
     components: {
@@ -176,6 +210,5 @@ export default Vue.extend({
 
 <style lang="sass" scoped>
 rect.stem
-    width: 0.12rem
     fill: black
 </style>

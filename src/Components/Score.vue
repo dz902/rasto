@@ -1,6 +1,6 @@
 <template lang="pug">
 svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
-    svg.system(x="0.1rem" y="1rem")
+    svg.system(x="0.1rem" y="10rem")
         svg.staff
             svg.staff-lines
                 line.staff-line(
@@ -32,7 +32,7 @@ import ScoreStore from 'Stores/ScoreStore';
 import ChordComponent from './Chord.vue';
 import { Chord, ClefSign, Context, ContextChange } from 'types';
 import { merge } from 'lodash';
-import { getNotePosition, getStaffBottomLinePositionFromClef } from '../Stores/helpers';
+import { getNotePosition, getPositionDiff, getStaffBottomLinePositionFromClef } from '../Stores/helpers';
 
 export default Vue.extend({
     name: 'score',
@@ -54,12 +54,14 @@ export default Vue.extend({
 
                     switch(item.kind) {
                         case 'chord':
+                            let currentClef = this.currentContexts[item.staffId].clef;
                             let chordBottomNotePosition = getNotePosition(item.notes[0]);
-                            let staffBottomLinePosition = getStaffBottomLinePositionFromClef(this.currentContexts[item.staffId].clef);
+                            let staffBottomLinePosition = getStaffBottomLinePositionFromClef(currentClef);
 
-                            itemBindings.y = 4 - (chordBottomNotePosition - staffBottomLinePosition) + 'rem';
+                            itemBindings.y = 4 - getPositionDiff(chordBottomNotePosition, staffBottomLinePosition) + 'rem';
 
                             itemBindings.chord = item;
+                            itemBindings.clef = currentClef;
 
                             break;
                     }

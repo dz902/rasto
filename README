@@ -1,4 +1,20 @@
 Rasto
 
-Webpack for bundling
-Auto-compile for smoke-testing
+Todo:
+
+- Extend stem to middle line for distant chords
+- Ledger lines
+- Flags
+- Accidentals
+- Articulations
+- Beams
+- Bars
+- Distribution of chords
+- Clef
+- Meter
+- Grand staff
+- Multiple lines of measures
+- Dots
+- Ties
+- Slurs
+- Dynamics
