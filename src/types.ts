@@ -1,3 +1,7 @@
+export type Bindings = {
+    [k: string]: any
+}
+
 export enum GlyphKinds {
     NoteHead = 'note-head'
 }

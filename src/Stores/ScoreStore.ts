@@ -41,7 +41,11 @@ let scoreTest: Score = {
                     notes: [
                         {
                             name: 'C',
-                            octaveNumber: 5
+                            octaveNumber: 4
+                        },
+                        {
+                            name: 'D',
+                            octaveNumber: 4
                         },
                         {
                             name: 'D',
@@ -52,7 +56,7 @@ let scoreTest: Score = {
                             octaveNumber: 5
                         }
                     ],
-                    stemDirection: StemDirection.Down,
+                    stemDirection: StemDirection.Up,
                     staffId: 0
                 } as Chord
             ]

@@ -2,7 +2,6 @@ Rasto
 
 Todo:
 
-- Generic alignment function
 - Ledger lines
 - Flags
 - Accidentals
@@ -18,3 +17,4 @@ Todo:
 - Ties
 - Slurs
 - Dynamics
+- Generic alignment function
