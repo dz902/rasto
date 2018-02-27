@@ -7,10 +7,15 @@ export function getEngravingDefaults(k: string): number {
 }
 
 export function getGlyphWidth(kind: GlyphKinds, name: string): number {
+    return getGlyphDimensions(kind, name).width;
+}
+
+export function getGlyphDimensions(kind: GlyphKinds, name: string): { width: number, height: number } {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
     let bBox = fontMeta['glyphBBoxes'][glyphKey];
 
-    return bBox['bBoxNE'][0] - bBox['bBoxSW'][0];
+    return { width: bBox['bBoxNE'][0] - bBox['bBoxSW'][0],
+             height: bBox['bBoxNE'][1] - bBox['bBoxSW'][1] };
 }
 
 export function getGlyphAnchors(kind: GlyphKinds, name: string): { [k:string]: [number, number] } | null {

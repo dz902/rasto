@@ -1,5 +1,26 @@
-export type Bindings = {
+export interface Bindings {
     [k: string]: any
+}
+
+export type BBox = Bindings & {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+};
+
+export interface Anchored extends Bindings {
+    anchor: Positioned;
+}
+
+export interface Positioned extends Bindings {
+    x: number;
+    y: number;
+}
+
+export interface Dimensioned extends Bindings {
+    width: number;
+    height: number;
 }
 
 export enum GlyphKinds {
@@ -166,6 +187,7 @@ export enum StemDirection {
     Down = 'down'
 }
 
+
 /**
  * Utilities
  */
@@ -174,3 +196,4 @@ export type Nullable<T> = T | null;
 export type Partial<T> = {
     [P in keyof T]?: T[P];
 }
+
