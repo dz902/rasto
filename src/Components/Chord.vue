@@ -35,7 +35,7 @@ import {
 import { at, range, first, last, merge } from 'lodash';
 import {
     getIntervalBetween,
-    getNotePosition,
+    getNoteY,
     getPositionDiff,
     getStaffBoundaryPositionsFromClef
 } from 'Stores/helpers';
@@ -55,7 +55,6 @@ export default Vue.extend({
     },
     computed: {
         ledgerLines() {
-            /*
             let ledgerLines: Bindings[] = [];
 
             if (!this.clef) {
@@ -66,26 +65,19 @@ export default Vue.extend({
             let basicOffset = -ledgerLineExtension / 2;
             let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
-            let checkDisplacedNotes = (filter: (n: Note) => boolean): boolean => {
-                return this.chord.notes.reduce((displacedNotesIndices: number[], note: Note, i: number): number[] => {
-                    if (filter(note)) {
-                        if (this.noteHeads[i].isDisplaced) {
-                            displacedNotesIndices.push(i);
-                        }
-                    }
-
-                    return displacedNotesIndices;
-                }, []).length > 0;
+            let checkDisplacedNotes = (filter: (n: NoteHead, i: number) => boolean): boolean => {
+                console.log(this.noteHeads, this.lowestNoteY, this.highestNoteY);
+                return this.noteHeads.some((n, i) => filter(n, i) && n.isDisplaced);
             };
 
-            if (this.highestNotePosition > staffBoundaryPositions.highest) {
-                let extraThirds = Math.floor(this.highestNotePosition) - staffBoundaryPositions.highest;
-                let ledgerNotesIsDisplaced = checkDisplacedNotes(n => getNotePosition(n) >= this.highestNotePosition + 1);
+            if (this.highestNoteY > staffBoundaryPositions.highest) {
+                let extraThirds = Math.floor(this.highestNoteY) - staffBoundaryPositions.highest;
+                let ledgerNotesIsDisplaced = checkDisplacedNotes((n, i) => this.noteYs[i] >= staffBoundaryPositions.highest + 1);
                 let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
 
                 for (let i = 0, n = extraThirds; i < n; ++i) {
-                    let y = this.highestNotePosition - i - 1;
+                    let y = this.highestNoteY - i - 1;
 
                     ledgerLines.push({
                         x1: basicOffset,
@@ -96,15 +88,15 @@ export default Vue.extend({
                 }
             }
 
-            if (this.lowestNotePosition < staffBoundaryPositions.lowest) {
-                let extraThirds = Math.abs(Math.ceil(this.lowestNotePosition) - staffBoundaryPositions.lowest);
-                let ledgerNotesIsDisplaced = checkDisplacedNotes(n => getNotePosition(n) <= this.lowestNotePosition - 1);
-                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - stemWidth : this.noteHeadWidth;
+            if (this.lowestNoteY < staffBoundaryPositions.lowest) {
+                let extraThirds = Math.abs(Math.ceil(this.lowestNoteY) - staffBoundaryPositions.lowest);
+                let ledgerNotesIsDisplaced = checkDisplacedNotes((n, i) => this.noteYs[i] <= staffBoundaryPositions.lowest - 1);
+                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
 
                 if (this.chord.stemDirection === StemDirection.Down) {
                     if (!ledgerNotesIsDisplaced) {
-                        basicOffset += this.noteHeadWidth-stemWidth;
+                        basicOffset += this.noteHeadWidth-this.stemWidth;
                     }
                 } else {
 
@@ -132,7 +124,6 @@ export default Vue.extend({
             });
 
             return ledgerLines;
-            */
         },
         stem(): Nullable<Bindings> {
             if (this.chord.type === MarkType.Whole) {
@@ -153,13 +144,13 @@ export default Vue.extend({
                 let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
                 if (this.chord.stemDirection === StemDirection.Down &&
-                    this.lowestNotePosition > staffBoundaryPositions.highest + 1.5) {
-                    let diff = getPositionDiff(this.lowestNotePosition, staffBoundaryPositions.highest + 1.5);
+                    this.lowestNoteY > staffBoundaryPositions.highest + 1.5) {
+                    let diff = getPositionDiff(this.lowestNoteY, staffBoundaryPositions.highest + 1.5);
 
                     height += diff;
                 } else if (this.chord.stemDirection === StemDirection.Up &&
-                    this.highestNotePosition < staffBoundaryPositions.lowest - 1.5) {
-                    let diff = getPositionDiff(this.highestNotePosition, staffBoundaryPositions.lowest - 1.5);
+                    this.highestNoteY < staffBoundaryPositions.lowest - 1.5) {
+                    let diff = getPositionDiff(this.highestNoteY, staffBoundaryPositions.lowest - 1.5);
 
                     height += diff;
                 }
@@ -240,7 +231,7 @@ export default Vue.extend({
             // computeShift
 
             noteHeadsBindings = noteHeadsBindings.map((n: NoteHead, i) => {
-                n.y = -(getNotePosition(this.chord.notes[i]) - this.lowestNotePosition);
+                n.y = -(this.noteYs[i] - this.lowestNoteY);
 
                 return n;
             });
@@ -273,17 +264,17 @@ export default Vue.extend({
                 { x: 0, y: 0 } :
                 { x: this.noteHeadDimensions.width, y: 0 };
         },
-        notePositions(): number[] {
-            return this.chord.notes.map(getNotePosition);
+        noteYs(): number[] {
+            return this.chord.notes.map(getNoteY);
         },
-        lowestNotePosition(): number {
-            return this.notePositions[0];
+        lowestNoteY(): number {
+            return this.noteYs[0];
         },
-        highestNotePosition(): number {
-            return last(this.notePositions) || this.lowestNotePosition;
+        highestNoteY(): number {
+            return last(this.noteYs) || this.lowestNoteY;
         },
         boundaryNoteSpan(): number {
-            return getPositionDiff(this.lowestNotePosition, this.highestNotePosition);
+            return getPositionDiff(this.lowestNoteY, this.highestNoteY);
         },
         stemWidth(): number {
             return getEngravingDefaults('stemThickness');

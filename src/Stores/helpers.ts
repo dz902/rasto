@@ -24,14 +24,14 @@ export function getStaffBottomLinePositionFromClef(clef: Clef): number {
             };
     }
 
-    return getNotePosition(dummyNote);
+    return getNoteY(dummyNote);
 }
 
 export function getStaffLinePositionFromClef(clef: Clef, lineNumber: number): number {
     return getStaffBottomLinePositionFromClef(clef) + lineNumber - 1;
 }
 
-export function getNotePosition(note: Note): number {
+export function getNoteY(note: Note): number {
     return ((note.octaveNumber * 7) + 'CDEFGAB'.indexOf(note.name)) / 2;
 }
 
@@ -40,5 +40,5 @@ export function getPositionDiff(a: number, b: number): number {
 }
 
 export function getIntervalBetween(noteA: Note, noteB: Note): number {
-    return getPositionDiff(getNotePosition(noteA) , getNotePosition(noteB))*2 + 1;
+    return getPositionDiff(getNoteY(noteA) , getNoteY(noteB))*2 + 1;
 }

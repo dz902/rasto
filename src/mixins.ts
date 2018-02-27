@@ -1,4 +1,4 @@
-import { Anchored, Bindings, Positioned } from 'types';
+import { Anchored, Bindings, Dimensioned, Positioned } from 'types';
 import { isNumber, isObject, mapValues, merge } from 'lodash';
 
 export const Remizer = {
@@ -24,8 +24,15 @@ export const Layout = {
                 y: target.y + offset.y,
                 anchor: null
             });
-            
+
             return snapped;
+        },
+        alignCenter(ref: Positioned & Dimensioned, { anchor }: Anchored): Positioned {
+            let aligned: Positioned = merge({}, ref, {
+                x: anchor.x - ref.width
+            });
+
+            return aligned;
         },
         dupleToCoordinates(anchor: [number, number]): Positioned {
             return { x: anchor[0], y: -anchor[1] };
