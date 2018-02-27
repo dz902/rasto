@@ -33,8 +33,8 @@ import ChordComponent from './Chord.vue';
 import { Chord, ClefSign, Context, ContextChange } from 'types';
 import { merge } from 'lodash';
 import {
-    getNoteY,
-    getPositionDiff,
+    getNotePosition,
+    computePositionDiff,
     getStaffBottomLinePositionFromClef,
     getStaffLinePositionFromClef
 } from '../Stores/helpers';
@@ -60,7 +60,7 @@ export default Vue.extend({
                     switch(item.kind) {
                         case 'chord':
                             let currentClef = this.currentContexts[item.staffId].clef;
-                            let chordBottomNotePosition = getNoteY(item.notes[0]);
+                            let chordBottomNotePosition = getNotePosition(item.notes[0]);
                             let staffBottomLinePosition = getStaffLinePositionFromClef(currentClef, 1);
 
                             itemBindings.y = 4 - (chordBottomNotePosition - staffBottomLinePosition) + 'rem';

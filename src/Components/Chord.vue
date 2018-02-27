@@ -12,7 +12,7 @@ svg.chord()
             v-bind="remize(noteHead)"
         ) {{ noteHeadChar }}
     rect.stem(
-        v-if="stem"
+        v-if="!stem.isVirtual"
         v-bind="remize(stem)"
     )
 </template>
@@ -35,8 +35,8 @@ import {
 import { at, range, first, last, merge } from 'lodash';
 import {
     getIntervalBetween,
-    getNoteY,
-    getPositionDiff,
+    getNotePosition,
+    computePositionDiff,
     getStaffBoundaryPositionsFromClef
 } from 'Stores/helpers';
 import { getEngravingDefaults, getGlyphAnchors, getGlyphDimensions, getGlyphWidth } from 'Fonts/helpers';
@@ -61,51 +61,78 @@ export default Vue.extend({
                 return ledgerLines;
             }
 
+            let self = this as any;
+
             let ledgerLineExtension = getEngravingDefaults('legerLineExtension') * 2;
-            let basicOffset = -ledgerLineExtension / 2;
             let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
             let checkDisplacedNotes = (filter: (n: NoteHead, i: number) => boolean): boolean => {
-                console.log(this.noteHeads, this.lowestNoteY, this.highestNoteY);
                 return this.noteHeads.some((n, i) => filter(n, i) && n.isDisplaced);
             };
 
-            if (this.highestNoteY > staffBoundaryPositions.highest) {
-                let extraThirds = Math.floor(this.highestNoteY) - staffBoundaryPositions.highest;
-                let ledgerNotesIsDisplaced = checkDisplacedNotes((n, i) => this.noteYs[i] >= staffBoundaryPositions.highest + 1);
-                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
-                let ledgerLineWidth = ledgerLineExtension + chordWidth;
+            let computeLedgerLineOffset = (ledgerLineWidth: number, ledgerNotesDisplaced: boolean): number => {
+                let dummyLedger: Anchored = {
+                    anchor: {
+                        x: ledgerLineWidth / 2,
+                        y: 0
+                    }
+                };
 
-                for (let i = 0, n = extraThirds; i < n; ++i) {
-                    let y = this.highestNoteY - i - 1;
+                let alignmentTarget: Positioned & Dimensioned;
+
+                if (ledgerNotesDisplaced) {
+                    alignmentTarget = this.stem;
+                } else {
+                    if (this.stemDownward) {
+                        alignmentTarget = last(this.noteHeads) as NoteHead;
+                    } else {
+                        alignmentTarget = first(this.noteHeads) as NoteHead;
+                    }
+                }
+
+                let { x } = self.alignToCenter(dummyLedger, alignmentTarget);
+
+                return x;
+            };
+
+            let firstHigherLedgerLinePosition = staffBoundaryPositions.highest + 1;
+
+            if (this.highestNotePosition > firstHigherLedgerLinePosition) {
+                let ledgerNotesDisplaced = checkDisplacedNotes((n, i) => this.notePositions[i] >= firstHigherLedgerLinePosition);
+                let chordWidth = ledgerNotesDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
+                let ledgerLineWidth = ledgerLineExtension + chordWidth;
+                let extraThirds = this.highestNotePosition - staffBoundaryPositions.highest;
+
+                let offsetX = computeLedgerLineOffset(ledgerLineWidth, ledgerNotesDisplaced);
+
+                for (let i = extraThirds % 1, n = extraThirds; i < n; ++i) {
+                    let y = -(this.boundaryNoteSpan - i);
 
                     ledgerLines.push({
-                        x1: basicOffset,
-                        x2: basicOffset + ledgerLineWidth,
+                        x1: offsetX,
+                        x2: offsetX + ledgerLineWidth,
                         y1: y,
                         y2: y
                     });
                 }
             }
 
-            if (this.lowestNoteY < staffBoundaryPositions.lowest) {
-                let extraThirds = Math.abs(Math.ceil(this.lowestNoteY) - staffBoundaryPositions.lowest);
-                let ledgerNotesIsDisplaced = checkDisplacedNotes((n, i) => this.noteYs[i] <= staffBoundaryPositions.lowest - 1);
-                let chordWidth = ledgerNotesIsDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
+            let firstLowerLedgerLinePosition = staffBoundaryPositions.lowest - 1;
+
+            if (this.lowestNotePosition < firstLowerLedgerLinePosition) {
+                let ledgerNotesDisplaced = checkDisplacedNotes((n, i) => this.notePositions[i] <= firstLowerLedgerLinePosition);
+                let chordWidth = ledgerNotesDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
 
-                if (this.chord.stemDirection === StemDirection.Down) {
-                    if (!ledgerNotesIsDisplaced) {
-                        basicOffset += this.noteHeadWidth-this.stemWidth;
-                    }
-                } else {
+                let offsetX = computeLedgerLineOffset(ledgerLineWidth, ledgerNotesDisplaced);
+                console.log('xxx', offsetX);
 
-                }
+                let extraThirds = this.lowestNotePosition - staffBoundaryPositions.lowest;
 
-                for (let i = 0, n = extraThirds; i < n; ++i) {
+                for (let i = extraThirds % 1, n = extraThirds; i > n; --i) {
                     ledgerLines.push({
-                        x1: basicOffset,
-                        x2: basicOffset + ledgerLineWidth,
+                        x1: offsetX,
+                        x2: offsetX + ledgerLineWidth,
                         y1: i,
                         y2: i
                     });
@@ -113,11 +140,6 @@ export default Vue.extend({
             }
 
             ledgerLines = ledgerLines.map(l => {
-                let noteOffsetCompensation = this.stemDownward ? 0 : this.noteHeadWidth;
-
-                l.x1 += noteOffsetCompensation;
-                l.x2 += noteOffsetCompensation;
-
                 l['stroke-width'] = getEngravingDefaults('legerLineThickness');
 
                 return l;
@@ -125,11 +147,7 @@ export default Vue.extend({
 
             return ledgerLines;
         },
-        stem(): Nullable<Bindings> {
-            if (this.chord.type === MarkType.Whole) {
-                return null;
-            }
-
+        stem(): Stem {
             // FIX
 
             let self = this as any;
@@ -144,26 +162,35 @@ export default Vue.extend({
                 let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
                 if (this.chord.stemDirection === StemDirection.Down &&
-                    this.lowestNoteY > staffBoundaryPositions.highest + 1.5) {
-                    let diff = getPositionDiff(this.lowestNoteY, staffBoundaryPositions.highest + 1.5);
+                    this.lowestNotePosition > staffBoundaryPositions.highest + 1.5) {
+                    let diff = computePositionDiff(this.lowestNotePosition, staffBoundaryPositions.highest + 1.5);
 
                     height += diff;
                 } else if (this.chord.stemDirection === StemDirection.Up &&
-                    this.highestNoteY < staffBoundaryPositions.lowest - 1.5) {
-                    let diff = getPositionDiff(this.highestNoteY, staffBoundaryPositions.lowest - 1.5);
+                    this.highestNotePosition < staffBoundaryPositions.lowest - 1.5) {
+                    let diff = computePositionDiff(this.highestNotePosition, staffBoundaryPositions.lowest - 1.5);
 
                     height += diff;
                 }
             }
 
             let snapNote: NoteHead = this.stemDownward ? last(this.noteHeads)! : first(this.noteHeads)!;
-            let stem = {
+            let stem: Stem = {
                 width: this.stemWidth,
                 height: height,
                 x: 0,
                 y: 0,
-                anchor: this.stemDownward ? { x: 0, y: 0 } : { x: this.stemWidth, y: height }
+                anchor: this.stemDownward ? { x: 0, y: 0 } : { x: this.stemWidth, y: height },
+                isVirtual: false
             };
+
+            // although whole notes does not need stem
+            // it could still help aligning ledgers
+            // so we keep it here
+
+            if (this.chord.type === MarkType.Whole) {
+                stem.isVirtual = true;
+            }
 
             stem = self.snapTo(stem, snapNote);
 
@@ -198,7 +225,7 @@ export default Vue.extend({
 
                 if (this.chord.stemDirection === StemDirection.Down) {
                     if (isDisplaced) {
-                        x = 0;
+                        x = this.stemWidth;
                     } else {
                         x = this.noteHeadWidth;
                     }
@@ -216,7 +243,8 @@ export default Vue.extend({
                     x: x,
                     y: 0,
                     anchor: this.noteHeadAnchors,
-                    isDisplaced: isDisplaced
+                    isDisplaced: isDisplaced,
+                    ...this.noteHeadDimensions
                 });
 
                 return noteHeadsBindings;
@@ -231,7 +259,7 @@ export default Vue.extend({
             // computeShift
 
             noteHeadsBindings = noteHeadsBindings.map((n: NoteHead, i) => {
-                n.y = -(this.noteYs[i] - this.lowestNoteY);
+                n.y = -(this.notePositions[i] - this.lowestNotePosition);
 
                 return n;
             });
@@ -264,17 +292,17 @@ export default Vue.extend({
                 { x: 0, y: 0 } :
                 { x: this.noteHeadDimensions.width, y: 0 };
         },
-        noteYs(): number[] {
-            return this.chord.notes.map(getNoteY);
+        notePositions(): number[] {
+            return this.chord.notes.map(getNotePosition);
         },
-        lowestNoteY(): number {
-            return this.noteYs[0];
+        lowestNotePosition(): number {
+            return this.notePositions[0];
         },
-        highestNoteY(): number {
-            return last(this.noteYs) || this.lowestNoteY;
+        highestNotePosition(): number {
+            return last(this.notePositions) || this.lowestNotePosition;
         },
         boundaryNoteSpan(): number {
-            return getPositionDiff(this.lowestNoteY, this.highestNoteY);
+            return computePositionDiff(this.lowestNotePosition, this.highestNotePosition);
         },
         stemWidth(): number {
             return getEngravingDefaults('stemThickness');
@@ -291,8 +319,12 @@ export default Vue.extend({
     ]
 });
 
-interface NoteHead extends Positioned, Anchored {
+interface NoteHead extends Dimensioned, Positioned, Anchored {
     isDisplaced: boolean
+}
+
+interface Stem extends Dimensioned, Positioned {
+    isVirtual: boolean;
 }
 </script>
 

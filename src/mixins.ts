@@ -17,20 +17,19 @@ export const Remizer = {
 
 export const Layout = {
     methods: {
-        snapTo(ref: Anchored, target: Anchored): Positioned {
-            let offset = (this as any).getAlignmentOffsets(ref.anchor, target.anchor);
-            let snapped: Positioned = merge({}, ref, {
+        snapTo(subject: Anchored, target: Anchored): Positioned {
+            let offset = (this as any).getAlignmentOffsets(subject.anchor, target.anchor);
+            let snapped: Positioned = merge({}, subject, {
                 x: target.x + offset.x,
-                y: target.y + offset.y,
-                anchor: null
+                y: target.y + offset.y
             });
 
             return snapped;
         },
-        alignCenter(ref: Positioned & Dimensioned, { anchor }: Anchored): Positioned {
-            let aligned: Positioned = merge({}, ref, {
-                x: anchor.x - ref.width
-            });
+        alignToCenter(subject: Anchored, target: Positioned & Dimensioned): Positioned {
+            let aligned: Positioned = {...subject, ...{ x: target.x + target.width / 2 - subject.anchor.x, y: 0 /*FIX*/ } };
+
+            console.log(subject.anchor, target, aligned);
 
             return aligned;
         },

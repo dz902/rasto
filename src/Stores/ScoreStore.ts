@@ -40,12 +40,8 @@ let scoreTest: Score = {
                     type: MarkType.Quarter,
                     notes: [
                         {
-                            name: 'B',
-                            octaveNumber: 3
-                        },
-                        {
                             name: 'D',
-                            octaveNumber: 4
+                            octaveNumber: 2
                         },
                         {
                             name: 'D',
@@ -54,9 +50,21 @@ let scoreTest: Score = {
                         {
                             name: 'E',
                             octaveNumber: 5
+                        },
+                        {
+                            name: 'F',
+                            octaveNumber: 6
+                        },
+                        {
+                            name: 'A',
+                            octaveNumber: 6
+                        },
+                        {
+                            name: 'B',
+                            octaveNumber: 6
                         }
                     ],
-                    stemDirection: StemDirection.Down,
+                    stemDirection: StemDirection.Up,
                     staffId: 0
                 } as Chord
             ]

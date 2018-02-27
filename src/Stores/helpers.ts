@@ -24,21 +24,21 @@ export function getStaffBottomLinePositionFromClef(clef: Clef): number {
             };
     }
 
-    return getNoteY(dummyNote);
+    return getNotePosition(dummyNote);
 }
 
 export function getStaffLinePositionFromClef(clef: Clef, lineNumber: number): number {
     return getStaffBottomLinePositionFromClef(clef) + lineNumber - 1;
 }
 
-export function getNoteY(note: Note): number {
+export function getNotePosition(note: Note): number {
     return ((note.octaveNumber * 7) + 'CDEFGAB'.indexOf(note.name)) / 2;
 }
 
-export function getPositionDiff(a: number, b: number): number {
+export function computePositionDiff(a: number, b: number): number {
     return Math.abs(a - b);
 }
 
 export function getIntervalBetween(noteA: Note, noteB: Note): number {
-    return getPositionDiff(getNoteY(noteA) , getNoteY(noteB))*2 + 1;
+    return computePositionDiff(getNotePosition(noteA) , getNotePosition(noteB))*2 + 1;
 }
