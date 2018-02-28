@@ -125,7 +125,6 @@ export default Vue.extend({
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
 
                 let offsetX = computeLedgerLineOffset(ledgerLineWidth, ledgerNotesDisplaced);
-                console.log('xxx', offsetX);
 
                 let extraThirds = this.lowestNotePosition - staffBoundaryPositions.lowest;
 

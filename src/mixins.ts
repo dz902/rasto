@@ -29,8 +29,6 @@ export const Layout = {
         alignToCenter(subject: Anchored, target: Positioned & Dimensioned): Positioned {
             let aligned: Positioned = {...subject, ...{ x: target.x + target.width / 2 - subject.anchor.x, y: 0 /*FIX*/ } };
 
-            console.log(subject.anchor, target, aligned);
-
             return aligned;
         },
         dupleToCoordinates(anchor: [number, number]): Positioned {
