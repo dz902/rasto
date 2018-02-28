@@ -40,5 +40,9 @@ package-lock.json
 # Backstop
 bitmaps_test/*
 
+# Cypress
+cypress/videos
+cypress/screenshots
+
 # Other
 tmp

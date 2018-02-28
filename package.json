@@ -45,7 +45,7 @@
     "vtest": "backstop test --config=tests/backstop/backstop.config.json",
     "test": "jest --config=tests/jest/jest.config.js",
     "watch": "webpack -w",
-    "btest": "cd tests; ../node_modules/.bin/cypress open -c userAgent=Chrome"
+    "btest": "cd tests; ../node_modules/.bin/cypress open"
   },
   "repository": {
     "type": "git",
