@@ -1,7 +1,7 @@
-import { FlagType, GlyphKind, MarkType, StemDirection } from '../types';
+import { FlagType, GlyphKind, MarkType, StemDirection } from 'types/music';
 
-const fontCodePoints = require('Fonts/Meta/glyphnames.json');
-const fontMeta = require('Fonts/Bravura/bravura_metadata.json');
+const fontCodePoints = require('fonts/meta/glyphnames.json');
+const fontMeta = require('fonts/bravura/bravura_metadata.json');
 
 export function getEngravingDefaults(k: string): number {
     return fontMeta['engravingDefaults'][k];

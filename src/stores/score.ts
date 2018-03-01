@@ -1,9 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
-    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem, StemDirection,
+    StemDirection} from 'types/music';
+import {
+    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
     Tie
-} from 'types';
+} from '../types/music';
 
 Vue.use(Vuex);
 

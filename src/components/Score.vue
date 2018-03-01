@@ -28,16 +28,17 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
 
 <script lang="ts">
 import Vue from 'vue';
-import ScoreStore from 'Stores/ScoreStore';
+import ScoreStore from 'stores/score';
 import ChordComponent from './Chord.vue';
-import { Chord, ClefSign, Context, ContextChange } from 'types';
+import { ClefSign} from 'types/music';
 import { merge } from 'lodash';
 import {
     getNotePosition,
     computePositionDiff,
     getStaffBottomLinePositionFromClef,
     getStaffLinePositionFromClef
-} from '../Stores/helpers';
+} from '../helpers/store';
+import { Chord, Context, ContextChange } from '../types/music';
 
 export default Vue.extend({
     name: 'score',
@@ -92,7 +93,7 @@ export default Vue.extend({
 <style lang="sass" scoped>
 @font-face
     font-family: Bravura
-    src: url(../Fonts/Bravura/woff/Bravura.woff2)
+    src: url(../fonts/bravura/woff/Bravura.woff2)
 
 svg.score
     & /deep/ svg

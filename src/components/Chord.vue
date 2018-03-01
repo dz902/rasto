@@ -1,48 +1,43 @@
 <template lang="pug">
 svg.chord
     line.ledger-line(
-        v-for="ledgerLine in ledgerLines"
-        v-bind="remize(ledgerLine)"
+    v-for="ledgerLine in ledgerLines"
+    v-bind="remize(ledgerLine)"
     )
     glyph-component.note-head(
-        v-for="noteHead in noteHeads"
-        v-bind:key="Math.random()"
-        v-bind="remize(noteHead)"
+    v-for="noteHead in noteHeads"
+    v-bind:key="Math.random()"
+    v-bind="remize(noteHead)"
     ) {{ noteHead.textContent }}
     rect.stem(
-        v-if="!stem.isVirtual"
-        v-bind="remize(stem)"
+    v-if="!stem.isVirtual"
+    v-bind="remize(stem)"
     )
     glyph-component.flag(
-        v-for="flag in flags"
-        v-bind:key="Math.random()"
-        v-bind="remize(flag)"
+    v-for="flag in flags"
+    v-bind:key="Math.random()"
+    v-bind="remize(flag)"
     ) {{ flag.textContent }}
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
-import { Remizer, Layout } from 'mixins';
-import {
-    Nullable,
-    Bindings,
-    GlyphKind,
-    MarkType,
-    Note,
-    StemDirection,
-    Positioned,
-    Anchored,
-    Dimensioned, FlagType
-} from 'types';
-import { at, range, first, last, merge } from 'lodash';
+import { Bindings, Anchored, Dimensioned, Positioned, FlagType, GlyphKind, MarkType, Note, StemDirection } from 'types';
+import { remize } from 'mixins';
 import {
     getIntervalBetween,
     getNotePosition,
     computePositionDiff,
-    getStaffBoundaryPositionsFromClef
-} from 'Stores/helpers';
-import { getEngravingDefaults, getGlyphAnchors, getGlyphChar, getGlyphDimensions, getGlyphWidth } from 'Fonts/helpers';
+    getStaffBoundaryPositionsFromClef,
+    getEngravingDefaults,
+    getGlyphAnchors,
+    getGlyphChar,
+    getGlyphDimensions,
+    getGlyphWidth,
+    alignToCenter, dupleToCoordinates, snapTo
+} from 'helpers';
+import { at, range, first, last, merge } from 'lodash';
 
 export default Vue.extend({
     name: 'chord',
@@ -68,8 +63,6 @@ export default Vue.extend({
             if (!this.clef) {
                 return ledgerLines;
             }
-
-            let self = this as any;
 
             let ledgerLineExtension = getEngravingDefaults('legerLineExtension') * 2;
             let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
@@ -98,7 +91,7 @@ export default Vue.extend({
                     }
                 }
 
-                let { x } = self.alignToCenter(dummyLedger, alignmentTarget);
+                let { x } = alignToCenter(dummyLedger, alignmentTarget);
 
                 return x;
             };
@@ -155,10 +148,6 @@ export default Vue.extend({
             return ledgerLines;
         },
         stem(): Stem {
-            // FIX
-
-            let self = this as any;
-
             // basicOffsets
 
             let height: number = 3.5 + this.boundaryNoteSpan;
@@ -199,7 +188,7 @@ export default Vue.extend({
                 stem.isVirtual = true;
             }
 
-            stem = self.snapTo(stem, snapNote);
+            stem = snapTo(stem, snapNote);
 
             return stem;
         },
@@ -235,7 +224,7 @@ export default Vue.extend({
                 let flagSpacing = (this.stemDownward ? -1 : 1) * getEngravingDefaults('beamSpacing');
                 let flagInternalChar = getGlyphChar(GlyphKind.Flag, FlagType.Internal + this.chord.stemDirection);
 
-                for (let i = 0; i < numFlags; ++ i) {
+                for (let i = 0; i < numFlags; ++i) {
                     let flag: Flag = {
                         textContent: i === 0 ? flagBaseChar : flagInternalChar,
                         x: 0,
@@ -258,9 +247,9 @@ export default Vue.extend({
             // computedDisplacement
 
             let addDisplacement = (noteHeadsBindings: NoteHead[], note: Note, i: number, notes: Note[]) => {
-                let prevNote = notes[i-1];
+                let prevNote = notes[i - 1];
                 let adjacentNoteFound = prevNote !== undefined && getIntervalBetween(note, prevNote) === 2;
-                let isDisplaced = adjacentNoteFound && !noteHeadsBindings[i-1].isDisplaced;
+                let isDisplaced = adjacentNoteFound && !noteHeadsBindings[i - 1].isDisplaced;
 
                 let x = 0;
 
@@ -317,17 +306,16 @@ export default Vue.extend({
             return getGlyphWidth(GlyphKind.NoteHead, this.chord.type as string);
         },
         noteHeadAnchors(): Positioned {
-            let self = this as any;
             let anchors = getGlyphAnchors(GlyphKind.NoteHead, this.chord.type);
 
             if (anchors) {
                 if (this.stemDownward) {
                     if (anchors['stemDownNW']) {
-                        return self.dupleToCoordinates(anchors['stemDownNW']);
+                        return dupleToCoordinates(anchors['stemDownNW']);
                     }
                 } else {
                     if (anchors['stemUpSE']) {
-                        return self.dupleToCoordinates(anchors['stemUpSE']);
+                        return dupleToCoordinates(anchors['stemUpSE']);
                     }
                 }
             }
@@ -359,19 +347,20 @@ export default Vue.extend({
         GlyphComponent
     },
     mixins: [
-      Remizer, Layout
+        remize
     ]
 });
 
 interface NoteHead extends Dimensioned, Positioned, Anchored {
-    isDisplaced: boolean
+    isDisplaced: boolean;
 }
 
-interface Stem extends Dimensioned, Positioned {
+interface Stem extends Dimensioned, Positioned, Anchored {
     isVirtual: boolean;
 }
 
-interface Flag extends Positioned, Anchored {}
+interface Flag extends Positioned, Anchored {
+}
 </script>
 
 <style lang="sass" scoped>

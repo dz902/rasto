@@ -1,27 +1,4 @@
-export interface Bindings {
-    [k: string]: any
-}
-
-export type BBox = Bindings & {
-    width: number;
-    height: number;
-    x: number;
-    y: number;
-};
-
-export interface Anchored extends Bindings {
-    anchor: Positioned;
-}
-
-export interface Positioned extends Bindings {
-    x: number;
-    y: number;
-}
-
-export interface Dimensioned extends Bindings {
-    width: number;
-    height: number;
-}
+import { Partial } from './common';
 
 export enum GlyphKind {
     NoteHead = 'note-head',
@@ -67,12 +44,7 @@ export interface Measure {
     items: MeasureItem[];
 }
 
-/**
- * StaffItem family
- */
-
 export type MeasureItem = Chord | Rest | ContextChange | Bar;
-
 export type ContextChange = Partial<Context> & StaffItem & { kind: 'contextChange' };
 
 export interface Context extends StaffItem {
@@ -126,6 +98,7 @@ export interface Dynamics extends Direction {
 
 export interface ScoreLayout {
     scoreWidth: number;
+
     [k: string]: any;
 }
 
@@ -153,10 +126,6 @@ export interface Meter {
     beatUnit: MarkType;
 }
 
-/**
- * Atomic types
- */
-
 export enum MarkType {
     Whole = 'whole',
     Half = 'half',
@@ -169,7 +138,6 @@ export enum MarkType {
 }
 
 export type NoteName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
-
 export type OctaveNumber = number;
 
 export enum ClefSign {
@@ -198,14 +166,3 @@ export enum StemDirection {
     Up = 'up',
     Down = 'down'
 }
-
-
-/**
- * Utilities
- */
-
-export type Nullable<T> = T | null;
-export type Partial<T> = {
-    [P in keyof T]?: T[P];
-}
-

@@ -1,5 +1,6 @@
-import ChordComponent from 'Components/Chord.vue';
-import { MarkType, StemDirection } from 'types';
+import ChordComponent from 'components/Chord.vue';
+import { StemDirection } from 'types/music';
+import { MarkType } from '../../../src/types/music';
 
 describe('Chord', () => {
     context('#noteHeads', () => {

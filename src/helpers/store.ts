@@ -1,4 +1,5 @@
-import { Clef, ClefSign, GlyphKind, MarkType, Note } from 'types';
+import { ClefSign} from 'types/music';
+import { Clef, GlyphKind, MarkType, Note } from '../types/music';
 
 export function getStaffBoundaryPositionsFromClef(clef: Clef): { lowest: number, highest: number } {
     return {
