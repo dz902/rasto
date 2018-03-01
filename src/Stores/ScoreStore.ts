@@ -37,7 +37,7 @@ let scoreTest: Score = {
             items: [
                 {
                     kind: 'chord',
-                    type: MarkType.Quarter,
+                    type: MarkType.N8th,
                     notes: [
                         {
                             name: 'D',
@@ -64,7 +64,7 @@ let scoreTest: Score = {
                             octaveNumber: 6
                         }
                     ],
-                    stemDirection: StemDirection.Up,
+                    stemDirection: StemDirection.Down,
                     staffId: 0
                 } as Chord
             ]

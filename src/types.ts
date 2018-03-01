@@ -23,8 +23,15 @@ export interface Dimensioned extends Bindings {
     height: number;
 }
 
-export enum GlyphKinds {
-    NoteHead = 'note-head'
+export enum GlyphKind {
+    NoteHead = 'note-head',
+    Flag = 'flag'
+}
+
+export enum FlagType {
+    N8th = '8th',
+    N16th = '16th',
+    Internal = 'internal'
 }
 
 /**
@@ -153,7 +160,12 @@ export interface Meter {
 export enum MarkType {
     Whole = 'whole',
     Half = 'half',
-    Quarter = 'quarter'
+    Quarter = 'quarter',
+    N8th = '8th',
+    N16th = '16th',
+    N32th = '32th',
+    N64th = '64th',
+    N128th = '128th'
 }
 
 export type NoteName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';

@@ -1,20 +1,23 @@
 <template lang="pug">
-svg.chord()
-    svg.ledger-lines
-        line.ledger-line(
-            v-for="ledgerLine in ledgerLines"
-            v-bind="remize(ledgerLine)"
-        )
-    svg.note-heads
-        glyph-component.note-head(
-            v-for="noteHead in noteHeads"
-            v-bind:key="Math.random()"
-            v-bind="remize(noteHead)"
-        ) {{ noteHeadChar }}
+svg.chord
+    line.ledger-line(
+        v-for="ledgerLine in ledgerLines"
+        v-bind="remize(ledgerLine)"
+    )
+    glyph-component.note-head(
+        v-for="noteHead in noteHeads"
+        v-bind:key="Math.random()"
+        v-bind="remize(noteHead)"
+    ) {{ noteHead.textContent }}
     rect.stem(
         v-if="!stem.isVirtual"
         v-bind="remize(stem)"
     )
+    glyph-component.flag(
+        v-for="flag in flags"
+        v-bind:key="Math.random()"
+        v-bind="remize(flag)"
+    ) {{ flag.textContent }}
 </template>
 
 <script lang="ts">
@@ -24,13 +27,13 @@ import { Remizer, Layout } from 'mixins';
 import {
     Nullable,
     Bindings,
-    GlyphKinds,
+    GlyphKind,
     MarkType,
     Note,
     StemDirection,
     Positioned,
     Anchored,
-    Dimensioned
+    Dimensioned, FlagType
 } from 'types';
 import { at, range, first, last, merge } from 'lodash';
 import {
@@ -39,7 +42,7 @@ import {
     computePositionDiff,
     getStaffBoundaryPositionsFromClef
 } from 'Stores/helpers';
-import { getEngravingDefaults, getGlyphAnchors, getGlyphDimensions, getGlyphWidth } from 'Fonts/helpers';
+import { getEngravingDefaults, getGlyphAnchors, getGlyphChar, getGlyphDimensions, getGlyphWidth } from 'Fonts/helpers';
 
 export default Vue.extend({
     name: 'chord',
@@ -50,6 +53,11 @@ export default Vue.extend({
         },
         clef: {
             type: Object,
+            required: false
+        },
+        noFlag: {
+            type: Boolean,
+            default: false,
             required: false
         }
     },
@@ -160,12 +168,12 @@ export default Vue.extend({
             if (this.clef) {
                 let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
-                if (this.chord.stemDirection === StemDirection.Down &&
+                if (this.stemDownward &&
                     this.lowestNotePosition > staffBoundaryPositions.highest + 1.5) {
                     let diff = computePositionDiff(this.lowestNotePosition, staffBoundaryPositions.highest + 1.5);
 
                     height += diff;
-                } else if (this.chord.stemDirection === StemDirection.Up &&
+                } else if (!this.stemDownward &&
                     this.highestNotePosition < staffBoundaryPositions.lowest - 1.5) {
                     let diff = computePositionDiff(this.highestNotePosition, staffBoundaryPositions.lowest - 1.5);
 
@@ -195,20 +203,54 @@ export default Vue.extend({
 
             return stem;
         },
-        noteHeadChar(): string {
-            let typeToHeadCodePoint: {[k: string]: number} = {
-                [MarkType.Whole]: 0xE0A2,
-                [MarkType.Half]: 0xE0A3,
-                [MarkType.Quarter]: 0xE0A4
-            };
+        flags(): Flag[] {
+            let flags: Flag[] = [];
 
-            let codePoint = typeToHeadCodePoint[this.chord.type];
-
-            if (codePoint === undefined) {
-                throw new Error('unknown note type');
+            if (this.noFlag) {
+                return flags;
             }
 
-            return String.fromCodePoint(codePoint);
+            // computeNumFlags
+
+            let numLookup: number = [
+                MarkType.Quarter,
+                MarkType.N8th, MarkType.N16th,
+                MarkType.N32th, MarkType.N64th,
+                MarkType.N128th
+            ].indexOf(this.chord.type);
+
+            let numFlags: number = numLookup === -1 ? 0 : numLookup;
+
+            // computeFlagsShift
+
+            if (numFlags > 0) {
+                let flagBaseChar: string;
+
+                if (numFlags === 1) {
+                    flagBaseChar = getGlyphChar(GlyphKind.Flag, FlagType.N8th + this.chord.stemDirection);
+                } else {
+                    flagBaseChar = getGlyphChar(GlyphKind.Flag, FlagType.N16th + this.chord.stemDirection);
+                }
+
+                let flagSpacing = (this.stemDownward ? -1 : 1) * getEngravingDefaults('beamSpacing');
+                let flagInternalChar = getGlyphChar(GlyphKind.Flag, FlagType.Internal + this.chord.stemDirection);
+
+                for (let i = 0; i < numFlags; ++ i) {
+                    let flag: Flag = {
+                        textContent: i === 0 ? flagBaseChar : flagInternalChar,
+                        x: 0,
+                        y: i * flagSpacing,
+                        anchor: {
+                            x: 0,
+                            y: 0
+                        }
+                    };
+
+                    flags.push(flag);
+                }
+            }
+
+            return flags;
         },
         noteHeads(): NoteHead[] {
             let noteHeadsBindings: NoteHead[] = [];
@@ -222,7 +264,7 @@ export default Vue.extend({
 
                 let x = 0;
 
-                if (this.chord.stemDirection === StemDirection.Down) {
+                if (this.stemDownward) {
                     if (isDisplaced) {
                         x = this.stemWidth;
                     } else {
@@ -238,7 +280,10 @@ export default Vue.extend({
 
                 x -= this.stemWidth;
 
+                let noteHeadChar = getGlyphChar(GlyphKind.NoteHead, this.chord.type);
+
                 noteHeadsBindings.push({
+                    textContent: noteHeadChar,
                     x: x,
                     y: 0,
                     anchor: this.noteHeadAnchors,
@@ -266,14 +311,14 @@ export default Vue.extend({
             return noteHeadsBindings;
         },
         noteHeadDimensions(): Dimensioned {
-            return getGlyphDimensions(GlyphKinds.NoteHead, this.chord.type as string);
+            return getGlyphDimensions(GlyphKind.NoteHead, this.chord.type as string);
         },
         noteHeadWidth(): number {
-            return getGlyphWidth(GlyphKinds.NoteHead, this.chord.type as string);
+            return getGlyphWidth(GlyphKind.NoteHead, this.chord.type as string);
         },
         noteHeadAnchors(): Positioned {
             let self = this as any;
-            let anchors = getGlyphAnchors(GlyphKinds.NoteHead, this.chord.type);
+            let anchors = getGlyphAnchors(GlyphKind.NoteHead, this.chord.type);
 
             if (anchors) {
                 if (this.stemDownward) {
@@ -325,6 +370,8 @@ interface NoteHead extends Dimensioned, Positioned, Anchored {
 interface Stem extends Dimensioned, Positioned {
     isVirtual: boolean;
 }
+
+interface Flag extends Positioned, Anchored {}
 </script>
 
 <style lang="sass" scoped>

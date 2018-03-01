@@ -1,4 +1,4 @@
-import { Clef, ClefSign, GlyphKinds, MarkType, Note } from 'types';
+import { Clef, ClefSign, GlyphKind, MarkType, Note } from 'types';
 
 export function getStaffBoundaryPositionsFromClef(clef: Clef): { lowest: number, highest: number } {
     return {
