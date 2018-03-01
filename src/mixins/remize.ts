@@ -1,5 +1,5 @@
 import { Bindings } from 'types/common';
-import { isNumber, isObject, mapValues, merge } from 'lodash';
+import { isString, isNumber, isObject, mapValues, merge } from 'lodash';
 
 export const remize = {
     methods: {
@@ -7,7 +7,15 @@ export const remize = {
             if (isNumber(value)) {
                 return value + 'rem';
             } else if (isObject(value)) {
-                return mapValues(value as Bindings, v => isNumber(v) ? v + 'rem' : v);
+                return mapValues(value as Bindings, v => {
+                    if(isNumber(v)) {
+                        return v + 'rem';
+                    } else if (isString(v)) {
+                        return v;
+                    } else {
+                        return null;
+                    }
+                });
             } else {
                 return value;
             }

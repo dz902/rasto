@@ -1,5 +1,6 @@
-import { Dimensioned, Anchored, Positioned } from 'types/layout';
-import { merge, mapValues } from 'lodash';
+import { Anchored, Dimensioned, Positioned } from 'types/layout';
+import { mapValues, merge } from 'lodash';
+import { Bindings } from '../types';
 
 export function snapTo<T extends Anchored>(subject: T, target: Positioned & Anchored): T & Positioned {
     let offset = getAlignmentOffsets(subject.anchor, target.anchor);
@@ -12,13 +13,12 @@ export function snapTo<T extends Anchored>(subject: T, target: Positioned & Anch
 }
 
 export function alignToCenter<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
-    let aligned: T & Positioned = {...(subject as any), ...{ x: target.x + target.width / 2 - subject.anchor.x, y: target.y } };
+    let aligned: T & Positioned = {
+        ...(subject as any),
+        ...{ x: target.x + target.width / 2 - subject.anchor.x, y: target.y }
+    };
 
     return aligned;
-}
-
-export function dupleToCoordinates(anchor: [number, number]): Positioned {
-    return { x: anchor[0], y: -anchor[1] };
 }
 
 export function getAlignmentOffsets(subject: Positioned, target: Positioned): Positioned {
@@ -30,3 +30,11 @@ export function getAlignmentOffsets(subject: Positioned, target: Positioned): Po
     return offsets;
 }
 
+export function withAnchor<T extends Bindings>(subject: T, anchor: Positioned): T & Anchored {
+    let anchored: T & Anchored = {
+        ...(subject as any),
+        anchor
+    };
+
+    return anchored;
+}

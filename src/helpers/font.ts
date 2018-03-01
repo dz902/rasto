@@ -1,7 +1,17 @@
-import { FlagType, GlyphKind, MarkType, StemDirection } from 'types/music';
+import { FlagType, GlyphKind, MarkType, StemDirection, Positioned, Dimensioned } from 'types';
+import { mapValues } from 'lodash';
 
 const fontCodePoints = require('fonts/meta/glyphnames.json');
 const fontMeta = require('fonts/bravura/bravura_metadata.json');
+
+let glyphsWithAlternates = fontMeta['glyphsWithAlternates'];
+
+for (let k in glyphsWithAlternates) {
+    glyphsWithAlternates[k]['alternates'].forEach((alternate: any) => {
+        fontCodePoints[alternate['name']] = alternate;
+    });
+
+}
 
 export function getEngravingDefaults(k: string): number {
     return fontMeta['engravingDefaults'][k];
@@ -14,11 +24,7 @@ export function getGlyphChar(kind: GlyphKind, name: string): string {
     return String.fromCodePoint(codePoint);
 }
 
-export function getGlyphWidth(kind: GlyphKind, name: string): number {
-    return getGlyphDimensions(kind, name).width;
-}
-
-export function getGlyphDimensions(kind: GlyphKind, name: string): { width: number, height: number } {
+export function getGlyphDimensions(kind: GlyphKind, name: string): Dimensioned {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
     let bBox = fontMeta['glyphBBoxes'][glyphKey];
 
@@ -26,11 +32,13 @@ export function getGlyphDimensions(kind: GlyphKind, name: string): { width: numb
              height: bBox['bBoxNE'][1] - bBox['bBoxSW'][1] };
 }
 
-export function getGlyphAnchors(kind: GlyphKind, name: string): { [k:string]: [number, number] } | null {
+export function getGlyphAnchors(kind: GlyphKind, name: string): Positioned | null {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
     let anchors = fontMeta['glyphsWithAnchors'][glyphKey];
 
-    return anchors || null;
+    anchors = anchors ? mapValues(anchors, dupleToCoordinates) : null;
+
+    return anchors;
 }
 
 function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
@@ -39,10 +47,15 @@ function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
             [MarkType.Whole]: 'noteWhole',
             [MarkType.Half]: 'noteheadHalf',
             [MarkType.Quarter]: 'noteheadBlack',
-            [MarkType.N8th]: 'noteheadBlack'
+            [MarkType.N8th]: 'noteheadBlack',
+            [MarkType.N16th]: 'noteheadBlack',
+            [MarkType.N32th]: 'noteheadBlack',
+            [MarkType.N64th]: 'noteheadBlack'
         },
         [GlyphKind.Flag]: {
             [FlagType.N8th+StemDirection.Up]: 'flag8thUp',
+            [FlagType.N16th+StemDirection.Up]: 'flag16thUp',
+            [FlagType.Internal+StemDirection.Up]: 'flagInternalUp',
             [FlagType.N8th+StemDirection.Down]: 'flag8thDown',
             [FlagType.N16th+StemDirection.Down]: 'flag16thDown',
             [FlagType.Internal+StemDirection.Down]: 'flagInternalDown'
@@ -56,5 +69,9 @@ function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
     }
 
     return key;
+}
+
+function dupleToCoordinates(anchor: [number, number]): Positioned {
+    return { x: anchor[0], y: -anchor[1] };
 }
 

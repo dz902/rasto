@@ -1,6 +1,6 @@
 <template lang="pug">
 svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
-    svg.system(x="1rem" y="10rem")
+    svg.system(x="1rem" y="15rem")
         svg.staff
             svg.staff-lines
                 line.staff-line(
