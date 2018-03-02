@@ -1,4 +1,4 @@
-import { FlagType, GlyphKind, MarkType, StemDirection, Positioned, Dimensioned } from 'types';
+import { FlagType, GlyphKind, MarkType, StemDirection, Positioned, Dimensioned, AccidentalType } from 'types';
 import { mapValues } from 'lodash';
 
 const fontCodePoints = require('fonts/meta/glyphnames.json');
@@ -59,6 +59,10 @@ function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
             [FlagType.N8th+StemDirection.Down]: 'flag8thDown',
             [FlagType.N16th+StemDirection.Down]: 'flag16thDown',
             [FlagType.Internal+StemDirection.Down]: 'flagInternalDown'
+        },
+        [GlyphKind.Accidental]: {
+            [AccidentalType.Sharp]: 'accidentalSharp',
+            [AccidentalType.Flat]: 'accidentalFlat'
         }
     };
 

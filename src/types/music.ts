@@ -2,7 +2,8 @@ import { Partial } from './common';
 
 export enum GlyphKind {
     NoteHead = 'note-head',
-    Flag = 'flag'
+    Flag = 'flag',
+    Accidental = 'accidental'
 }
 
 export enum FlagType {
@@ -159,7 +160,10 @@ export enum ArticulationType {
 }
 
 export enum AccidentalType {
-    Sharp = 'sharp'
+    Sharp = 'sharp',
+    DoubleSharp = 'double-sharp',
+    Flat = 'flat',
+    DoubleFlat = 'double-flat'
 }
 
 export enum StemDirection {

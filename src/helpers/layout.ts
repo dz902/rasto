@@ -1,4 +1,4 @@
-import { Anchored, Dimensioned, Positioned } from 'types/layout';
+import { Coordinates, Anchored, Dimensioned, Positioned } from 'types/layout';
 import { mapValues, merge } from 'lodash';
 import { Bindings } from '../types';
 
@@ -15,7 +15,25 @@ export function snapTo<T extends Anchored>(subject: T, target: Positioned & Anch
 export function alignToCenter<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
     let aligned: T & Positioned = {
         ...(subject as any),
-        ...{ x: target.x + target.width / 2 - subject.anchor.x, y: target.y }
+        ...{ x: target.x + target.width / 2 - subject.anchor.x }
+    };
+
+    return aligned;
+}
+
+export function alignToMiddle<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
+    let aligned: T & Positioned = {
+        ...(subject as any),
+        ...{ y: target.y + target.height / 2 - subject.anchor.y }
+    };
+
+    return aligned;
+}
+
+export function alignToTop<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
+    let aligned: T & Positioned = {
+        ...(subject as any),
+        ...{ x: subject.x, y: target.y - subject.anchor.y }
     };
 
     return aligned;
@@ -37,4 +55,27 @@ export function withAnchor<T extends Bindings>(subject: T, anchor: Positioned): 
     };
 
     return anchored;
+}
+
+export function computeEdges(subjects: (Positioned & Dimensioned)[]): Coordinates {
+    let rightEdge = 0;
+    let bottomEdge = 0;
+
+    subjects.forEach((subject) => {
+        let rightPoint = subject.x + subject.width;
+        let bottomPoint = subject.y + subject.height;
+
+        if (rightPoint > rightEdge) {
+            rightEdge = rightPoint;
+        }
+
+        if (bottomPoint > bottomEdge) {
+            bottomEdge = bottomPoint;
+        }
+    });
+
+    return {
+        x: rightEdge,
+        y: bottomEdge
+    }
 }

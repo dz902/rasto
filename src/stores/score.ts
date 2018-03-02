@@ -6,6 +6,7 @@ import {
     Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
     Tie
 } from '../types/music';
+import { AccidentalType } from '../types';
 
 Vue.use(Vuex);
 
@@ -47,7 +48,10 @@ let scoreTest: Score = {
                         },
                         {
                             name: 'D',
-                            octaveNumber: 5
+                            octaveNumber: 5,
+                            accidental: {
+                                type: AccidentalType.Sharp
+                            }
                         },
                         {
                             name: 'E',

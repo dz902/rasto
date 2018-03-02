@@ -1,5 +1,6 @@
 import { Bindings } from './common';
 
+export type Coordinates = Positioned;
 export interface Positioned extends Bindings {
     x: number;
     y: number;

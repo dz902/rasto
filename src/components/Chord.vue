@@ -1,23 +1,31 @@
 <template lang="pug">
 svg.chord
-    line.ledger-line(
-    v-for="ledgerLine in ledgerLines"
-    v-bind="remize(ledgerLine)"
+    svg.chord-body(
+    v-bind="remize(chordBody)"
     )
-    glyph-component.note-head(
-    v-for="noteHead in noteHeads"
+        line.ledger-line(
+        v-for="ledgerLine in ledgerLines"
+        v-bind="remize(ledgerLine)"
+        )
+        glyph-component.note-head(
+        v-for="noteHead in noteHeads"
+        v-bind:key="Math.random()"
+        v-bind="remize(noteHead)"
+        ) {{ noteHead.textContent }}
+        rect.stem(
+        v-if="!stem.isVirtual"
+        v-bind="remize(stem)"
+        )
+        glyph-component.flag(
+        v-for="flag in flags"
+        v-bind:key="Math.random()"
+        v-bind="remize(flag)"
+        ) {{ flag.textContent }}
+    glyph-component.accidental(
+    v-for="accidental in accidentals"
     v-bind:key="Math.random()"
-    v-bind="remize(noteHead)"
-    ) {{ noteHead.textContent }}
-    rect.stem(
-    v-if="!stem.isVirtual"
-    v-bind="remize(stem)"
-    )
-    glyph-component.flag(
-    v-for="flag in flags"
-    v-bind:key="Math.random()"
-    v-bind="remize(flag)"
-    ) {{ flag.textContent }}
+    v-bind="remize(accidental)"
+    ) {{ accidental.textContent }}
 </template>
 
 <script lang="ts">
@@ -34,7 +42,7 @@ import {
     getGlyphAnchors,
     getGlyphChar,
     getGlyphDimensions,
-    alignToCenter, snapTo, withAnchor
+    alignToCenter, snapTo, withAnchor, alignToTop, computeEdges
 } from 'helpers';
 import { at, range, first, last, merge } from 'lodash';
 
@@ -180,7 +188,7 @@ export default Vue.extend({
             // checkFlagExtension
 
             if (this.numFlags > 2) {
-                stem.height += (this.numFlags-2) * 0.5;
+                stem.height += (this.numFlags - 2) * 0.5;
                 stem.height -= this.stemDownward ? 0 : 1;
             }
 
@@ -260,7 +268,7 @@ export default Vue.extend({
                 let flag: Flag = {
                     textContent: flagInternalChar,
                     x: flagBase.x,
-                    y: flagBase.y -1.55 + (j * flagInternalSpacing)
+                    y: flagBase.y - 1.55 + (j * flagInternalSpacing)
                 };
 
                 flags.push(flag);
@@ -325,6 +333,47 @@ export default Vue.extend({
 
             return noteHeadsBindings;
         },
+        accidentals(): Accidental[] {
+            let accidentals: Accidental[] = [];
+
+            this.chord.notes.forEach(( note: Note, i: number ) => {
+                if (!note.accidental) {
+                    return;
+                }
+
+                let accidentalChar = getGlyphChar(GlyphKind.Accidental, note.accidental.type);
+                let accidentalDimensions = getGlyphDimensions(GlyphKind.Accidental, note.accidental.type);
+
+                let accidental: Accidental = {
+                    textContent: accidentalChar,
+                    x: 0,
+                    y: 0,
+                    ...accidentalDimensions
+                };
+
+                accidental = alignToTop(
+                    withAnchor(accidental, { x: 0, y: 0 }),
+                    this.noteHeads[i]
+                );
+
+                accidentals.push(accidental);
+            });
+
+            return accidentals;
+        },
+        chordBody(): Bindings {
+            let x = this.accidentals.length > 0 ? computeEdges(this.accidentals).x : 0;
+
+            if (this.stemDownward) {
+                x += this.noteHeadWidth;
+            } else {
+                x -= this.noteHeadWidth;
+            }
+
+            return {
+                x: x + 0.2
+            };
+        },
         noteHeadDimensions(): Dimensioned {
             return getGlyphDimensions(GlyphKind.NoteHead, this.chord.type as string);
         },
@@ -382,6 +431,10 @@ interface Stem extends Dimensioned, Positioned {
 
 interface Flag extends Positioned {
 }
+
+interface Accidental extends Positioned, Dimensioned {
+
+}
 </script>
 
 <style lang="sass" scoped>
@@ -389,7 +442,7 @@ rect.stem
     fill: black
 
 text.flag
-    fill: rgba(0,0,0,0.5)
+    fill: rgba(0, 0, 0, 0.5)
 
 line.ledger-line
     stroke: black
