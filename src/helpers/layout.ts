@@ -2,6 +2,13 @@ import { Coordinates, Anchored, Dimensioned, Positioned } from 'types/layout';
 import { mapValues, merge } from 'lodash';
 import { Bindings } from '../types';
 
+export function overlapsWith(a: Positioned & Dimensioned, b: Positioned & Dimensioned): boolean {
+    let overlapsXAxis = (b.x + b.width > a.x) && (b.x < a.x + a.width);
+    let overlapsYAxis = (b.y + b.height > a.y) && (b.y < a.y + a.height);
+
+    return overlapsXAxis && overlapsYAxis;
+}
+
 export function snapTo<T extends Anchored>(subject: T, target: Positioned & Anchored): T & Positioned {
     let offset = getAlignmentOffsets(subject.anchor, target.anchor);
     let snapped: T & Positioned = merge({}, subject, {
@@ -57,13 +64,13 @@ export function withAnchor<T extends Bindings>(subject: T, anchor: Positioned): 
     return anchored;
 }
 
-export function computeEdges(subjects: (Positioned & Dimensioned)[]): Coordinates {
+export function computeDimensions(subjects: (Positioned & Dimensioned)[]): Dimensioned {
     let rightEdge = 0;
     let bottomEdge = 0;
 
     subjects.forEach((subject) => {
-        let rightPoint = subject.x + subject.width;
-        let bottomPoint = subject.y + subject.height;
+        let rightPoint = Math.abs(subject.x) + subject.width;
+        let bottomPoint = Math.abs(subject.y) + subject.height;
 
         if (rightPoint > rightEdge) {
             rightEdge = rightPoint;
@@ -75,7 +82,7 @@ export function computeEdges(subjects: (Positioned & Dimensioned)[]): Coordinate
     });
 
     return {
-        x: rightEdge,
-        y: bottomEdge
+        width: rightEdge,
+        height: bottomEdge
     }
 }

@@ -55,11 +55,17 @@ let scoreTest: Score = {
                         },
                         {
                             name: 'E',
-                            octaveNumber: 5
+                            octaveNumber: 5,
+                            accidental: {
+                                type: AccidentalType.Flat
+                            }
                         },
                         {
                             name: 'F',
-                            octaveNumber: 6
+                            octaveNumber: 6,
+                            accidental: {
+                                type: AccidentalType.Sharp
+                            }
                         },
                         {
                             name: 'A',
@@ -67,7 +73,10 @@ let scoreTest: Score = {
                         },
                         {
                             name: 'B',
-                            octaveNumber: 6
+                            octaveNumber: 6,
+                            accidental: {
+                                type: AccidentalType.Flat
+                            }
                         }
                     ],
                     stemDirection: StemDirection.Up,

@@ -21,11 +21,11 @@ svg.chord
         v-bind:key="Math.random()"
         v-bind="remize(flag)"
         ) {{ flag.textContent }}
-    glyph-component.accidental(
-    v-for="accidental in accidentals"
-    v-bind:key="Math.random()"
-    v-bind="remize(accidental)"
-    ) {{ accidental.textContent }}
+        glyph-component.accidental(
+        v-for="accidental in accidentals"
+        v-bind:key="Math.random()"
+        v-bind="remize(accidental)"
+        ) {{ accidental.textContent }}
 </template>
 
 <script lang="ts">
@@ -42,7 +42,7 @@ import {
     getGlyphAnchors,
     getGlyphChar,
     getGlyphDimensions,
-    alignToCenter, snapTo, withAnchor, alignToTop, computeEdges
+    alignToCenter, snapTo, withAnchor, alignToTop, computeDimensions, overlapsWith
 } from 'helpers';
 import { at, range, first, last, merge } from 'lodash';
 
@@ -335,8 +335,9 @@ export default Vue.extend({
         },
         accidentals(): Accidental[] {
             let accidentals: Accidental[] = [];
+            let accidentalBase: Accidental;
 
-            this.chord.notes.forEach(( note: Note, i: number ) => {
+            this.chord.notes.forEach((note: Note, i: number) => {
                 if (!note.accidental) {
                     return;
                 }
@@ -356,22 +357,28 @@ export default Vue.extend({
                     this.noteHeads[i]
                 );
 
+                if (accidentals.length > 0 && overlapsWith(accidental, accidentalBase)) {
+                    accidental.x -= accidental.width;
+                } else {
+                    accidentalBase = accidental;
+                }
+
                 accidentals.push(accidental);
             });
 
             return accidentals;
         },
         chordBody(): Bindings {
-            let x = this.accidentals.length > 0 ? computeEdges(this.accidentals).x : 0;
+            let accidentalsWidth = this.accidentals.length > 0 ? computeDimensions(this.accidentals).width : 0;
 
             if (this.stemDownward) {
-                x += this.noteHeadWidth;
+                accidentalsWidth += this.noteHeadWidth;
             } else {
-                x -= this.noteHeadWidth;
+                accidentalsWidth -= this.noteHeadWidth;
             }
 
             return {
-                x: x + 0.2
+                x: accidentalsWidth + 0.2
             };
         },
         noteHeadDimensions(): Dimensioned {

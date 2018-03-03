@@ -163,7 +163,8 @@ export enum AccidentalType {
     Sharp = 'sharp',
     DoubleSharp = 'double-sharp',
     Flat = 'flat',
-    DoubleFlat = 'double-flat'
+    DoubleFlat = 'double-flat',
+    Natural = 'natural'
 }
 
 export enum StemDirection {
