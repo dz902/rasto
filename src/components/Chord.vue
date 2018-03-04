@@ -31,7 +31,19 @@ svg.chord
 <script lang="ts">
 import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
-import { Bindings, Anchored, Dimensioned, Positioned, FlagType, GlyphKind, MarkType, Note, StemDirection } from 'types';
+import {
+    Bindings,
+    Anchored,
+    BBoxed,
+    Positioned,
+    FlagType,
+    GlyphKind,
+    MarkType,
+    Note,
+    StemDirection,
+    Coordinates,
+    Dimensioned, GlyphMeta
+} from 'types';
 import { remize } from 'mixins';
 import {
     getIntervalBetween,
@@ -39,10 +51,13 @@ import {
     computePositionDiff,
     getStaffBoundaryPositionsFromClef,
     getEngravingDefaults,
-    getGlyphAnchors,
-    getGlyphChar,
-    getGlyphDimensions,
-    alignToCenter, snapTo, withAnchor, alignToTop, computeDimensions, overlapsWith
+    alignToCenter,
+    snapTo,
+    withAnchor,
+    alignToMiddle,
+    computeBoundingDimensions,
+    overlapsWith,
+    getGlyphMeta, computeBBox, computeDimensions
 } from 'helpers';
 import { at, range, first, last, merge } from 'lodash';
 
@@ -86,10 +101,10 @@ export default Vue.extend({
                     }
                 };
 
-                let alignmentTarget: Positioned & Dimensioned;
+                let alignmentTarget: Positioned & BBoxed;
 
                 if (ledgerNotesDisplaced) {
-                    alignmentTarget = this.stem;
+                    alignmentTarget = computeBBox(this.stem);
                 } else {
                     if (this.stemDownward) {
                         alignmentTarget = last(this.noteHeads) as NoteHead;
@@ -196,8 +211,8 @@ export default Vue.extend({
 
             let snapNote: NoteHead = this.stemDownward ? last(this.noteHeads)! : first(this.noteHeads)!;
 
-            let snapNoteAnchors = getGlyphAnchors(GlyphKind.NoteHead, this.chord.type);
-            let noteAnchor: Positioned = { x: 0, y: 0 };
+            let snapNoteAnchors = getGlyphMeta(GlyphKind.NoteHead, this.chord.type).anchors;
+            let noteAnchor: Coordinates = { x: 0, y: 0 };
 
             if (snapNoteAnchors) {
                 if (this.stemDownward && snapNoteAnchors['stemDownNW']) {
@@ -226,7 +241,8 @@ export default Vue.extend({
             let flagBaseType = this.numFlags === 1 ?
                 FlagType.N8th + this.chord.stemDirection :
                 FlagType.N16th + this.chord.stemDirection;
-            let flagBaseChar: string = getGlyphChar(GlyphKind.Flag, flagBaseType);
+            let flagGlyphMeta = getGlyphMeta(GlyphKind.Flag, flagBaseType);
+            let flagBaseChar: string = flagGlyphMeta.char;
 
             let flagBase: Flag = {
                 textContent: flagBaseChar,
@@ -240,8 +256,8 @@ export default Vue.extend({
 
             // alignBaseFlag
 
-            let flagAnchors = getGlyphAnchors(GlyphKind.Flag, flagBaseType);
-            let flagAnchor: Positioned = { x: 0, y: 0 };
+            let flagAnchors = flagGlyphMeta.anchors;
+            let flagAnchor: Coordinates = { x: 0, y: 0 };
 
             if (flagAnchors) {
                 if (this.stemDownward && flagAnchors['stemDownSW']) {
@@ -261,7 +277,7 @@ export default Vue.extend({
             // addInternalFlags
 
             let flagInternalType = FlagType.Internal + this.chord.stemDirection;
-            let flagInternalChar = getGlyphChar(GlyphKind.Flag, flagInternalType);
+            let flagInternalChar = getGlyphMeta(GlyphKind.Flag, flagInternalType).char;
             let flagInternalSpacing = 0.8 * (this.stemDownward ? -1 : 1);
 
             for (let i = 2, j = 0; i < this.numFlags; ++i, ++j) {
@@ -304,14 +320,12 @@ export default Vue.extend({
 
                 x -= this.stemWidth;
 
-                let noteHeadChar = getGlyphChar(GlyphKind.NoteHead, this.chord.type);
-
                 noteHeadsBindings.push({
-                    textContent: noteHeadChar,
+                    textContent: this.noteHeadGlyphMeta.char,
                     x: x,
                     y: 0,
                     isDisplaced: isDisplaced,
-                    ...this.noteHeadDimensions
+                    bBox: this.noteHeadGlyphMeta.bBox
                 });
 
                 return noteHeadsBindings;
@@ -336,32 +350,34 @@ export default Vue.extend({
         accidentals(): Accidental[] {
             let accidentals: Accidental[] = [];
             let accidentalBase: Accidental;
+            let lastAccidental: Accidental;
 
             this.chord.notes.forEach((note: Note, i: number) => {
                 if (!note.accidental) {
                     return;
                 }
 
-                let accidentalChar = getGlyphChar(GlyphKind.Accidental, note.accidental.type);
-                let accidentalDimensions = getGlyphDimensions(GlyphKind.Accidental, note.accidental.type);
+                let accidentalGlyphMeta = getGlyphMeta(GlyphKind.Accidental, note.accidental.type);
+                let accidentalChar = accidentalGlyphMeta.char;
 
                 let accidental: Accidental = {
                     textContent: accidentalChar,
                     x: 0,
                     y: 0,
-                    ...accidentalDimensions
+                    bBox: accidentalGlyphMeta.bBox
                 };
 
-                accidental = alignToTop(
+                accidental = alignToMiddle(
                     withAnchor(accidental, { x: 0, y: 0 }),
                     this.noteHeads[i]
                 );
 
-                if (accidentals.length > 0 && overlapsWith(accidental, accidentalBase)) {
-                    accidental.x -= accidental.width;
+                if (accidentalBase && overlapsWith(accidental, accidentalBase)) {
                 } else {
                     accidentalBase = accidental;
                 }
+
+                lastAccidental = accidental;
 
                 accidentals.push(accidental);
             });
@@ -369,7 +385,7 @@ export default Vue.extend({
             return accidentals;
         },
         chordBody(): Bindings {
-            let accidentalsWidth = this.accidentals.length > 0 ? computeDimensions(this.accidentals).width : 0;
+            let accidentalsWidth = this.accidentals.length > 0 ? computeBoundingDimensions(this.accidentals).width : 0;
 
             if (this.stemDownward) {
                 accidentalsWidth += this.noteHeadWidth;
@@ -381,11 +397,11 @@ export default Vue.extend({
                 x: accidentalsWidth + 0.2
             };
         },
-        noteHeadDimensions(): Dimensioned {
-            return getGlyphDimensions(GlyphKind.NoteHead, this.chord.type as string);
+        noteHeadGlyphMeta(): GlyphMeta {
+            return getGlyphMeta(GlyphKind.NoteHead, this.chord.type);
         },
         noteHeadWidth(): number {
-            return this.noteHeadDimensions.width;
+            return computeDimensions(this.noteHeadGlyphMeta).width;
         },
         notePositions(): number[] {
             return this.chord.notes.map(getNotePosition);
@@ -428,7 +444,7 @@ export default Vue.extend({
     ]
 });
 
-interface NoteHead extends Dimensioned, Positioned {
+interface NoteHead extends BBoxed, Positioned {
     isDisplaced: boolean;
 }
 
@@ -439,7 +455,7 @@ interface Stem extends Dimensioned, Positioned {
 interface Flag extends Positioned {
 }
 
-interface Accidental extends Positioned, Dimensioned {
+interface Accidental extends Positioned, BBoxed {
 
 }
 </script>

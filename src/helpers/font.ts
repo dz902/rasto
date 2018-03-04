@@ -1,4 +1,7 @@
-import { FlagType, GlyphKind, MarkType, StemDirection, Positioned, Dimensioned, AccidentalType } from 'types';
+import {
+    FlagType, GlyphKind, MarkType, StemDirection, Positioned, BBoxed, AccidentalType, Coordinates,
+    GlyphMeta, CoordinatesMap
+} from 'types';
 import { mapValues } from 'lodash';
 
 const fontCodePoints = require('fonts/meta/glyphnames.json');
@@ -17,28 +20,21 @@ export function getEngravingDefaults(k: string): number {
     return fontMeta['engravingDefaults'][k];
 }
 
-export function getGlyphChar(kind: GlyphKind, name: string): string {
+export function getGlyphMeta(kind: GlyphKind, name: string): GlyphMeta {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
-    let codePoint = Number.parseInt(fontCodePoints[glyphKey]['codepoint'].match(/^U\+([0-9A-F]+)$/)[1], 16);
-
-    return String.fromCodePoint(codePoint);
-}
-
-export function getGlyphDimensions(kind: GlyphKind, name: string): Dimensioned {
-    let glyphKey = getGlyphKeyFromKindAndName(kind, name);
-    let bBox = fontMeta['glyphBBoxes'][glyphKey];
-
-    return { width: bBox['bBoxNE'][0] - bBox['bBoxSW'][0],
-             height: bBox['bBoxNE'][1] - bBox['bBoxSW'][1] };
-}
-
-export function getGlyphAnchors(kind: GlyphKind, name: string): Positioned | null {
-    let glyphKey = getGlyphKeyFromKindAndName(kind, name);
+    let bBox = mapValues(fontMeta['glyphBBoxes'][glyphKey] as { [k: string]: [number, number] }, dupleToCoordinates);
     let anchors = fontMeta['glyphsWithAnchors'][glyphKey];
 
     anchors = anchors ? mapValues(anchors, dupleToCoordinates) : null;
 
-    return anchors;
+    let codePoint = Number.parseInt(fontCodePoints[glyphKey]['codepoint'].match(/^U\+([0-9A-F]+)$/)[1], 16);
+    let char = String.fromCodePoint(codePoint);
+
+    return {
+        bBox,
+        anchors,
+        char
+    };
 }
 
 function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
@@ -75,7 +71,7 @@ function getGlyphKeyFromKindAndName(kind: GlyphKind, name: string): string {
     return key;
 }
 
-function dupleToCoordinates(anchor: [number, number]): Positioned {
-    return { x: anchor[0], y: -anchor[1] };
+function dupleToCoordinates(duple: [number, number]): Coordinates {
+    return { x: duple[0], y: -duple[1] };
 }
 

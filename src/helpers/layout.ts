@@ -1,43 +1,38 @@
-import { Coordinates, Anchored, Dimensioned, Positioned } from 'types/layout';
+import { Coordinates, Anchored, BBoxed, Positioned } from 'types/layout';
 import { mapValues, merge } from 'lodash';
-import { Bindings } from '../types';
+import { Bindings, Clipped, Dimensioned } from '../types';
 
-export function overlapsWith(a: Positioned & Dimensioned, b: Positioned & Dimensioned): boolean {
-    let overlapsXAxis = (b.x + b.width > a.x) && (b.x < a.x + a.width);
-    let overlapsYAxis = (b.y + b.height > a.y) && (b.y < a.y + a.height);
+export function overlapsWith(a: Positioned & BBoxed, b: Positioned & BBoxed): boolean {
+    let aa = computeOffsetedDimensions(a);
+    let bb = computeOffsetedDimensions(b);
+
+    let overlapsXAxis = (bb.x + bb.width > aa.x) && (bb.x < aa.x + aa.width);
+    let overlapsYAxis = (bb.y + bb.height > aa.y) && (bb.y < aa.y + aa.height);
 
     return overlapsXAxis && overlapsYAxis;
 }
 
 export function snapTo<T extends Anchored>(subject: T, target: Positioned & Anchored): T & Positioned {
     let offset = getAlignmentOffsets(subject.anchor, target.anchor);
-    let snapped: T & Positioned = merge({}, subject, {
-        x: target.x + offset.x,
-        y: target.y + offset.y
-    });
+    let snapped: T & Positioned = {
+        ...(subject as any),
+        ...{ x: target.x + offset.x, y: target.y + offset.y }
+    };
 
     return snapped;
 }
 
-export function alignToCenter<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
+export function alignToCenter<T extends Anchored>(subject: T, target: Positioned & BBoxed): T & Positioned {
+    let targetDimensioned = computeOffsetedDimensions(target);
     let aligned: T & Positioned = {
         ...(subject as any),
-        ...{ x: target.x + target.width / 2 - subject.anchor.x }
+        ...{ x: targetDimensioned.x + targetDimensioned.width / 2 - subject.anchor.x }
     };
 
     return aligned;
 }
 
-export function alignToMiddle<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
-    let aligned: T & Positioned = {
-        ...(subject as any),
-        ...{ y: target.y + target.height / 2 - subject.anchor.y }
-    };
-
-    return aligned;
-}
-
-export function alignToTop<T extends Anchored>(subject: T, target: Positioned & Dimensioned): T & Positioned {
+export function alignToMiddle<T extends Anchored>(subject: T, target: Positioned & BBoxed): T & Positioned {
     let aligned: T & Positioned = {
         ...(subject as any),
         ...{ x: subject.x, y: target.y - subject.anchor.y }
@@ -46,8 +41,29 @@ export function alignToTop<T extends Anchored>(subject: T, target: Positioned & 
     return aligned;
 }
 
-export function getAlignmentOffsets(subject: Positioned, target: Positioned): Positioned {
-    let offsets: Positioned = {
+export function fitFromLeft<T extends Positioned & BBoxed>(subject: T, target: Positioned & BBoxed): T {
+    let fitted: T = {
+        ...(subject as any),
+        ...{ x: target.x - subject.width }
+    };
+
+    let cutOutSE = subject.clippingPoints && subject.clippingPoints['cutOutSE'] ?
+        subject.clippingPoints['cutOutSE'] :
+        { x: subject.width, y: subject.height };
+    let subjectHigherThanTarget = subject.y + subject.height < target.y;
+    let subjectCanCutOffFit = subject.y + cutOutSE.y < target.y;
+
+    if (subjectHigherThanTarget) {
+        fitted.x = target.x + target.width - subject.width;
+    } else if (subjectCanCutOffFit) {
+        fitted.x += (subject.width - cutOutSE.x);
+    }
+
+    return fitted;
+}
+
+export function getAlignmentOffsets(subject: Positioned, target: Positioned): Coordinates {
+    let offsets: Coordinates = {
         x: target.x - subject.x,
         y: target.y - subject.y
     };
@@ -55,7 +71,7 @@ export function getAlignmentOffsets(subject: Positioned, target: Positioned): Po
     return offsets;
 }
 
-export function withAnchor<T extends Bindings>(subject: T, anchor: Positioned): T & Anchored {
+export function withAnchor<T extends Bindings>(subject: T, anchor: Coordinates): T & Anchored {
     let anchored: T & Anchored = {
         ...(subject as any),
         anchor
@@ -64,11 +80,20 @@ export function withAnchor<T extends Bindings>(subject: T, anchor: Positioned): 
     return anchored;
 }
 
-export function computeDimensions(subjects: (Positioned & Dimensioned)[]): Dimensioned {
+export function withClippingPoints<T extends Bindings>(subject: T, clippingPoints: { [k: string]: Coordinates }): T & Clipped {
+    let clipped: T & Clipped = {
+        ...(subject as any),
+        clippingPoints
+    };
+
+    return clipped;
+}
+
+export function computeBoundingDimensions(subjects: (Positioned & BBoxed)[]): Dimensioned {
     let rightEdge = 0;
     let bottomEdge = 0;
 
-    subjects.forEach((subject) => {
+    subjects.map(computeDimensions).forEach((subject) => {
         let rightPoint = Math.abs(subject.x) + subject.width;
         let bottomPoint = Math.abs(subject.y) + subject.height;
 
@@ -84,5 +109,36 @@ export function computeDimensions(subjects: (Positioned & Dimensioned)[]): Dimen
     return {
         width: rightEdge,
         height: bottomEdge
+    }
+}
+
+export function computeBBox<T extends Dimensioned>(subject: T): T & BBoxed {
+    return {
+        ...subject as any,
+        ...{
+            bBox: {
+                bBoxNE: {
+                    x: subject.width, y: 0
+                },
+                bBoxSW: {
+                    x: 0, y: subject.height
+                }
+            }
+        }
+    };
+}
+
+export function computeDimensions(subject: BBoxed): Dimensioned {
+    return {
+        width: subject.bBox['bBoxNE'].x - subject.bBox['bBoxSW'].x,
+        height: subject.bBox['bBoxSW'].y - subject.bBox['bBoxNE'].y
+    };
+}
+
+function computeOffsetedDimensions(subject: Positioned & BBoxed): Positioned & Dimensioned {
+    return {
+        x: subject.x + subject.bBox['bBoxSW'].x,
+        y: subject.y + subject.bBox['bBoxNE'].y,
+        ...computeDimensions(subject)
     }
 }
