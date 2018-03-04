@@ -44,21 +44,26 @@ export function alignToMiddle<T extends Anchored>(subject: T, target: Positioned
 export function fitFromLeft<T extends Positioned & BBoxed>(subject: T, target: Positioned & BBoxed): T {
     let fitted: T = {
         ...(subject as any),
-        ...{ x: target.x - subject.width }
+        ...{ x: target.x - subject.bBox['bBoxNE'].x }
     };
-
+debugger;
+    let subjectDimensions = computeOffsetedDimensions(subject);
+    let subjectBottom = subjectDimensions.y + subjectDimensions.height;
+    let targetDimensions = computeOffsetedDimensions(target);
+    let targetTop = targetDimensions.y;
     let cutOutSE = subject.clippingPoints && subject.clippingPoints['cutOutSE'] ?
         subject.clippingPoints['cutOutSE'] :
-        { x: subject.width, y: subject.height };
-    let subjectHigherThanTarget = subject.y + subject.height < target.y;
-    let subjectCanCutOffFit = subject.y + cutOutSE.y < target.y;
+        { x: subjectDimensions.width, y: 0 };
+    let subjectHigherThanTarget = subjectBottom < targetTop;
+    let subjectCanCutOffFit = (subjectBottom + cutOutSE.y) < targetTop;
 
     if (subjectHigherThanTarget) {
-        fitted.x = target.x + target.width - subject.width;
+        fitted.x = targetDimensions.x + targetDimensions.width - subject.bBox['bBoxNE'].x;
     } else if (subjectCanCutOffFit) {
-        fitted.x += (subject.width - cutOutSE.x);
+        fitted.x += subjectDimensions.width - cutOutSE.x;
     }
 
+    console.log(fitted);
     return fitted;
 }
 
@@ -93,7 +98,7 @@ export function computeBoundingDimensions(subjects: (Positioned & BBoxed)[]): Di
     let rightEdge = 0;
     let bottomEdge = 0;
 
-    subjects.map(computeDimensions).forEach((subject) => {
+    subjects.map(computeOffsetedDimensions).forEach((subject) => {
         let rightPoint = Math.abs(subject.x) + subject.width;
         let bottomPoint = Math.abs(subject.y) + subject.height;
 

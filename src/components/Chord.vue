@@ -57,7 +57,7 @@ import {
     alignToMiddle,
     computeBoundingDimensions,
     overlapsWith,
-    getGlyphMeta, computeBBox, computeDimensions
+    getGlyphMeta, computeBBox, computeDimensions, fitFromLeft, withClippingPoints
 } from 'helpers';
 import { at, range, first, last, merge } from 'lodash';
 
@@ -373,6 +373,12 @@ export default Vue.extend({
                 );
 
                 if (accidentalBase && overlapsWith(accidental, accidentalBase)) {
+                    let accidentalClippingPoints = accidentalGlyphMeta.anchors;
+                    let accidentalToFit = accidentalClippingPoints ?
+                        withClippingPoints(accidental, accidentalClippingPoints) :
+                        accidental;
+
+                    accidental = fitFromLeft(accidentalToFit, lastAccidental);
                 } else {
                     accidentalBase = accidental;
                 }
