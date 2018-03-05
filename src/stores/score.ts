@@ -1,12 +1,11 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
-    StemDirection} from 'types/music';
-import {
+    StemDirection,
     Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
-    Tie
-} from '../types/music';
-import { AccidentalType } from '../types';
+    Tie, AccidentalType, Binding, Context, GlyphKind
+} from 'types';
+import { createMeasureBindings } from '../helpers';
 
 Vue.use(Vuex);
 
@@ -79,7 +78,7 @@ let scoreTest: Score = {
                             }
                         }
                     ],
-                    stemDirection: StemDirection.Down,
+                    stemDirection: StemDirection.Up,
                     staffId: 0
                 } as Chord
             ]
@@ -94,7 +93,18 @@ let scoreTest: Score = {
 export default new Vuex.Store({
     state: scoreTest,
     getters: {
-        GET_MEASURE_ITEMS_BY_STAFF_ID
+        measureItems: state => {
+            return state.measures.reduce((items: MeasureItem[], measure: Measure) => {
+                measure.items.forEach(item => items.push(item));
+
+                return items;
+            }, []);
+        },
+        measuresByStaffId: (state, getters) => (staffId: number) => {
+
+            console.log(createMeasureBindings(state.measures, state.initialContexts[staffId]));
+            return createMeasureBindings(state.measures, state.initialContexts[staffId]);
+        }
     },
     mutations: {
         ADD_MEASURE,

@@ -8,6 +8,7 @@ export function getStaffBoundaryPositionsFromClef(clef: Clef): StaffBoundaryPosi
         highest: getStaffLinePositionFromClef(clef, 5)
     }
 }
+
 export function getStaffBottomLinePositionFromClef(clef: Clef): number {
     let bottomPosition = 0;
     let dummyNote: Note;
@@ -26,14 +27,14 @@ export function getStaffBottomLinePositionFromClef(clef: Clef): number {
             };
     }
 
-    return getNotePosition(dummyNote);
+    return computeNotePosition(dummyNote);
 }
 
 export function getStaffLinePositionFromClef(clef: Clef, lineNumber: number): number {
     return getStaffBottomLinePositionFromClef(clef) + lineNumber - 1;
 }
 
-export function getNotePosition(note: Note): number {
+export function computeNotePosition(note: Note): number {
     return ((note.octaveNumber * 7) + 'CDEFGAB'.indexOf(note.name)) / 2;
 }
 
@@ -42,5 +43,5 @@ export function computePositionDiff(a: number, b: number): number {
 }
 
 export function getIntervalBetween(noteA: Note, noteB: Note): number {
-    return computePositionDiff(getNotePosition(noteA) , getNotePosition(noteB))*2 + 1;
+    return computePositionDiff(computeNotePosition(noteA) , computeNotePosition(noteB))*2 + 1;
 }

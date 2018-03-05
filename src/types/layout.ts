@@ -1,4 +1,4 @@
-import { Bindings } from './common';
+import { Binding } from './common';
 
 export interface GlyphMeta {
     bBox: BBoxPointMap;
@@ -9,25 +9,25 @@ export interface GlyphMeta {
 
 export type Coordinates = Positioned;
 
-export interface Positioned extends Bindings {
+export interface Positioned extends Binding {
     x: number;
     y: number;
 }
 
-export interface Anchored extends Bindings {
+export interface Anchored extends Binding {
     anchor: Coordinates;
 }
 
-export interface BBoxed extends Bindings {
+export interface BBoxed extends Binding {
     bBox: BBoxPointMap;
 }
 
-export interface Dimensioned extends Bindings {
+export interface Dimensioned extends Binding {
     width: number;
     height: number;
 }
 
-export interface Clipped extends Bindings {
+export interface Clipped extends Binding {
     clippingPoints: ClippingPointMap;
 }
 
@@ -64,4 +64,19 @@ export type SMuFLFontMeta = {
     glyphsWithAlternates: SimpleMap<{
         alternates: SimpleMap<string>[]
     }>
+}
+
+export interface NoteHeadGlyph extends BBoxed, Positioned {
+    isDisplaced: boolean;
+}
+
+export interface StemGlyph extends Positioned, Dimensioned {
+    isVirtual: boolean;
+}
+
+export interface FlagGlyph extends Positioned {
+}
+
+export interface AccidentalGlyph extends Positioned, BBoxed, Clipped {
+
 }

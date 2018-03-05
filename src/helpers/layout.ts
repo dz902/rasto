@@ -1,6 +1,5 @@
-import { Coordinates, Anchored, BBoxed, Positioned } from 'types/layout';
+import { Coordinates, Anchored, BBoxed, Positioned, Binding, Clipped, ClippingPointMap, Dimensioned } from 'types';
 import { mapValues, merge } from 'lodash';
-import { Bindings, Clipped, ClippingPointMap, Dimensioned } from '../types';
 
 export function overlapsWith(a: Positioned & BBoxed, b: Positioned & BBoxed): boolean {
     let aa = computeOffsetedDimensions(a);
@@ -71,34 +70,30 @@ export function getAlignmentOffsets(subject: Positioned, target: Positioned): Co
     return offsets;
 }
 
-export function withAnchor<T extends Bindings>(subject: T, anchor: Coordinates): T & Anchored {
+export function withAnchor<T extends Binding>(subject: T, anchor: Coordinates): T & Anchored {
     return merge({}, subject, { anchor });
 }
 
-export function withClippingPoints<T extends Bindings>(subject: T, clippingPoints: ClippingPointMap): T & Clipped {
+export function withClippingPoints<T extends Binding>(subject: T, clippingPoints: ClippingPointMap): T & Clipped {
     return merge({}, subject, { clippingPoints });
 }
 
 export function computeBoundingDimensions(subjects: (Positioned & BBoxed)[]): Dimensioned {
-    let rightEdge = 0;
-    let bottomEdge = 0;
+    let leftPoints: number[] = [];
+    let topPoints: number[] = [];
+    let rightPoints: number[] = [];
+    let bottomPoints: number[] = [];
 
     subjects.map(computeOffsetedDimensions).forEach((subject) => {
-        let rightPoint = Math.abs(subject.x) + subject.width;
-        let bottomPoint = Math.abs(subject.y) + subject.height;
-
-        if (rightPoint > rightEdge) {
-            rightEdge = rightPoint;
-        }
-
-        if (bottomPoint > bottomEdge) {
-            bottomEdge = bottomPoint;
-        }
+        leftPoints.push(subject.x);
+        topPoints.push(subject.y);
+        rightPoints.push(subject.x + subject.width);
+        bottomPoints.push(subject.y + subject.height);
     });
 
     return {
-        width: rightEdge,
-        height: bottomEdge
+        width: Math.max(...rightPoints) - Math.min(...leftPoints),
+        height: Math.max(...bottomPoints) - Math.min(...topPoints)
     };
 }
 

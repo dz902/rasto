@@ -1,4 +1,4 @@
-export interface Bindings {
+export interface Binding {
     [k: string]: any
 }
 

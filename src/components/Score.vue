@@ -12,7 +12,7 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
                     :y2="`${n-1}rem`"
                 )
             svg.measures
-                svg.measure(v-for="measure in measures")
+                svg.measure(v-for="measure in measuresByStaffId(0)")
                     template(v-for="item in measure.items")
                         chord-component(
                             v-if="item.kind === 'chord'"
@@ -28,15 +28,10 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import ScoreStore from 'stores/score';
-import ChordComponent from './Chord.vue';
-import { merge } from 'lodash';
-import {
-    getNotePosition,
-    getStaffLinePositionFromClef
-} from 'helpers';
-import { BBoxed, Bindings, ContextChange, Positioned } from 'types';
-import { remize } from '../mixins';
+import ChordComponent from 'components/Chord.vue';
+import { remize } from 'mixins';
 
 export default Vue.extend({
     name: 'score',
@@ -47,44 +42,15 @@ export default Vue.extend({
         }
     },
     computed: {
-        measures(): object[] {
-            return this.score.measures.map((measure) => {
-                let measureBindings: Bindings = {};
-
-                measureBindings.items = measure.items.map((item) => {
-                    let itemBindings: Positioned & BBoxed = {
-                        kind: item.kind,
-                        x: 0,
-                        y: 0,
-                        bBox: {
-                            NE: { x: 0, y: 0 },
-                            SW: { x: 0, y: 0 }
-                        }
-                    };
-
-                    switch(item.kind) {
-                        case 'chord':
-                            let currentClef = this.currentContexts[item.staffId].clef;
-
-                            itemBindings.chord = item;
-                            itemBindings.clef = currentClef;
-
-                            break;
-                    }
-
-                    return itemBindings;
-                });
-
-                return measureBindings;
-            });
-        }
+        ...mapGetters(['measuresByStaffId'])
     },
     components: {
         ChordComponent
     },
     mixins: [
         remize
-    ]
+    ],
+    store: ScoreStore
 });
 </script>
 
