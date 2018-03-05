@@ -79,7 +79,7 @@ let scoreTest: Score = {
                             }
                         }
                     ],
-                    stemDirection: StemDirection.Up,
+                    stemDirection: StemDirection.Down,
                     staffId: 0
                 } as Chord
             ]

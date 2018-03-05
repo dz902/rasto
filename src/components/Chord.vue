@@ -362,7 +362,7 @@ export default Vue.extend({
 
                 let accidental: Accidental = {
                     textContent: accidentalChar,
-                    x: 0,
+                    x: this.stemDownward ? -this.noteHeadWidth : 0,
                     y: 0,
                     bBox: accidentalGlyphMeta.bBox,
                     clippingPoints: accidentalGlyphMeta.clippingPoints
