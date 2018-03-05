@@ -30,15 +30,13 @@ svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
 import Vue from 'vue';
 import ScoreStore from 'stores/score';
 import ChordComponent from './Chord.vue';
-import { ClefSign} from 'types/music';
 import { merge } from 'lodash';
 import {
     getNotePosition,
-    computePositionDiff,
-    getStaffBottomLinePositionFromClef,
     getStaffLinePositionFromClef
-} from '../helpers/store';
-import { Chord, Context, ContextChange } from '../types/music';
+} from 'helpers';
+import { BBoxed, Bindings, ContextChange, Positioned } from 'types';
+import { remize } from '../mixins';
 
 export default Vue.extend({
     name: 'score',
@@ -51,20 +49,22 @@ export default Vue.extend({
     computed: {
         measures(): object[] {
             return this.score.measures.map((measure) => {
-                let measureBindings: { [k: string]: any } = {};
+                let measureBindings: Bindings = {};
 
                 measureBindings.items = measure.items.map((item) => {
-                    let itemBindings: { [k: string]: any } = {
-                        kind: item.kind
+                    let itemBindings: Positioned & BBoxed = {
+                        kind: item.kind,
+                        x: 0,
+                        y: 0,
+                        bBox: {
+                            NE: { x: 0, y: 0 },
+                            SW: { x: 0, y: 0 }
+                        }
                     };
 
                     switch(item.kind) {
                         case 'chord':
                             let currentClef = this.currentContexts[item.staffId].clef;
-                            let chordBottomNotePosition = getNotePosition(item.notes[0]);
-                            let staffBottomLinePosition = getStaffLinePositionFromClef(currentClef, 1);
-
-                            itemBindings.y = 4 - (chordBottomNotePosition - staffBottomLinePosition) + 'rem';
 
                             itemBindings.chord = item;
                             itemBindings.clef = currentClef;
@@ -79,14 +79,12 @@ export default Vue.extend({
             });
         }
     },
-    methods: {
-        changeContextOnStaff(newContext: ContextChange) {
-            merge(this.currentContexts[newContext.staffId], newContext);
-        }
-    },
     components: {
         ChordComponent
-    }
+    },
+    mixins: [
+        remize
+    ]
 });
 </script>
 

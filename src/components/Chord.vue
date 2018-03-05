@@ -42,7 +42,7 @@ import {
     Note,
     StemDirection,
     Coordinates,
-    Dimensioned, GlyphMeta, Clipped
+    Dimensioned, GlyphMeta, Clipped, StaffBoundaryPositions, Nullable
 } from 'types';
 import { remize } from 'mixins';
 import {
@@ -56,8 +56,7 @@ import {
     withAnchor,
     alignToMiddle,
     computeBoundingDimensions,
-    overlapsWith,
-    getGlyphMeta, computeBBox, computeDimensions, fitFromLeft, withClippingPoints
+    getGlyphMeta, computeBBox, computeDimensions, fitFromLeft, withClippingPoints, getStaffLinePositionFromClef
 } from 'helpers';
 import { at, range, first, last, merge, forEachRight } from 'lodash';
 
@@ -82,12 +81,11 @@ export default Vue.extend({
         ledgerLines() {
             let ledgerLines: Bindings[] = [];
 
-            if (!this.clef) {
+            if (!this.staffBoundaryPositions) {
                 return ledgerLines;
             }
 
             let ledgerLineExtension = getEngravingDefaults('legerLineExtension') * 2;
-            let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
 
             let checkDisplacedNotes = (filter: (n: NoteHead, i: number) => boolean): boolean => {
                 return this.noteHeads.some((n, i) => filter(n, i) && n.isDisplaced);
@@ -118,13 +116,13 @@ export default Vue.extend({
                 return x;
             };
 
-            let firstHigherLedgerLinePosition = staffBoundaryPositions.highest + 1;
+            let firstHigherLedgerLinePosition = this.staffBoundaryPositions.highest + 1;
 
             if (this.highestNotePosition > firstHigherLedgerLinePosition) {
                 let ledgerNotesDisplaced = checkDisplacedNotes((n, i) => this.notePositions[i] >= firstHigherLedgerLinePosition);
                 let chordWidth = ledgerNotesDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
-                let extraThirds = this.highestNotePosition - staffBoundaryPositions.highest;
+                let extraThirds = this.highestNotePosition - this.staffBoundaryPositions.highest;
 
                 let offsetX = computeLedgerLineOffset(ledgerLineWidth, ledgerNotesDisplaced);
 
@@ -140,16 +138,14 @@ export default Vue.extend({
                 }
             }
 
-            let firstLowerLedgerLinePosition = staffBoundaryPositions.lowest - 1;
+            let firstLowerLedgerLinePosition = this.staffBoundaryPositions.lowest - 1;
 
             if (this.lowestNotePosition < firstLowerLedgerLinePosition) {
                 let ledgerNotesDisplaced = checkDisplacedNotes((n, i) => this.notePositions[i] <= firstLowerLedgerLinePosition);
                 let chordWidth = ledgerNotesDisplaced ? this.noteHeadWidth * 2 - this.stemWidth : this.noteHeadWidth;
                 let ledgerLineWidth = ledgerLineExtension + chordWidth;
-
                 let offsetX = computeLedgerLineOffset(ledgerLineWidth, ledgerNotesDisplaced);
-
-                let extraThirds = this.lowestNotePosition - staffBoundaryPositions.lowest;
+                let extraThirds = this.lowestNotePosition - this.staffBoundaryPositions.lowest;
 
                 for (let i = extraThirds % 1, n = extraThirds; i > n; --i) {
                     ledgerLines.push({
@@ -184,17 +180,15 @@ export default Vue.extend({
 
             // checkDistantChordExtension
 
-            if (this.clef) {
-                let staffBoundaryPositions = getStaffBoundaryPositionsFromClef(this.clef);
-
+            if (this.staffBoundaryPositions) {
                 if (this.stemDownward &&
-                    this.lowestNotePosition > staffBoundaryPositions.highest + 1.5) {
-                    let diff = computePositionDiff(this.lowestNotePosition, staffBoundaryPositions.highest + 1.5);
+                    this.lowestNotePosition > this.staffBoundaryPositions.highest + 1.5) {
+                    let diff = computePositionDiff(this.lowestNotePosition, this.staffBoundaryPositions.highest + 1.5);
 
                     stem.height += diff;
                 } else if (!this.stemDownward &&
-                    this.highestNotePosition < staffBoundaryPositions.lowest - 1.5) {
-                    let diff = computePositionDiff(this.highestNotePosition, staffBoundaryPositions.lowest - 1.5);
+                    this.highestNotePosition < this.staffBoundaryPositions.lowest - 1.5) {
+                    let diff = computePositionDiff(this.highestNotePosition, this.staffBoundaryPositions.lowest - 1.5);
 
                     stem.height += diff;
                 }
@@ -396,6 +390,11 @@ export default Vue.extend({
             return accidentals;
         },
         chordBody(): Bindings {
+            let x = 0;
+            let y = 0;
+
+            // computeAccidentalOffset
+
             let accidentalsWidth = this.accidentals.length > 0 ? computeBoundingDimensions(this.accidentals).width : 0;
 
             if (this.stemDownward) {
@@ -404,8 +403,17 @@ export default Vue.extend({
                 accidentalsWidth -= this.noteHeadWidth;
             }
 
+            x = accidentalsWidth + 0.2;
+
+            // computeShift
+
+            if (this.staffBoundaryPositions) {
+                y = this.staffBoundaryPositions.highest - this.lowestNotePosition;
+            }
+
             return {
-                x: accidentalsWidth + 0.2
+                x,
+                y
             };
         },
         noteHeadGlyphMeta(): GlyphMeta {
@@ -445,6 +453,9 @@ export default Vue.extend({
             let numFlags: number = numLookup === -1 ? 0 : numLookup;
 
             return numFlags;
+        },
+        staffBoundaryPositions(): Nullable<StaffBoundaryPositions> {
+            return this.clef ? getStaffBoundaryPositionsFromClef(this.clef) : null;
         }
     },
     components: {

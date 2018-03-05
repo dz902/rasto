@@ -171,3 +171,8 @@ export enum StemDirection {
     Up = 'up',
     Down = 'down'
 }
+
+export interface StaffBoundaryPositions {
+    highest: number;
+    lowest: number;
+}

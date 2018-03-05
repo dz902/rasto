@@ -1,6 +1,6 @@
 import {
     FlagType, GlyphKind, MarkType, StemDirection, Positioned, BBoxed, AccidentalType, Coordinates,
-    GlyphMeta, CoordinatesMap, ClippingPointMap, SMuFLFontMeta
+    GlyphMeta, CoordinatesMap, ClippingPointMap, SMuFLFontMeta, BBoxPointMap, Dimensioned
 } from 'types';
 import { computeDimensions } from './layout';
 import { mapValues } from 'lodash';
@@ -23,15 +23,15 @@ export function getEngravingDefaults(k: string): number {
 export function getGlyphMeta(kind: GlyphKind, name: string): GlyphMeta {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
     let rawBBox = mapValues(fontMeta.glyphBBoxes[glyphKey], dupleToCoordinates);
-    let bBox = {
+    let bBox: BBoxPointMap = {
         NE: rawBBox['bBoxNE'],
         SW: rawBBox['bBoxSW']
     };
 
     let rawAnchors = fontMeta.glyphsWithAnchors[glyphKey] || {};
-    let anchors = mapValues(rawAnchors, dupleToCoordinates);
+    let anchors: CoordinatesMap = mapValues(rawAnchors, dupleToCoordinates);
 
-    let dimensions = computeDimensions({ bBox });
+    let dimensions: Dimensioned = computeDimensions({ bBox });
     let clippingPoints: ClippingPointMap = {
         NE: anchors['cutOutNE'] || { x: dimensions.width, y: -dimensions.height },
         NW: anchors['cutOutNW'] || { x: 0, y: -dimensions.height },

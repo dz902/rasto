@@ -1,7 +1,7 @@
 import { Bindings } from './common';
 
 export interface GlyphMeta {
-    bBox: EdgePointMap;
+    bBox: BBoxPointMap;
     anchors: CoordinatesMap;
     clippingPoints: ClippingPointMap;
     char: string;
@@ -19,7 +19,7 @@ export interface Anchored extends Bindings {
 }
 
 export interface BBoxed extends Bindings {
-    bBox: EdgePointMap;
+    bBox: BBoxPointMap;
 }
 
 export interface Dimensioned extends Bindings {
@@ -38,7 +38,7 @@ export interface ClippingPointMap {
     SE: Coordinates;
 }
 
-export interface EdgePointMap {
+export interface BBoxPointMap {
     NE: Coordinates;
     SW: Coordinates;
 }
