@@ -59,7 +59,7 @@ import {
     overlapsWith,
     getGlyphMeta, computeBBox, computeDimensions, fitFromLeft, withClippingPoints
 } from 'helpers';
-import { at, range, first, last, merge } from 'lodash';
+import { at, range, first, last, merge, forEachRight } from 'lodash';
 
 export default Vue.extend({
     name: 'chord',
@@ -352,7 +352,7 @@ export default Vue.extend({
             let accidentalBase: Accidental;
             let lastAccidental: Accidental;
 
-            this.chord.notes.forEach((note: Note, i: number) => {
+            forEachRight(this.chord.notes, (note: Note, i: number) => {
                 if (!note.accidental) {
                     return;
                 }
