@@ -373,16 +373,18 @@ export default Vue.extend({
                     this.noteHeads[i]
                 );
 
-                if (lastAccidental) {
-                    accidental = fitFromLeft(accidental, lastAccidental);
-                } else {
-                }
-
-                let accidentalNotOverlapWithBase =
+                let accidentalNotOverlapWithBase = !accidentalBase || (
                     accidentalBase &&
-                    (accidental.x + accidental.bBox.NE.x) === (accidentalBase.x + accidentalBase.bBox.NE.x);
+                    (accidental.x + accidental.bBox.NE.x) === (accidentalBase.x + accidentalBase.bBox.NE.x)
+                );
 
                 if (accidentalNotOverlapWithBase) {
+                    accidentalBase = accidental;
+                } else {
+                    accidental = fitFromLeft(accidental, lastAccidental);
+                }
+
+                if (!accidentalBase) {
                     accidentalBase = accidental;
                 }
 
