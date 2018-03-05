@@ -1,8 +1,9 @@
 import { Bindings } from './common';
 
 export interface GlyphMeta {
-    bBox: CoordinatesMap;
+    bBox: EdgePointMap;
     anchors: CoordinatesMap;
+    clippingPoints: ClippingPointMap;
     char: string;
 }
 
@@ -18,7 +19,7 @@ export interface Anchored extends Bindings {
 }
 
 export interface BBoxed extends Bindings {
-    bBox: CoordinatesMap;
+    bBox: EdgePointMap;
 }
 
 export interface Dimensioned extends Bindings {
@@ -27,9 +28,40 @@ export interface Dimensioned extends Bindings {
 }
 
 export interface Clipped extends Bindings {
-    clippingPoints: CoordinatesMap;
+    clippingPoints: ClippingPointMap;
 }
 
-export type CoordinatesMap = {
+export interface ClippingPointMap {
+    NW: Coordinates;
+    NE: Coordinates;
+    SW: Coordinates;
+    SE: Coordinates;
+}
+
+export interface EdgePointMap {
+    NE: Coordinates;
+    SW: Coordinates;
+}
+
+export interface CoordinatesMap {
     [k: string]: Coordinates
+}
+
+export interface DupleMap {
+    [k: string]: Duple;
+}
+
+export interface SimpleMap<T> {
+    [k: string]: T;
+}
+
+export type Duple = [number, number];
+
+export type SMuFLFontMeta = {
+    engravingDefaults: SimpleMap<number>,
+    glyphBBoxes: SimpleMap<DupleMap>,
+    glyphsWithAnchors: SimpleMap<DupleMap>,
+    glyphsWithAlternates: SimpleMap<{
+        alternates: SimpleMap<string>[]
+    }>
 }

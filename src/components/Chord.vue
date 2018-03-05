@@ -42,7 +42,7 @@ import {
     Note,
     StemDirection,
     Coordinates,
-    Dimensioned, GlyphMeta
+    Dimensioned, GlyphMeta, Clipped
 } from 'types';
 import { remize } from 'mixins';
 import {
@@ -364,7 +364,8 @@ export default Vue.extend({
                     textContent: accidentalChar,
                     x: 0,
                     y: 0,
-                    bBox: accidentalGlyphMeta.bBox
+                    bBox: accidentalGlyphMeta.bBox,
+                    clippingPoints: accidentalGlyphMeta.clippingPoints
                 };
 
                 accidental = alignToMiddle(
@@ -372,14 +373,16 @@ export default Vue.extend({
                     this.noteHeads[i]
                 );
 
-                if (accidentalBase && overlapsWith(accidental, accidentalBase)) {
-                    let accidentalClippingPoints = accidentalGlyphMeta.anchors;
-                    let accidentalToFit = accidentalClippingPoints ?
-                        withClippingPoints(accidental, accidentalClippingPoints) :
-                        accidental;
-
-                    accidental = fitFromLeft(accidentalToFit, lastAccidental);
+                if (lastAccidental) {
+                    accidental = fitFromLeft(accidental, lastAccidental);
                 } else {
+                }
+
+                let accidentalNotOverlapWithBase =
+                    accidentalBase &&
+                    (accidental.x + accidental.bBox.NE.x) === (accidentalBase.x + accidentalBase.bBox.NE.x);
+
+                if (accidentalNotOverlapWithBase) {
                     accidentalBase = accidental;
                 }
 
@@ -461,7 +464,7 @@ interface Stem extends Dimensioned, Positioned {
 interface Flag extends Positioned {
 }
 
-interface Accidental extends Positioned, BBoxed {
+interface Accidental extends Positioned, BBoxed, Clipped {
 
 }
 </script>

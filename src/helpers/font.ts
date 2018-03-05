@@ -1,31 +1,43 @@
 import {
     FlagType, GlyphKind, MarkType, StemDirection, Positioned, BBoxed, AccidentalType, Coordinates,
-    GlyphMeta, CoordinatesMap
+    GlyphMeta, CoordinatesMap, ClippingPointMap, SMuFLFontMeta
 } from 'types';
+import { computeDimensions } from './layout';
 import { mapValues } from 'lodash';
 
 const fontCodePoints = require('fonts/meta/glyphnames.json');
-const fontMeta = require('fonts/bravura/bravura_metadata.json');
+const fontMeta: SMuFLFontMeta = require('fonts/bravura/bravura_metadata.json');
 
 let glyphsWithAlternates = fontMeta['glyphsWithAlternates'];
 
 for (let k in glyphsWithAlternates) {
-    glyphsWithAlternates[k]['alternates'].forEach((alternate: any) => {
+    glyphsWithAlternates[k].alternates.forEach((alternate: any) => {
         fontCodePoints[alternate['name']] = alternate;
     });
-
 }
 
 export function getEngravingDefaults(k: string): number {
-    return fontMeta['engravingDefaults'][k];
+    return fontMeta.engravingDefaults[k];
 }
 
 export function getGlyphMeta(kind: GlyphKind, name: string): GlyphMeta {
     let glyphKey = getGlyphKeyFromKindAndName(kind, name);
-    let bBox = mapValues(fontMeta['glyphBBoxes'][glyphKey] as { [k: string]: [number, number] }, dupleToCoordinates);
-    let anchors = fontMeta['glyphsWithAnchors'][glyphKey];
+    let rawBBox = mapValues(fontMeta.glyphBBoxes[glyphKey], dupleToCoordinates);
+    let bBox = {
+        NE: rawBBox['bBoxNE'],
+        SW: rawBBox['bBoxSW']
+    };
 
-    anchors = anchors ? mapValues(anchors, dupleToCoordinates) : null;
+    let rawAnchors = fontMeta.glyphsWithAnchors[glyphKey] || {};
+    let anchors = mapValues(rawAnchors, dupleToCoordinates);
+
+    let dimensions = computeDimensions({ bBox });
+    let clippingPoints: ClippingPointMap = {
+        NE: anchors['cutOutNE'] || { x: dimensions.width, y: -dimensions.height },
+        NW: anchors['cutOutNW'] || { x: 0, y: -dimensions.height },
+        SE: anchors['cutOutSE'] || { x: dimensions.width, y: 0 },
+        SW: anchors['cutOutSW'] || { x: 0, y: 0 }
+    };
 
     let codePoint = Number.parseInt(fontCodePoints[glyphKey]['codepoint'].match(/^U\+([0-9A-F]+)$/)[1], 16);
     let char = String.fromCodePoint(codePoint);
@@ -33,6 +45,7 @@ export function getGlyphMeta(kind: GlyphKind, name: string): GlyphMeta {
     return {
         bBox,
         anchors,
+        clippingPoints,
         char
     };
 }
