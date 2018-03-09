@@ -1,5 +1,5 @@
 <template lang="pug">
-svg.score(v-bind:width="`${score.layout.scoreWidth}em`" height="100rem")
+svg.score(v-bind:width="`50em`" height="100rem")
     svg.system(x="1rem" y="15rem")
         svg.staff
             svg.staff-lines
@@ -35,12 +35,6 @@ import { remize } from 'mixins';
 
 export default Vue.extend({
     name: 'score',
-    data() {
-        return {
-            score: ScoreStore.state,
-            currentContexts: ScoreStore.state.initialContexts
-        }
-    },
     computed: {
         ...mapGetters(['measuresByStaffId'])
     },

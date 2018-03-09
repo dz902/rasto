@@ -2,8 +2,8 @@ import Vue from 'vue';
 import Vuex from 'vuex';
 import {
     StemDirection,
-    Chord, ClefSign, ContextChange, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
-    Tie, AccidentalType, Binding, Context, GlyphKind
+    Chord, ClefSign, Direction, MarkType, Measure, MeasureItem, Score, StaffItem,
+    Tie, AccidentalType, Context, GlyphKind
 } from 'types';
 import { createMeasureBindings } from '../helpers';
 
@@ -80,6 +80,50 @@ let scoreTest: Score = {
                     ],
                     stemDirection: StemDirection.Up,
                     staffId: 0
+                } as Chord,
+                {
+                    kind: 'chord',
+                    type: MarkType.N64th,
+                    notes: [
+                        {
+                            name: 'D',
+                            octaveNumber: 2
+                        },
+                        {
+                            name: 'D',
+                            octaveNumber: 5,
+                            accidental: {
+                                type: AccidentalType.Sharp
+                            }
+                        },
+                        {
+                            name: 'E',
+                            octaveNumber: 5,
+                            accidental: {
+                                type: AccidentalType.Flat
+                            }
+                        },
+                        {
+                            name: 'F',
+                            octaveNumber: 6,
+                            accidental: {
+                                type: AccidentalType.Sharp
+                            }
+                        },
+                        {
+                            name: 'A',
+                            octaveNumber: 6
+                        },
+                        {
+                            name: 'B',
+                            octaveNumber: 6,
+                            accidental: {
+                                type: AccidentalType.Flat
+                            }
+                        }
+                    ],
+                    stemDirection: StemDirection.Down,
+                    staffId: 0
                 } as Chord
             ]
         }
@@ -100,9 +144,7 @@ export default new Vuex.Store({
                 return items;
             }, []);
         },
-        measuresByStaffId: (state, getters) => (staffId: number) => {
-
-            console.log(createMeasureBindings(state.measures, state.initialContexts[staffId]));
+        measuresByStaffId: state => (staffId: number) => {
             return createMeasureBindings(state.measures, state.initialContexts[staffId]);
         }
     },

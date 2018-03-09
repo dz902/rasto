@@ -356,16 +356,6 @@ class ChordBinding implements Binding {
         let x = 0;
         let y = 0;
 
-        // computeAccidentalOffset
-
-        let accidentalsWidth = this.accidentals.length > 0 ? computeBoundingDimensions(this.accidentals).width : 0;
-
-        if (!this.stemDownward) {
-            accidentalsWidth -= this.noteHeadWidth;
-        }
-
-        x = accidentalsWidth + 0.2;
-
         // computeShift
 
         if (this.staffBoundaryPositions) {

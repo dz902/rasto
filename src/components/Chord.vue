@@ -31,41 +31,7 @@ svg.chord
 <script lang="ts">
 import Vue from 'vue';
 import GlyphComponent from './Glyph.vue';
-import {
-    Binding,
-    Anchored,
-    BBoxed,
-    Positioned,
-    FlagType,
-    GlyphKind,
-    MarkType,
-    Note,
-    StemDirection,
-    Coordinates,
-    Dimensioned,
-    GlyphMeta,
-    Clipped,
-    StaffBoundaryPositions,
-    Nullable,
-    NoteHeadGlyph,
-    FlagGlyph,
-    StemGlyph,
-    AccidentalGlyph
-} from 'types';
 import { remize } from 'mixins';
-import {
-    getIntervalBetween,
-    computeNotePosition,
-    computePositionDiff,
-    getStaffBoundaryPositionsFromClef,
-    getEngravingDefaults,
-    alignToCenter,
-    snapTo,
-    withAnchor,
-    alignToMiddle,
-    computeBoundingDimensions,
-    getGlyphMeta, computeBBox, computeDimensions, fitFromLeft, withClippingPoints, getStaffLinePositionFromClef
-} from 'helpers';
 import { at, range, first, last, merge, forEachRight } from 'lodash';
 
 export default Vue.extend({

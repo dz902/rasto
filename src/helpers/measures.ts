@@ -16,8 +16,6 @@ export function createMeasureBindings(measures: Measure[], currentContext: Conte
 
             itemBinding.kind = item.kind;
 
-            console.log(itemBinding);
-
             return itemBinding;
         });
 
@@ -26,4 +24,3 @@ export function createMeasureBindings(measures: Measure[], currentContext: Conte
         };
     });
 }
-
